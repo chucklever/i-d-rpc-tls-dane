@@ -2308,6 +2308,10 @@ two peer authentication mechanisms to that end, PKIX trust and
 pre-shared keys.  Accepting unauthenticated TLS
 here would be a downgrade relative to the base specification rather
 than an improvement on cleartext.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+<p id="section-7.4-6">[[TODO: Whether this row should instead require only the
+unauthenticated TLS that Section 10.3 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> calls for, or
+fail the attempt as mandatory mode does, is open.
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/1 ]]<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2475,11 +2479,15 @@ with an attacker interfering with the cleartext exchange, and they are
 what such interference looks like.  A client that treats them as
 declines has no downgrade resistance even against an attacker who
 cannot forge a well-formed Reply.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
-<p id="section-8.3-4">Note that the DECLINED classification deliberately includes MSG_DENIED
+<p id="section-8.3-4">[[TODO: Whether opportunistic mode should instead take the stricter
+policy of Section 6.1.1 and Section 6.4 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, at the cost of
+reachability to servers that predate it, is open.
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 ]]<a href="#section-8.3-4" class="pilcrow">¶</a></p>
+<p id="section-8.3-5">Note that the DECLINED classification deliberately includes MSG_DENIED
 with AUTH_ERROR, because that is how a server predating <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>
 rejects an unrecognized authentication flavor.  Classifying it
 otherwise would break the interoperability that the AUTH_TLS probe
-exists to provide.<a href="#section-8.3-4" class="pilcrow">¶</a></p>
+exists to provide.<a href="#section-8.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="no-retry">
@@ -3337,72 +3345,52 @@ both.<a href="#appendix-A.1-1.22.1" class="pilcrow">¶</a></p>
 <a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-open-issues" class="section-name selfRef">Open Issues</a>
       </h2>
 <p id="appendix-B-1">This section is to be removed before publishing as an RFC.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">Each item is tracked as an issue in this document's issue tracker,
+where the detail and the discussion live.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B-2.1">
-          <p id="appendix-B-2.1.1"><a href="#behavior" class="auto internal xref">Section 7.4</a> requires an authenticated TLS session for the
-SECURE_UNUSABLE class, where Section 10.3 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and
-Section 2.2 of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> require only unauthenticated TLS.  The
-rationale is given in <a href="#behavior" class="auto internal xref">Section 7.4</a>.  The working group may want this
-stricter, failing the attempt as mandatory mode does.  Following
-<span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> instead is not merely a looser reading of this document:
-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines no unauthenticated TLS mode, so that choice would
-additionally have to update Section 4.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#appendix-B-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-B-3.1">
+          <p id="appendix-B-3.1.1"><a href="#behavior" class="auto internal xref">Section 7.4</a>: whether the SECURE_UNUSABLE class requires an
+authenticated TLS session, the unauthenticated TLS that Section 10.3
+of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> calls for, or a failed attempt.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/1">Issue 1</a><a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.2">
-          <p id="appendix-B-2.2.1"><a href="#selected" class="auto internal xref">Section 6.5</a> departs from Section 7 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> by sending the
-original reference name rather than the selected TLSA base domain in
-SNI for the SECURE_UNUSABLE class.  The alternative considered and
-rejected was to send the base domain and accept it as an additional
-PKIX reference identifier, which widens what an opportunistic client
-accepts beyond what Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> specifies.<a href="#appendix-B-2.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.2">
+          <p id="appendix-B-3.2.1"><a href="#selected" class="auto internal xref">Section 6.5</a>: whether SNI carries the original reference name or the
+selected TLSA base domain for the SECURE_UNUSABLE class.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/2">Issue 2</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.3">
-          <p id="appendix-B-2.3.1">The partition of AUTH_TLS probe results in <a href="#probe" class="auto internal xref">Section 8.2</a>, and in
-particular which of them count as DECLINED, determines how much of
-the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> server population remains reachable.  The
-classification given is believed to preserve interoperability, but
-has not been validated against a broad server population.<a href="#appendix-B-2.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.3">
+          <p id="appendix-B-3.3.1"><a href="#probe" class="auto internal xref">Section 8.2</a>: whether the partition of AUTH_TLS probe results, and in
+particular which of them count as DECLINED, preserves reachability
+to the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> server population.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/3">Issue 3</a><a href="#appendix-B-3.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.4">
-          <p id="appendix-B-2.4.1"><a href="#fallback" class="auto internal xref">Section 8.3</a> permits cleartext operation where no floor has been
-pinned and the server returns a well-formed decline.  That is the
-interoperability branch of Section 6.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and it is
-weaker than the policies Section 6.1.1 and Section 6.4 of
-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> recommend for a client that has no TLSA records
-available.  The working group may want this document to require the
-stricter policy for associations in opportunistic mode, at the cost
-of reachability to servers that predate <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#appendix-B-2.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.4">
+          <p id="appendix-B-3.4.1"><a href="#fallback" class="auto internal xref">Section 8.3</a>: whether cleartext operation remains permitted where no
+floor has been pinned and the server declines, or opportunistic mode
+takes the stricter policy of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.5">
-          <p id="appendix-B-2.5.1"><a href="#usages" class="auto internal xref">Section 7.1</a> makes support for PKIX-TA(0) and PKIX-EE(1) optional and
-treats unsupported records as unusable.  Whether RPC-with-TLS, which
-requires PKIX support in every client, should instead specify
-behavior for those usages is an open question.<a href="#appendix-B-2.5.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.5">
+          <p id="appendix-B-3.5.1"><a href="#usages" class="auto internal xref">Section 7.1</a>: whether support for PKIX-TA(0) and PKIX-EE(1) stays
+optional, or this document specifies behavior for those usages.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/5">Issue 5</a><a href="#appendix-B-3.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.6">
-          <p id="appendix-B-2.6.1"><a href="#sec-ports" class="auto internal xref">Section 13.4</a> observes that a client can obtain service ports over
-an authenticated channel by applying <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> and this document
-to the RPCBIND service itself, and states that observation without
-normative force.  No RPCBIND implementation is known to support
-RPC-with-TLS.  Whether this document should require that
-arrangement, recommend it, or leave it as description is open.<a href="#appendix-B-2.6.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.6">
+          <p id="appendix-B-3.6.1"><a href="#sec-ports" class="auto internal xref">Section 13.4</a>: whether obtaining service ports over an authenticated
+channel is required, recommended, or left as description.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/6">Issue 6</a><a href="#appendix-B-3.6.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.7">
-          <p id="appendix-B-2.7.1">No owner-name convention is proposed for transports other than those
-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines; see <a href="#scope" class="auto internal xref">Section 1.2</a>.  Section 4 of
-draft-ietf-dnsop-svcb-dane, a DNSOP working group document, adds
-"quic" to the transport names of Section 3 of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> and
-registers the node name "_quic", expressly to distinguish TLSA
-records for DTLS from those for QUIC.  A future document specifying
-RPC over QUIC would take the label from there rather than define
-one.  That draft expired at revision -05 on 4 September 2025.<a href="#appendix-B-2.7.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.7">
+          <p id="appendix-B-3.7.1"><a href="#scope" class="auto internal xref">Section 1.2</a>: whether an owner-name convention is needed for transports
+other than those <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/7">Issue 7</a><a href="#appendix-B-3.7.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-2.8">
-          <p id="appendix-B-2.8.1"><a href="#scope" class="auto internal xref">Section 1.2</a> excludes associations that use the pre-shared key
-mechanism of Section 5.2.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  Whether such an
-association should nevertheless consult TLSA records for downgrade
-resistance, treating a validated RRset as the operator's commitment
-to TLS without using it for authentication, is an open question.<a href="#appendix-B-2.8.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-B-3.8">
+          <p id="appendix-B-3.8.1"><a href="#scope" class="auto internal xref">Section 1.2</a>: whether an association using the pre-shared key mechanism
+of Section 5.2.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> consults TLSA records for downgrade
+resistance.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/8">Issue 8</a><a href="#appendix-B-3.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
