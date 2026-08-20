@@ -195,6 +195,68 @@ define the corresponding owner-name convention. The downgrade
 resistance rule in {{floor}} is stated in terms that such a document
 can reuse without restating it.
 
+# Updates to RFC 9289 {#updates}
+
+Section 1 of {{RFC9289}} assumes that DNSSEC and DANE are available
+but does not specify their use.  This document specifies that use.
+In doing so it changes {{RFC9289}} as set out in this section.
+
+Two requirements of {{RFC9289}} are changed here:
+
+* Section 5.2.1 of {{RFC9289}} requires PKIX path validation and a
+  check of the expected DNS-ID or iPAddress subjectAltName against the
+  presented certificate.  Those requirements continue to apply
+  unchanged wherever this document requires PKIX authentication, and
+  to the name checks performed for certificate usage DANE-TA(2).  They
+  do not apply to a server authenticated by a DANE-EE(3) match, for
+  the reasons given in Section 5.1 of {{RFC7671}} and restated in
+  {{dane-ee}}.
+
+* Where {{RFC9289}} cites {{RFC6125}} for certificate name checks,
+  clients implementing this document perform those checks per
+  {{RFC9525}}, which obsoletes {{RFC6125}}.  The additional
+  restriction in Section 5.2.1 of {{RFC9289}}, that a DNS domain name
+  in an RPC-with-TLS certificate contain no wildcard character, is
+  retained.
+
+Elsewhere {{RFC9289}} makes a recommendation or leaves a choice to
+local policy.  This document replaces each of the following with a
+requirement stated in the section named:
+
+* The first bullet of Section 6.1.1 of {{RFC9289}} recommends that a
+  client under an opportunistic security policy check for the
+  existence of a TLSA record before initiating an association, and
+  disconnect if TLS cannot be negotiated or authentication fails.
+  {{lookup}}, {{behavior}}, and {{floor}} replace that recommendation.
+  The check is meaningful only if the answer is DNSSEC-validated, and
+  this document states what a client concludes from each outcome
+  rather than from a record's presence alone.
+
+* The second bullet of Section 6.1.1 of {{RFC9289}} recommends a
+  client security policy that requires a TLS session on every
+  connection, and Section 6.4 of {{RFC9289}} recommends, for AUTH_NULL
+  and AUTH_SYS, that both peers have DNSSEC TLSA records and a policy
+  that rejects a connection when host authentication fails.  {{floor}}
+  and {{fallback}} require that behavior where this document pins a
+  security floor.  Where no floor is pinned, {{fallback}} is weaker,
+  since it permits cleartext operation when the server returns a
+  well-formed decline.  A deployment that adopts either recommendation
+  in full is more restrictive than {{fallback}} requires and remains
+  conformant to this document.
+
+* Section 4.1 of {{RFC9289}} leaves to local policy whether RPC
+  operation continues in cleartext when the AUTH_TLS probe does not
+  yield the "STARTTLS" indication.  {{fallback}} specifies that
+  policy, and it is more restrictive than what {{RFC9289}} permits.
+
+This document also extends the audit log that Section 6.1 of
+{{RFC9289}} requires: {{audit}} adds to the required content of that
+log and permits it to be assembled from correlatable events.
+
+Nothing in this document changes the TLS version, ALPN, cipher suite,
+confidentiality, or transport requirements of {{RFC9289}}, nor its
+provisions for pre-shared keys or for RPCSEC_GSS.
+
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
@@ -1208,69 +1270,6 @@ published records, without per-server configuration and without
 breaking against the servers whose operators have not.  On the
 relationship between this adaptivity and opportunistic security in
 general, see {{RFC7435}}.
-
-# Updates to RFC 9289 {#updates}
-
-This document updates {{RFC9289}} as follows.  The Updates
-relationship is recorded here explicitly rather than left to the
-document header.
-
-* Section 1 of {{RFC9289}} assumes the availability of DNSSEC and DANE
-  on the platform, without specifying their use.  This document
-  specifies that use.
-
-* The first bullet of Section 6.1.1 of {{RFC9289}} recommends that a
-  client under an opportunistic security policy check for the
-  existence of a TLSA record before initiating an association, and
-  disconnect if TLS cannot be negotiated or authentication fails.  For
-  a client implementing this document, that recommendation is replaced
-  by the procedure in {{lookup}} and the requirements in {{behavior}}
-  and {{floor}}.  In particular, the check is meaningful only if the
-  answer is DNSSEC-validated, and this document states what a client
-  concludes from each outcome rather than from a record's presence
-  alone.
-
-* The second bullet of Section 6.1.1 of {{RFC9289}} recommends a
-  client security policy that requires a TLS session on every
-  connection, and Section 6.4 of {{RFC9289}} recommends, for AUTH_NULL
-  and AUTH_SYS, that both peers have DNSSEC TLSA records and a policy
-  that rejects a connection when host authentication fails.  Where
-  this document pins a security floor, {{floor}} and {{fallback}}
-  require that behavior for the association.  Where no floor is
-  pinned, {{fallback}} is weaker, since it permits cleartext operation
-  when the server returns a well-formed decline.  A deployment that
-  adopts either recommendation in full is more restrictive than
-  {{fallback}} requires and remains conformant to this document.
-
-* Section 5.2.1 of {{RFC9289}} requires PKIX path validation and a
-  check of the expected DNS-ID or iPAddress subjectAltName against the
-  presented certificate.  Those requirements continue to apply
-  unchanged wherever this document requires PKIX authentication, and
-  to the name checks performed for certificate usage DANE-TA(2).  They
-  do not apply to a server authenticated by a DANE-EE(3) match, for
-  the reasons given in Section 5.1 of {{RFC7671}} and restated in
-  {{dane-ee}}.
-
-* Where {{RFC9289}} cites {{RFC6125}} for certificate name checks,
-  clients implementing this document perform those checks per
-  {{RFC9525}}, which obsoletes {{RFC6125}}.  The additional
-  restriction in Section 5.2.1 of {{RFC9289}}, that a DNS domain name
-  in an RPC-with-TLS certificate contain no wildcard character, is
-  retained.
-
-* Section 4.1 of {{RFC9289}} leaves to local policy whether RPC
-  operation continues in cleartext when the AUTH_TLS probe does not
-  yield the "STARTTLS" indication.  {{fallback}} specifies that policy
-  for a client implementing this document, and it is more restrictive
-  than what {{RFC9289}} permits.
-
-* Section 6.1 of {{RFC9289}} requires an audit log of RPC-with-TLS
-  security mode selection.  {{audit}} extends the required content of
-  that log, and permits it to be assembled from correlatable events.
-
-Nothing in this document changes the TLS version, ALPN, cipher suite,
-confidentiality, or transport requirements of {{RFC9289}}, nor its
-provisions for pre-shared keys or for RPCSEC_GSS.
 
 # Security Considerations {#security}
 
