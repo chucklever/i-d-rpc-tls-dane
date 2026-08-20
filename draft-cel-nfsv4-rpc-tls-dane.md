@@ -818,6 +818,11 @@ pre-shared keys.  Accepting unauthenticated TLS
 here would be a downgrade relative to the base specification rather
 than an improvement on cleartext.
 
+\[\[TODO: Whether this row should instead require only the
+unauthenticated TLS that Section 10.3 of {{RFC7671}} calls for, or
+fail the attempt as mandatory mode does, is open.
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/1 \]\]
+
 # Downgrade Resistance {#downgrade}
 
 ## The security floor {#floor}
@@ -914,6 +919,11 @@ with an attacker interfering with the cleartext exchange, and they are
 what such interference looks like.  A client that treats them as
 declines has no downgrade resistance even against an attacker who
 cannot forge a well-formed Reply.
+
+\[\[TODO: Whether opportunistic mode should instead take the stricter
+policy of Section 6.1.1 and Section 6.4 of {{RFC9289}}, at the cost of
+reachability to servers that predate it, is open.
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 \]\]
 
 Note that the DECLINED classification deliberately includes MSG_DENIED
 with AUTH_ERROR, because that is how a server predating {{RFC9289}}
@@ -1534,63 +1544,44 @@ Experience:
 
 This section is to be removed before publishing as an RFC.
 
-* {{behavior}} requires an authenticated TLS session for the
-  SECURE_UNUSABLE class, where Section 10.3 of {{RFC7671}} and
-  Section 2.2 of {{RFC7672}} require only unauthenticated TLS.  The
-  rationale is given in {{behavior}}.  The working group may want this
-  stricter, failing the attempt as mandatory mode does.  Following
-  {{RFC7671}} instead is not merely a looser reading of this document:
-  {{RFC9289}} defines no unauthenticated TLS mode, so that choice would
-  additionally have to update Section 4.2 of {{RFC9289}}.
+Each item is tracked as an issue in this document's issue tracker,
+where the detail and the discussion live.
 
-* {{selected}} departs from Section 7 of {{RFC7671}} by sending the
-  original reference name rather than the selected TLSA base domain in
-  SNI for the SECURE_UNUSABLE class.  The alternative considered and
-  rejected was to send the base domain and accept it as an additional
-  PKIX reference identifier, which widens what an opportunistic client
-  accepts beyond what Section 5.2.1 of {{RFC9289}} specifies.
+* {{behavior}}: whether the SECURE_UNUSABLE class requires an
+  authenticated TLS session, the unauthenticated TLS that Section 10.3
+  of {{RFC7671}} calls for, or a failed attempt.
+  [Issue 1](https://github.com/chucklever/i-d-rpc-tls-dane/issues/1)
 
-* The partition of AUTH_TLS probe results in {{probe}}, and in
-  particular which of them count as DECLINED, determines how much of
-  the pre-{{RFC9289}} server population remains reachable.  The
-  classification given is believed to preserve interoperability, but
-  has not been validated against a broad server population.
+* {{selected}}: whether SNI carries the original reference name or the
+  selected TLSA base domain for the SECURE_UNUSABLE class.
+  [Issue 2](https://github.com/chucklever/i-d-rpc-tls-dane/issues/2)
 
-* {{fallback}} permits cleartext operation where no floor has been
-  pinned and the server returns a well-formed decline.  That is the
-  interoperability branch of Section 6.1 of {{RFC9289}}, and it is
-  weaker than the policies Section 6.1.1 and Section 6.4 of
-  {{RFC9289}} recommend for a client that has no TLSA records
-  available.  The working group may want this document to require the
-  stricter policy for associations in opportunistic mode, at the cost
-  of reachability to servers that predate {{RFC9289}}.
+* {{probe}}: whether the partition of AUTH_TLS probe results, and in
+  particular which of them count as DECLINED, preserves reachability
+  to the pre-{{RFC9289}} server population.
+  [Issue 3](https://github.com/chucklever/i-d-rpc-tls-dane/issues/3)
 
-* {{usages}} makes support for PKIX-TA(0) and PKIX-EE(1) optional and
-  treats unsupported records as unusable.  Whether RPC-with-TLS, which
-  requires PKIX support in every client, should instead specify
-  behavior for those usages is an open question.
+* {{fallback}}: whether cleartext operation remains permitted where no
+  floor has been pinned and the server declines, or opportunistic mode
+  takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
+  [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
 
-* {{sec-ports}} observes that a client can obtain service ports over
-  an authenticated channel by applying {{RFC9289}} and this document
-  to the RPCBIND service itself, and states that observation without
-  normative force.  No RPCBIND implementation is known to support
-  RPC-with-TLS.  Whether this document should require that
-  arrangement, recommend it, or leave it as description is open.
+* {{usages}}: whether support for PKIX-TA(0) and PKIX-EE(1) stays
+  optional, or this document specifies behavior for those usages.
+  [Issue 5](https://github.com/chucklever/i-d-rpc-tls-dane/issues/5)
 
-* No owner-name convention is proposed for transports other than those
-  {{RFC9289}} defines; see {{scope}}.  Section 4 of
-  draft-ietf-dnsop-svcb-dane, a DNSOP working group document, adds
-  "quic" to the transport names of Section 3 of {{RFC6698}} and
-  registers the node name "_quic", expressly to distinguish TLSA
-  records for DTLS from those for QUIC.  A future document specifying
-  RPC over QUIC would take the label from there rather than define
-  one.  That draft expired at revision -05 on 4 September 2025.
+* {{sec-ports}}: whether obtaining service ports over an authenticated
+  channel is required, recommended, or left as description.
+  [Issue 6](https://github.com/chucklever/i-d-rpc-tls-dane/issues/6)
 
-* {{scope}} excludes associations that use the pre-shared key
-  mechanism of Section 5.2.2 of {{RFC9289}}.  Whether such an
-  association should nevertheless consult TLSA records for downgrade
-  resistance, treating a validated RRset as the operator's commitment
-  to TLS without using it for authentication, is an open question.
+* {{scope}}: whether an owner-name convention is needed for transports
+  other than those {{RFC9289}} defines.
+  [Issue 7](https://github.com/chucklever/i-d-rpc-tls-dane/issues/7)
+
+* {{scope}}: whether an association using the pre-shared key mechanism
+  of Section 5.2.2 of {{RFC9289}} consults TLSA records for downgrade
+  resistance.
+  [Issue 8](https://github.com/chucklever/i-d-rpc-tls-dane/issues/8)
 
 # Acknowledgments
 {:numbered="false"}
