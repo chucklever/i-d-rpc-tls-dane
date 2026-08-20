@@ -1271,6 +1271,85 @@ breaking against the servers whose operators have not.  On the
 relationship between this adaptivity and opportunistic security in
 general, see {{RFC7435}}.
 
+# Implementation Status {#impl-status}
+
+This section is to be removed before publishing as an RFC.
+
+This section records the status of known implementations of the
+protocol defined by this specification at the time of posting of this
+Internet-Draft, and is based on a proposal described in {{RFC7942}}.
+The description of implementations in this section is intended to
+assist the IETF in its decision processes in progressing drafts to
+RFCs.  Please note that the listing of any individual implementation
+here does not imply endorsement by the IETF.  Furthermore, no effort
+has been spent to verify the information presented here that was
+supplied by IETF contributors.  This is not intended as, and must not
+be construed to be, a catalog of available implementations or their
+features.  Readers are advised to note that other implementations may
+exist.
+
+## tlshd (ktls-utils)
+
+Organization:
+: The ktls-utils project.
+
+Description:
+: tlshd is the userspace handshake agent used by the Linux kernel's
+  TLS handshake service.  It performs the (D)TLS handshake on behalf
+  of in-kernel RPC-with-TLS consumers.
+
+Implementation:
+: https://github.com/oracle/ktls-utils
+
+Level of maturity:
+: Prototype.  The DANE support is not part of a released version at
+  the time of writing, and is disabled by default.
+
+Coverage:
+: The reference-name input contract ({{refname}}); the candidate
+  determination and result reduction of {{lookup}}, including secure
+  CNAME expansion; the five outcome classes of {{outcomes}}; the
+  usability filtering and digest algorithm agility of {{usable}}; the
+  reference-identity rules of {{selected}}; certificate usage
+  DANE-EE(3) ({{dane-ee}}); and the authentication behavior of
+  {{behavior}} for both the client-anonymous and the mutually
+  authenticated handshake path.
+
+: Not implemented: certificate usage DANE-TA(2), DTLS over UDP, and
+  the association-scope enforcement of {{assoc-scope}}, which belongs to the
+  RPC client rather than to the handshake agent.
+
+Licensing:
+: GPLv2.
+
+Contact:
+: The editor of this document.
+
+Experience:
+: The implementation was exercised against publicly available DANE
+  test zones as well as against a locally signed test zone.  Two
+  findings are reflected in the text of this document.
+
+: First, the reference-identity rule in {{selected}} for the
+  SECURE_UNUSABLE class was added as a result of implementation.  A
+  securely CNAME-expanded name whose TLSA RRset contained no record
+  the implementation could use caused the client to send the expanded
+  base domain in SNI, per Section 7 of {{RFC7671}}, and then to
+  perform PKIX name checks against the original reference name.  The
+  server selected a certificate on the basis of SNI, and the handshake
+  failed.  {{selected}} states the resulting rule and its rationale.
+
+: Second, the implementation performs the usability filtering of
+  {{usable}}, including digest algorithm agility, in its own code
+  rather than relying on the TLS library's DANE support, so that the
+  outcome classification does not depend on library internals.  The
+  library's raw verification interface reports parse success in its
+  return value and verification results in a separate output
+  parameter; an implementation that checks only the return value
+  accepts unauthenticated peers.  Implementers are cautioned to check
+  both.
+
+
 # Security Considerations {#security}
 
 The security considerations of {{RFC9289}}, {{RFC6698}}, {{RFC7671}},
@@ -1465,84 +1544,6 @@ This document requests no IANA actions.
 
 
 --- back
-
-# Implementation Status {#impl-status}
-
-This section is to be removed before publishing as an RFC.
-
-This section records the status of known implementations of the
-protocol defined by this specification at the time of posting of this
-Internet-Draft, and is based on a proposal described in {{RFC7942}}.
-The description of implementations in this section is intended to
-assist the IETF in its decision processes in progressing drafts to
-RFCs.  Please note that the listing of any individual implementation
-here does not imply endorsement by the IETF.  Furthermore, no effort
-has been spent to verify the information presented here that was
-supplied by IETF contributors.  This is not intended as, and must not
-be construed to be, a catalog of available implementations or their
-features.  Readers are advised to note that other implementations may
-exist.
-
-## tlshd (ktls-utils)
-
-Organization:
-: The ktls-utils project.
-
-Description:
-: tlshd is the userspace handshake agent used by the Linux kernel's
-  TLS handshake service.  It performs the (D)TLS handshake on behalf
-  of in-kernel RPC-with-TLS consumers.
-
-Implementation:
-: https://github.com/oracle/ktls-utils
-
-Level of maturity:
-: Prototype.  The DANE support is not part of a released version at
-  the time of writing, and is disabled by default.
-
-Coverage:
-: The reference-name input contract ({{refname}}); the candidate
-  determination and result reduction of {{lookup}}, including secure
-  CNAME expansion; the five outcome classes of {{outcomes}}; the
-  usability filtering and digest algorithm agility of {{usable}}; the
-  reference-identity rules of {{selected}}; certificate usage
-  DANE-EE(3) ({{dane-ee}}); and the authentication behavior of
-  {{behavior}} for both the client-anonymous and the mutually
-  authenticated handshake path.
-
-: Not implemented: certificate usage DANE-TA(2), DTLS over UDP, and
-  the association-scope enforcement of {{assoc-scope}}, which belongs to the
-  RPC client rather than to the handshake agent.
-
-Licensing:
-: GPLv2.
-
-Contact:
-: The editor of this document.
-
-Experience:
-: The implementation was exercised against publicly available DANE
-  test zones as well as against a locally signed test zone.  Two
-  findings are reflected in the text of this document.
-
-: First, the reference-identity rule in {{selected}} for the
-  SECURE_UNUSABLE class was added as a result of implementation.  A
-  securely CNAME-expanded name whose TLSA RRset contained no record
-  the implementation could use caused the client to send the expanded
-  base domain in SNI, per Section 7 of {{RFC7671}}, and then to
-  perform PKIX name checks against the original reference name.  The
-  server selected a certificate on the basis of SNI, and the handshake
-  failed.  {{selected}} states the resulting rule and its rationale.
-
-: Second, the implementation performs the usability filtering of
-  {{usable}}, including digest algorithm agility, in its own code
-  rather than relying on the TLS library's DANE support, so that the
-  outcome classification does not depend on library internals.  The
-  library's raw verification interface reports parse success in its
-  return value and verification results in a separate output
-  parameter; an implementation that checks only the return value
-  accepts unauthenticated peers.  Implementers are cautioned to check
-  both.
 
 # Open Issues {#open-issues}
 
