@@ -67,8 +67,9 @@ RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
 (DANE) is available on platforms where it is deployed, and recommends
 that a client operating under an opportunistic security policy check
 for a TLSA record before initiating an association, but does not say
-how.  This document specifies the missing details.  This document
-updates RFC 9289.
+how.  This document specifies the missing details, so that a TLSA
+record authenticates an RPC server with no certification authority
+trust anchor provisioned on the client.  It updates RFC 9289.
 
 
 --- middle
@@ -82,89 +83,93 @@ procedure carrying the AUTH_TLS authentication flavor, in cleartext,
 before the TLS handshake begins.  A server that supports RPC-with-TLS
 replies with a "STARTTLS" token, after which the client sends a
 ClientHello on the same connection or to the same UDP destination
-port.  Section 5.2.1 of {{RFC9289}} requires every RPC-with-TLS
-implementation to support authenticating server certificates by PKIX
-{{RFC5280}} trust.  A client that validates a server certificate
-checks a locally configured expected DNS-ID against it.
+port.
 
-{{RFC9289}} touches on DNS-Based Authentication of Named Entities
-(DANE) {{RFC6698}} in three places.  Section 1 lists DNSSEC/DANE
-among the platform facilities that RPC-with-TLS support is assumed to
-build on.
-Section 6.1.1 offers two bullets in Security Considerations, as
-mitigations for STRIPTLS attacks that a client implementer may choose
-between.  The first is a TLSA record, which "can alert clients that
-TLS is expected to work, and provide a binding of a hostname to the
-X.509 identity"; a client under an opportunistic security policy
-should check for the existence of such a record before initiating an
-association, and disconnects if TLS cannot be negotiated or
-authentication fails.  The second is a client security policy that
-requires a TLS session on every connection, which {{RFC9289}} strongly
-encourages where TLSA records are not available.  Section 6.4 lists
-among its best security policy practices that, when using AUTH_NULL or
-AUTH_SYS, "both peers are RECOMMENDED to have DNSSEC TLSA records"
-together with "a security policy that requires mutual peer
-authentication and rejection of a connection when host authentication
-fails".
+Section 5.2.1 of {{RFC9289}} requires every RPC-with-TLS implementation
+to support authenticating server certificates by PKIX {{RFC5280}} trust.
+A client that validates a server certificate checks a locally configured
+expected DNS-ID against it.  The client resolves that name in the DNS to
+reach the server, but the DNS supplies nothing that authenticates the
+server or that says the server is expected to speak TLS.  Both facts
+must be configured locally on every client.  Among the deployment
+problems that follow from that, two stand out:
 
-That is a sketch rather than a specification.  It does not say at what
-owner name a client looks for a TLSA record for an RPC service.  It
-does not select certificate usages, nor say how DANE authentication
-composes with the PKIX validation the same document requires
-(Section 4 of {{RFC7671}}).  It does not cite {{RFC7671}}, whose
-operational rules a DANE client needs in order to interoperate.  It
-does not state that an existence check means nothing unless the answer
-is DNSSEC-validated, so a client that queries through a non-validating
-path can be told "no TLSA record" by the same on-path attacker it was
-trying to defend against.  Two independent implementations reading
-Section 6.1.1 would not interoperate, and neither would obtain the
-security property the first bullet appears to promise.
+* Trust anchor distribution.  Deploying RPC-with-TLS at scale means
+  provisioning every client with the certification authority material
+  needed to validate the servers it will contact, and keeping that
+  material current as certificates are issued and rotated.  A server
+  operator who does not run or subscribe to a certification authority
+  has no way to tell clients what key to expect other than by
+  configuring each of them.
 
-This document specifies DANE for RPC-with-TLS completely enough to
-implement and to deploy.  It updates {{RFC9289}}; {{updates}} lists
-the changes.
+* STRIPTLS.  The AUTH_TLS probe and its reply are exchanged in
+  cleartext.  An on-path attacker who suppresses the probe, or
+  rewrites the reply so that it does not carry the "STARTTLS" token,
+  can make a TLS-capable server appear not to support RPC-with-TLS.  A
+  client under an opportunistic policy then proceeds in cleartext.
+  Section 6.1 of {{RFC9289}} permits that outcome where
+  interoperability is the priority, and strongly encourages enforcing
+  TLS in all other cases.  Section 6.4 recommends, for AUTH_NULL and
+  AUTH_SYS, a policy that rejects a connection when host
+  authentication fails.  Whether a client falls back or fails closed
+  is decided by client-local policy alone; nothing the client learns
+  on the way to the server tells it that TLS was expected.
 
-## Motivation {#motivation}
+{{RFC9289}} anticipated these problems and pointed at the same remedy
+for them, DNS-Based Authentication of Named Entities (DANE)
+{{RFC6698}}, in several places:
 
-Two deployment problems motivate the work.
+* Section 1 lists DNSSEC/DANE among the platform facilities that
+  RPC-with-TLS support is assumed to build on.
 
-### Trust anchor distribution
+* Section 6.1.1 offers two mitigations for STRIPTLS attacks, between
+  which a client implementer may choose.  The first is a TLSA record,
+  which "can alert clients that TLS is expected to work, and provide a
+  binding of a hostname to the X.509 identity"; a client under an
+  opportunistic security policy should check for the existence of such
+  a record before initiating an association, and disconnects if TLS
+  cannot be negotiated or authentication fails.  The second is a
+  client security policy that requires a TLS session on every
+  connection, which {{RFC9289}} strongly encourages where TLSA records
+  are not available.
 
-Deploying RPC-with-TLS at scale today
-means provisioning every client with the certification authority
-material needed to validate the servers it will contact, and keeping
-that material current.  For an operator who already signs the zone
-that names the servers, publishing a TLSA RRset per service replaces
-that provisioning entirely: the binding between a server name and its
+* Section 6.4 lists among its best security policy practices that,
+  when using AUTH_NULL or AUTH_SYS, "both peers are RECOMMENDED to
+  have DNSSEC TLSA records" together with "a security policy that
+  requires mutual peer authentication and rejection of a connection
+  when host authentication fails".
+
+The appeal is that a TLSA RRset addresses these problems at once.  For
+an operator who already signs the DNS zone that names the servers,
+publishing a TLSA RRset per service replaces per-client trust anchor
+provisioning entirely: the binding between a server name and its
 public key travels in the DNS, alongside the name the client already
 had to resolve, and is maintained in one place by the party that
-operates the server.  This is the primary operational reason to want
-DANE for RPC-with-TLS, and it is available with a self-signed server
-certificate and no certification authority at all.
+operates the server.  It works with a self-signed server certificate
+and no certification authority at all.  And because a
+DNSSEC-validated TLSA RRset is an authenticated statement, made by the
+server operator and not interceptable on the RPC path, that TLS is
+expected to work with that service, a client holding one can no longer
+treat silent fallback to cleartext as an acceptable outcome.  The
+STRIPTLS attack fails closed instead of succeeding silently.
 
-### STRIPTLS mitigation
+However, {{RFC9289}} offers a sketch rather than a specification.  It
+does not say enough for a client implementer to build DANE support
+from it.  Two independent implementations reading Section 6.1.1 would
+not interoperate, and neither would obtain the security property a
+TLSA record appears to promise.
 
-The AUTH_TLS probe and its reply are exchanged
-in cleartext.  An on-path attacker who suppresses the probe, or
-rewrites the reply so that it does not carry the "STARTTLS" token, can
-make a TLS-capable server appear not to support RPC-with-TLS.  A
-client under an opportunistic policy then proceeds in cleartext.
-Section 6.1 of {{RFC9289}} permits that outcome where interoperability
-is the priority, and strongly encourages enforcing TLS in all other
-cases; Section 6.4 recommends, for AUTH_NULL and AUTH_SYS, a policy
-that rejects a connection when host authentication fails.  A
-DNSSEC-validated TLSA RRset is an
-authenticated statement, made by the server operator and not
-interceptable on the RPC path, that TLS is expected to work with that
-service.  Once a client has that statement in hand, silent fallback to
-cleartext is no longer an acceptable outcome, and the attack fails
-closed instead of succeeding silently.
+This document specifies DANE for RPC-with-TLS completely enough to
+implement and to deploy.  The approach taken follows the operational
+specifications for DANE developed in {{RFC7671}} and {{RFC7672}}.  Much
+of what this document does is to make the RPC-specific choices that
+those documents anticipate application protocols making.
 
 ## Scope {#scope}
 
-This document defines client behavior.  It places no new requirements
-on RPC servers beyond the publication guidance in {{deployment}}: a
-server that conforms to {{RFC9289}} interoperates with a client
+This document defines client behavior and places no new requirements
+on RPC servers beyond the publication guidance in {{deployment}}.
+A server that conforms to {{RFC9289}} interoperates with a client
 implementing this document without modification.
 
 This document specifies the use of DANE to authenticate an RPC server
@@ -174,8 +179,8 @@ means of DANE is out of scope; see {{client-auth}}.
 This document applies where the server authenticates itself with a
 certificate.  A server association that uses the pre-shared key
 mechanism of Section 5.2.2 of {{RFC9289}} presents no certificate for
-DANE to authenticate, and the procedures in this document do not apply
-to it.
+DANE to authenticate. The procedures in this document do not apply to
+it.
 
 Section 5.1 of {{RFC7671}} also provides for matching a DANE-EE(3)
 record with selector SPKI(1) against a raw public key {{RFC7250}}.
@@ -186,7 +191,7 @@ Specifying one is work for a future document.
 TLSA owner names are defined here for the transports {{RFC9289}}
 itself defines, namely TLS over TCP and DTLS over UDP.  A future
 document that specifies RPC over another transport is expected to
-define the corresponding owner-name convention; the downgrade
+define the corresponding owner-name convention. The downgrade
 resistance rule in {{floor}} is stated in terms that such a document
 can reuse without restating it.
 
@@ -1093,7 +1098,7 @@ by the events themselves.
 ## Publishing TLSA records for RPC services {#ta-distribution}
 
 The simplest conforming deployment, and the one that addresses the
-operational problem described in {{motivation}}, is to publish for
+operational problem described in {{intro}}, is to publish for
 each service a single DANE-EE(3) record with selector SPKI(1) and
 matching type SHA2-256(1), written "3 1 1", in a DNSSEC-signed zone:
 
@@ -1585,11 +1590,6 @@ where the detail and the discussion live.
 
 # Acknowledgments
 {:numbered="false"}
-
-The approach taken here follows the operational specifications for
-DANE developed in {{RFC7671}} and {{RFC7672}}.  Much of what this
-document does is to make the RPC-specific choices that those documents
-anticipate application protocols making.
 
 The editor is grateful to
 Bill Baker,
