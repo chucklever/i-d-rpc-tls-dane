@@ -1,0 +1,204 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-08-23T01:43:42.307667+00:00",
+  "repo": "chucklever/i-d-rpc-tls-dane",
+  "labels": [
+    {
+      "name": "accessibility",
+      "description": "Barrier affecting people with disabilities",
+      "color": "f143ab"
+    },
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOT89kGc8AAAABNkRwDA",
+      "title": "SECURE_UNUSABLE: require authenticated TLS, or follow RFC 7671 and require only unauthenticated TLS?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/1",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Required client behavior by outcome class\" requires an authenticated TLS session for the SECURE_UNUSABLE outcome class in opportunistic mode. Section 10.3 of RFC 7671 and Section 2.2 of RFC 7672 require only unauthenticated TLS in this case.\n\nThe rationale for the stricter requirement is given in that section. Section 4.2 of RFC 9289 gives two modes of client deployment, server-only host authentication and mutual host authentication, and the client authenticates the server in both. Accepting unauthenticated TLS here would be a downgrade relative to the base specification rather than an improvement on cleartext.\n\nThe working group may want this stricter still, failing the attempt as mandatory mode does.\n\nFollowing RFC 7671 instead is not merely a looser reading of this document: RFC 9289 defines no unauthenticated TLS mode, so that choice would additionally have to update Section 4.2 of RFC 9289.",
+      "createdAt": "2026-08-20T16:00:34Z",
+      "updatedAt": "2026-08-20T16:00:34Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "I_kwDOT89kGc8AAAABNkRwpQ",
+      "title": "SNI for SECURE_UNUSABLE: original reference name, or selected TLSA base domain?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/2",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"The selected TLSA base domain, SNI, and reference identifiers\" departs from Section 7 of RFC 7671 by sending the original reference name rather than the selected TLSA base domain in SNI for the SECURE_UNUSABLE outcome class.\n\nThe alternative considered and rejected was to send the base domain and accept it as an additional PKIX reference identifier, which widens what an opportunistic client accepts beyond what Section 5.2.1 of RFC 9289 specifies.",
+      "createdAt": "2026-08-20T16:00:35Z",
+      "updatedAt": "2026-08-20T16:00:35Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 3,
+      "id": "I_kwDOT89kGc8AAAABNkRxPw",
+      "title": "AUTH_TLS probe outcome classification is unvalidated against a server population",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/3",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"AUTH_TLS probe outcomes\" partitions AUTH_TLS probe results, and \"Cleartext fallback\" makes which of them count as DECLINED determine how much of the pre-RFC 9289 server population remains reachable.\n\nThe classification given is believed to preserve interoperability. It deliberately includes MSG_DENIED with AUTH_ERROR, because that is how a server predating RFC 9289 rejects an unrecognized authentication flavor.\n\nIt has not been validated against a broad server population.",
+      "createdAt": "2026-08-20T16:00:36Z",
+      "updatedAt": "2026-08-20T16:00:36Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 4,
+      "id": "I_kwDOT89kGc8AAAABNkRxvw",
+      "title": "Cleartext fallback on DECLINED with no floor pinned: permit, or require the stricter RFC 9289 policy?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/4",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Cleartext fallback\" permits cleartext operation where no floor has been pinned and the server returns a well-formed decline. That is the interoperability branch of Section 6.1 of RFC 9289.\n\nIt is weaker than the policies Section 6.1.1 and Section 6.4 of RFC 9289 recommend for a client that has no TLSA records available.\n\nThe working group may want this document to require the stricter policy for associations in opportunistic mode, at the cost of reachability to servers that predate RFC 9289.",
+      "createdAt": "2026-08-20T16:00:37Z",
+      "updatedAt": "2026-08-20T16:00:37Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOT89kGc8AAAABNkRyUQ",
+      "title": "PKIX-TA(0) and PKIX-EE(1): leave optional, or specify behavior for them?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/5",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Certificate usages\" makes support for PKIX-TA(0) and PKIX-EE(1) optional and treats unsupported records as unusable.\n\nRPC-with-TLS requires PKIX support in every client. Whether this document should instead specify behavior for those usages is an open question.",
+      "createdAt": "2026-08-20T16:00:38Z",
+      "updatedAt": "2026-08-20T16:00:38Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOT89kGc8AAAABNkRzLA",
+      "title": "RPCBIND over an authenticated channel: require, recommend, or describe?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/6",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Unauthenticated port selection\" observes that a client can obtain service ports over an authenticated channel by applying RFC 9289 and this document to the RPCBIND service itself, and states that observation without normative force.\n\nNo RPCBIND implementation is known to support RPC-with-TLS.\n\nWhether this document should require that arrangement, recommend it, or leave it as description is open.",
+      "createdAt": "2026-08-20T16:00:39Z",
+      "updatedAt": "2026-08-20T16:00:39Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOT89kGc8AAAABNkR0bA",
+      "title": "No TLSA owner-name convention for transports beyond those RFC 9289 defines",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/7",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Scope\" proposes no owner-name convention for transports other than those RFC 9289 defines.\n\nSection 4 of draft-ietf-dnsop-svcb-dane, a DNSOP working group document, adds \"quic\" to the transport names of Section 3 of RFC 6698 and registers the node name \"_quic\", expressly to distinguish TLSA records for DTLS from those for QUIC. A future document specifying RPC over QUIC would take the label from there rather than define one.\n\nThat draft expired at revision -05 on 4 September 2025.",
+      "createdAt": "2026-08-20T16:00:41Z",
+      "updatedAt": "2026-08-20T16:00:41Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOT89kGc8AAAABNkR1kA",
+      "title": "Should PSK associations consult TLSA records for downgrade resistance?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/8",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Scope\" excludes associations that use the pre-shared key mechanism of Section 5.2.2 of RFC 9289.\n\nWhether such an association should nevertheless consult TLSA records for downgrade resistance, treating a validated RRset as the operator's commitment to TLS without using it for authentication, is an open question.",
+      "createdAt": "2026-08-20T16:00:42Z",
+      "updatedAt": "2026-08-20T16:00:42Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
+  "pulls": []
+}
