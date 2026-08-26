@@ -188,10 +188,6 @@ define the corresponding owner-name convention.
 
 # Updates to RFC 9289 {#updates}
 
-Section 1 of {{RFC9289}} assumes that DNSSEC and DANE are available
-but does not specify their use.  This document specifies that use.
-In doing so it changes {{RFC9289}} as set out in this section.
-
 Two requirements of {{RFC9289}} are changed here:
 
 * Section 5.2.1 of {{RFC9289}} requires PKIX path validation and a
