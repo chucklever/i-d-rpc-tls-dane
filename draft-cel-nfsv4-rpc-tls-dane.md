@@ -86,30 +86,26 @@ ClientHello on the same connection or to the same UDP destination
 port.
 
 Section 5.2.1 of {{RFC9289}} requires every RPC-with-TLS implementation
-to support authenticating server certificates by PKIX {{RFC5280}} trust.
-A client that validates a server certificate checks a locally configured
-expected DNS-ID against it.  The client resolves that name in the DNS to
-reach the server, but the DNS supplies nothing that authenticates the
-server or that says the server is expected to speak TLS.  Both facts
-must be configured locally on every client.  Among the deployment
-problems that follow from that, two stand out:
+to support authenticating server certificates by PKIX {{RFC5280}} trust
+against a locally configured expected DNS-ID.  The client resolves
+that name in the DNS to reach the server, but the DNS supplies nothing
+that authenticates the server or that says the server is expected to
+speak TLS.  Two deployment problems follow:
 
-* Trust anchor distribution.  Deploying RPC-with-TLS at scale means
-  provisioning every client with the certification authority material
-  needed to validate the servers it will contact, and keeping that
-  material current as certificates are issued and rotated.  A server
-  operator who does not run or subscribe to a certification authority
-  has no way to tell clients what key to expect other than by
-  configuring each of them.
+* Trust anchor distribution.  Every client must be provisioned with
+  the certification authority material needed to validate the servers
+  it will contact, and kept current as certificates are rotated.  A
+  server operator without a certification authority has no way to
+  tell clients what key to expect other than by configuring each of
+  them.
 
 * STRIPTLS.  The AUTH_TLS probe and its reply are exchanged in
   cleartext.  An on-path attacker who suppresses the probe, or
   rewrites the reply so that it does not carry the "STARTTLS" token,
-  can make a TLS-capable server appear not to support RPC-with-TLS.  A
-  client under an opportunistic policy then proceeds in cleartext.
-  Whether a client falls back or fails closed is decided by
-  client-local policy alone; nothing the client learns on the way to
-  the server tells it that TLS was expected.
+  makes a TLS-capable server appear not to support RPC-with-TLS, and
+  a client under an opportunistic policy proceeds in cleartext.
+  Nothing the client learns on the way to the server tells it that
+  TLS was expected.
 
 {{RFC9289}} anticipated these problems and pointed at the same remedy
 for them, DNS-Based Authentication of Named Entities (DANE)
@@ -118,16 +114,13 @@ for them, DNS-Based Authentication of Named Entities (DANE)
 * Section 1 lists DNSSEC/DANE among the platform facilities that
   RPC-with-TLS support is assumed to build on.
 
-* Section 6.1.1 offers two mitigations for STRIPTLS attacks, between
-  which a client implementer may choose.  The first is a TLSA record,
-  which "can alert clients that TLS is expected to work, and provide a
-  binding of a hostname to the X.509 identity"; a client under an
-  opportunistic security policy should check for the existence of such
-  a record before initiating an association, and disconnects if TLS
-  cannot be negotiated or authentication fails.  The second is a
-  client security policy that requires a TLS session on every
-  connection, which {{RFC9289}} strongly encourages where TLSA records
-  are not available.
+* Section 6.1.1 offers a TLSA record as one of two mitigations for
+  STRIPTLS attacks: it "can alert clients that TLS is expected to
+  work, and provide a binding of a hostname to the X.509 identity",
+  and a client under an opportunistic security policy should check
+  for one before initiating an association.  The other mitigation, a
+  policy that requires TLS on every connection, is strongly
+  encouraged where TLSA records are not available.
 
 * Section 6.4 lists among its best security policy practices that,
   when using AUTH_NULL or AUTH_SYS, "both peers are RECOMMENDED to
@@ -145,17 +138,14 @@ expected to work, a client holding one can no longer treat silent
 fallback to cleartext as acceptable: the STRIPTLS attack fails
 closed.
 
-However, {{RFC9289}} offers a sketch rather than a specification.  It
-does not say enough for a client implementer to build DANE support
-from it.  Two independent implementations reading Section 6.1.1 would
-not interoperate, and neither would obtain the security property a
-TLSA record appears to promise.
-
-This document specifies DANE for RPC-with-TLS completely enough to
-implement and to deploy.  The approach taken follows the operational
-specifications for DANE developed in {{RFC7671}} and {{RFC7672}}.  Much
-of what this document does is to make the RPC-specific choices that
-those documents anticipate application protocols making.
+However, {{RFC9289}} offers a sketch rather than a specification.  Two
+independent implementations reading Section 6.1.1 would not
+interoperate, and neither would obtain the security property a TLSA
+record appears to promise.  This document specifies DANE for
+RPC-with-TLS completely enough to implement and deploy, following
+the operational specifications of {{RFC7671}} and {{RFC7672}} and
+making the RPC-specific choices those documents leave to application
+protocols.
 
 ## Scope {#scope}
 
