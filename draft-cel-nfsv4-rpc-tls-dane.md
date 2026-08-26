@@ -884,7 +884,10 @@ specification rather than an improvement on cleartext.
 
 \[\[TODO: Whether this row should instead require only the
 unauthenticated TLS that Section 10.3 of {{RFC7671}} calls for, or
-fail the attempt as mandatory mode does, is open.
+fail the attempt as mandatory mode does, is open.  A resolution
+toward unauthenticated TLS also changes the security floor, which
+{{floor}} and the definition in Conventions state as an
+authenticated TLS session.
 https://github.com/chucklever/i-d-rpc-tls-dane/issues/1 \]\]
 
 # Downgrade Resistance {#downgrade}
@@ -1478,7 +1481,8 @@ where the detail and the discussion live.
 
 * {{behavior}}: whether the SECURE_UNUSABLE class requires an
   authenticated TLS session, the unauthenticated TLS that Section 10.3
-  of {{RFC7671}} calls for, or a failed attempt.
+  of {{RFC7671}} calls for, or a failed attempt.  The definition of
+  the security floor in {{floor}} follows the answer.
   [Issue 1](https://github.com/chucklever/i-d-rpc-tls-dane/issues/1)
 
 * {{selected}}: whether SNI carries the original reference name or the
