@@ -862,22 +862,16 @@ association's authentication to whoever can obtain a certificate for
 the name, which is the outcome the TLSA RRset was published to
 prevent.
 
-The SECURE_UNUSABLE row strengthens the corresponding guidance in
-Section 10.3 of {{RFC7671}} and Section 2.2 of {{RFC7672}}, both of
-which require only unauthenticated TLS in this case.  Section 10.3 of
-{{RFC7671}} anticipates such a strengthening, and conditions it on
-whether expecting the stronger behavior is realistic for the
-application protocol in question.  For RPC-with-TLS it is, and the
-intermediate position those documents take is not available in any
-case.  Section 4.2 of {{RFC9289}} gives two modes of client
-deployment, server-only host authentication and mutual host
-authentication, and the client authenticates the server in both.  An
-RPC-with-TLS client may be anonymous to the server; the server is
-never anonymous to the client.  Section 5.2 of {{RFC9289}} offers only
-two peer authentication mechanisms to that end, PKIX trust and
-pre-shared keys.  Accepting unauthenticated TLS
-here would be a downgrade relative to the base specification rather
-than an improvement on cleartext.
+The SECURE_UNUSABLE row strengthens the guidance in Section 10.3 of
+{{RFC7671}} and Section 2.2 of {{RFC7672}}, which require only
+unauthenticated TLS in this case; Section 10.3 of {{RFC7671}}
+anticipates such a strengthening where expecting it is realistic for
+the application protocol.  For RPC-with-TLS the intermediate position
+is not available at all.  In both client deployment modes of
+Section 4.2 of {{RFC9289}} the client authenticates the server, so
+the server is never anonymous to the client, and accepting
+unauthenticated TLS here would be a downgrade relative to the base
+specification rather than an improvement on cleartext.
 
 \[\[TODO: Whether this row should instead require only the
 unauthenticated TLS that Section 10.3 of {{RFC7671}} calls for, or
