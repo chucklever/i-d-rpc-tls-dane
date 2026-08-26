@@ -537,13 +537,11 @@ Accordingly, a client implementing this document SHOULD validate
 DNSSEC responses itself, or obtain them from a validating resolver it
 trusts over a channel whose integrity is protected.
 
-A client whose trust anchors are missing cannot distinguish an
-unsigned zone from a signed one, and the failure mode of guessing
-wrongly is silent loss of protection.  {{outcomes}} therefore classes
-a failure to load, read, or parse those trust anchors as ERROR, and
-not as INSECURE.  Where the trust anchor is maintained automatically
-{{RFC5011}}, an anchor that has fallen out of date is subject to the
-same rule.
+{{outcomes}} classes a failure to load, read, or parse the trust
+anchors as ERROR, not INSECURE, since a client without them cannot
+distinguish an unsigned zone from a signed one.  An anchor maintained
+automatically {{RFC5011}} that has fallen out of date is subject to
+the same rule.
 
 ## DNS outcome classes {#outcomes}
 
