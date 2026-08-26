@@ -167,10 +167,8 @@ DANE to authenticate. The procedures in this document do not apply to
 it.
 
 Section 5.1 of {{RFC7671}} also provides for matching a DANE-EE(3)
-record with selector SPKI(1) against a raw public key {{RFC7250}}.
-{{RFC9289}} defines no mechanism by which an RPC-with-TLS session
-conveys a raw public key, so that case does not arise here.
-Specifying one is work for a future document.
+record against a raw public key {{RFC7250}}; {{RFC9289}} defines no
+way to convey one, so that case does not arise here.
 
 TLSA owner names are defined here for the transports {{RFC9289}}
 itself defines, namely TLS over TCP and DTLS over UDP.  A future
@@ -1017,16 +1015,14 @@ authenticated the server for the other.
 
 ## Transports joining an association later {#add-xprt}
 
-A client may add transports to an existing server association after it
-is established, for additional bandwidth or to make use of additional
-server network paths.
+A client may add transports to an existing server association for
+additional bandwidth or additional server network paths.
 
 While a security floor is pinned for an association, a transport MUST
 NOT join that association unless it carries the association's
 reference name and its own evaluation meets the association's floor.
-A transport whose destination was learned as an address literal
-therefore cannot join a floor-pinned association, since no DANE
-evaluation is possible for it ({{no-dane}}).  A client MUST refuse
+A transport whose destination is an address literal therefore cannot
+join a floor-pinned association ({{no-dane}}).  A client MUST refuse
 such an addition and record the refusal ({{audit}}); the association
 continues over the transports that do meet its floor.
 
@@ -1057,11 +1053,10 @@ those protocols, and is outside the scope of this document.
 
 # Auditing {#audit}
 
-Section 6.1 of {{RFC9289}} requires implementations to provide an
-audit log of RPC-with-TLS security mode selection.  A client
-implementing this document MUST extend that log to cover the DANE
-policy decision.  For each association attempt in which DANE policy
-applied, the combined record MUST include:
+A client implementing this document MUST extend the audit log that
+Section 6.1 of {{RFC9289}} requires to cover the DANE policy
+decision.  For each association attempt in which DANE policy applied,
+the record MUST include:
 
 * the reference name, and an indication of whether it was supplied by
   local configuration or derived some other way;
@@ -1335,12 +1330,11 @@ _2049._tcp.nfs.example.com. IN TLSA 3 1 1 (
 ~~~
 {: title="A minimal TLSA RRset for an NFS service"}
 
-Clients then need no certification authority material for the servers
-in that zone, and the operator maintains the binding in one place.  By
-{{dane-ee}}, the server certificate may be self-signed, and its
-notAfter date does not affect the outcome.  What an operator must do
-to keep the RRset and its certificates in step, in particular during
-key rollover, is specified in {{rollover}}.  Withdrawing DANE takes
+Clients then need no certification authority material for those
+servers, the operator maintains the binding in one place, and by
+{{dane-ee}} the certificate may be self-signed with any notAfter
+date.  Keeping the RRset and certificates in step, in particular
+during key rollover, is specified in {{rollover}}.  Withdrawing DANE takes
 the same posture: a client that has pinned a floor for an association
 keeps requiring authenticated TLS until that association ends
 ({{floor}}), so removing the RRset lowers what clients require only
