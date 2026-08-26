@@ -168,7 +168,8 @@ those documents anticipate application protocols making.
 ## Scope {#scope}
 
 This document defines client behavior and places no new requirements
-on RPC servers beyond the publication guidance in {{deployment}}.
+on RPC servers beyond the publication requirement in {{rollover}};
+{{deployment}} gives the operational guidance that accompanies it.
 A server that conforms to {{RFC9289}} interoperates with a client
 implementing this document without modification.
 
@@ -467,6 +468,19 @@ apply {{RFC9289}} and this document to the RPCBIND service and obtain
 its ports over an authenticated channel.  {{sec-ports}} describes what
 that requires and what it is worth.
 
+## Publishing and key rollover {#rollover}
+
+Publishers MUST observe the requirements of Section 8 of {{RFC7671}},
+in particular during key rollover: for each combination of certificate
+usage, selector, and matching type it publishes, the RRset must at all
+times contain a record matching the certificate that every server
+answering for the name may present.  A client that has pinned a floor
+on the strength of an RRset will fail rather than fall back when the
+RRset and the certificate disagree, so a rollover performed in the
+wrong order takes the service down instead of silently reducing its
+security.  That is the intended behavior, but operators should plan
+for it.
+
 # The Reference Name {#refname}
 
 ## Requirements on the reference name
@@ -531,6 +545,26 @@ For such a destination:
 * In mandatory mode, the association attempt MUST fail.
 
 # Locating the TLSA RRset {#lookup}
+
+## Resolver trust {#resolver}
+
+Every guarantee in this document rests on the client obtaining DNSSEC
+validation states it can trust.  A client that accepts the AD bit from
+a remote validating resolver has moved its trust to that resolver and
+to the path between them, which is precisely the kind of unprotected
+path this document exists to defend against.
+
+Accordingly, a client implementing this document SHOULD validate
+DNSSEC responses itself, or obtain them from a validating resolver it
+trusts over a channel whose integrity is protected.
+
+A client whose trust anchors are missing cannot distinguish an
+unsigned zone from a signed one, and the failure mode of guessing
+wrongly is silent loss of protection.  {{outcomes}} therefore classes
+a failure to load, read, or parse those trust anchors as ERROR, and
+not as INSECURE.  Where the trust anchor is maintained automatically
+{{RFC5011}}, an anchor that has fallen out of date is subject to the
+same rule.
 
 ## DNS outcome classes {#outcomes}
 
@@ -1155,122 +1189,6 @@ certificate that was matched.  A correlation identifier used to join
 such events MUST NOT carry information that is not already disclosed
 by the events themselves.
 
-# Deployment Considerations {#deployment}
-
-## Publishing TLSA records for RPC services {#ta-distribution}
-
-The simplest conforming deployment, and the one that addresses the
-operational problem described in {{intro}}, is to publish for
-each service a single DANE-EE(3) record with selector SPKI(1) and
-matching type SHA2-256(1), written "3 1 1", in a DNSSEC-signed zone:
-
-~~~
-_2049._tcp.nfs.example.com. IN TLSA 3 1 1 (
-                               2A1B4C...  )
-~~~
-{: title="A minimal TLSA RRset for an NFS service"}
-
-Clients then need no certification authority material for the servers
-in that zone, and the operator maintains the binding in one place.  By
-{{dane-ee}}, the server certificate may be self-signed, and its
-notAfter date does not affect the outcome.
-
-Publishers MUST observe the requirements of Section 8 of {{RFC7671}},
-in particular during key rollover: for each combination of certificate
-usage, selector, and matching type it publishes, the RRset must at all
-times contain a record matching the certificate that every server
-answering for the name may present.  A client that has pinned a floor on the strength of
-an RRset will fail rather than fall back when the RRset and the
-certificate disagree, so a rollover performed in the wrong order takes
-the service down instead of silently reducing its security.  That is
-the intended behavior, but operators should plan for it.
-
-Section 11 of {{RFC7671}} bears on the same deployment.  A signed TLSA
-RRset, and a signed denial of existence for one, remain valid to a
-client until their signatures expire, so the signature validity period
-the operator chooses bounds how long a withdrawn key or a
-pre-publication denial can be replayed at a client ({{adaptive}}).
-{{RFC7671}} suggests a signature lifetime of a few days for domains
-publishing high-value keys.
-
-## Unsigned zones prove nothing {#unsigned}
-
-An operator who has not signed the zone containing the service name
-cannot obtain any of the properties in this document.  A client
-querying for TLSA records in an unsigned zone obtains the outcome
-INSECURE, whatever it finds there, and proceeds under {{RFC9289}}
-unchanged.  Publishing a TLSA RRset without signing the zone gives an
-attacker something to remove rather than the client something to rely
-on.
-
-The same is true of a denial of existence obtained from an unsigned
-zone.  It is the validation of the denial, not the denial itself, that
-lets a client conclude the operator published nothing.
-
-## Resolver trust {#resolver}
-
-Every guarantee in this document rests on the client obtaining DNSSEC
-validation states it can trust.  A client that accepts the AD bit from
-a remote validating resolver has moved its trust to that resolver and
-to the path between them, which is precisely the kind of unprotected
-path this document exists to defend against.
-
-Accordingly, a client implementing this document SHOULD validate
-DNSSEC responses itself, or obtain them from a validating resolver it
-trusts over a channel whose integrity is protected.
-
-An implementation MUST treat a failure to load, read, or parse its
-DNSSEC trust anchors as producing the outcome ERROR for every
-evaluation, and MUST NOT treat it as producing INSECURE.  A client
-whose trust anchors are missing cannot distinguish an unsigned zone
-from a signed one, and the failure mode of guessing wrongly is silent
-loss of protection.  Where the trust anchor is maintained
-automatically {{RFC5011}}, an anchor that has fallen out of date is
-subject to the same rule.
-
-## Downgrade resistance of opportunistic DANE {#adaptive}
-
-Opportunistic mode ({{modes}}) adapts to what each operator has
-deployed, which is what makes it usable across a mixed server
-population.  It is worth stating why this adaptivity is not itself a
-downgrade path.
-
-Against a client that validates DNSSEC, an attacker who wants to move
-a server from SECURE_USABLE to a weaker class must either forge a
-denial of existence in a signed zone, which fails NSEC or NSEC3
-validation, or strip signatures, which yields ERROR and therefore
-failure rather than fallback.  The remaining class, INSECURE, arises
-only from a genuinely unsigned delegation, which the attacker cannot
-manufacture without control of the parent zone's signing key.
-
-One path remains, and it requires neither forgery nor signature
-stripping.  DNSSEC-signed RRsets cannot be securely revoked before
-they expire (Section 11 of {{RFC7671}}).  An attacker who captured a
-signed denial of existence for a TLSA owner name before the operator
-published the RRset can replay it; it validates until its signatures
-expire, and the client assigns SECURE_ABSENT and pins no floor.  The
-same window applies in the other direction: an attacker holding a key
-the operator has withdrawn can replay the RRset that still names it,
-and a client will authenticate to it.  {{dane-ee}} removes the
-presented certificate's validity dates from the decision, so the
-signature validity period the operator chooses is the only bound on
-either case; see {{ta-distribution}}.
-
-Apart from that window, the outcome classes an attacker can reach from
-SECURE_USABLE are the ones that fail the attempt.  A deployment that
-wants to close the window as well can adopt the policy in Section 6.4
-of {{RFC9289}}, which requires TLS and rejects a connection when host
-authentication fails, whatever the DNS outcome.
-
-This is the same argument that supports opportunistic DANE for SMTP
-{{RFC7672}}, and the same property that makes fleet-wide deployment
-practical: a client can be configured for opportunistic DANE once and
-will obtain the stronger behavior for every server whose operator has
-published records, without per-server configuration and without
-breaking against the servers whose operators have not.  On the
-relationship between this adaptivity and opportunistic security in
-general, see {{RFC7435}}.
-
 # Implementation Status {#impl-status}
 
 This section is to be removed before publishing as an RFC.
@@ -1544,6 +1462,93 @@ This document requests no IANA actions.
 
 
 --- back
+
+# Deployment Considerations {#deployment}
+
+## Publishing TLSA records for RPC services {#ta-distribution}
+
+The simplest conforming deployment, and the one that addresses the
+operational problem described in {{intro}}, is to publish for
+each service a single DANE-EE(3) record with selector SPKI(1) and
+matching type SHA2-256(1), written "3 1 1", in a DNSSEC-signed zone:
+
+~~~
+_2049._tcp.nfs.example.com. IN TLSA 3 1 1 (
+                               2A1B4C...  )
+~~~
+{: title="A minimal TLSA RRset for an NFS service"}
+
+Clients then need no certification authority material for the servers
+in that zone, and the operator maintains the binding in one place.  By
+{{dane-ee}}, the server certificate may be self-signed, and its
+notAfter date does not affect the outcome.  What an operator must do
+to keep the RRset and its certificates in step, in particular during
+key rollover, is specified in {{rollover}}.
+
+Section 11 of {{RFC7671}} bears on the same deployment.  A signed TLSA
+RRset, and a signed denial of existence for one, remain valid to a
+client until their signatures expire, so the signature validity period
+the operator chooses bounds how long a withdrawn key or a
+pre-publication denial can be replayed at a client ({{adaptive}}).
+{{RFC7671}} suggests a signature lifetime of a few days for domains
+publishing high-value keys.
+
+## Unsigned zones prove nothing {#unsigned}
+
+An operator who has not signed the zone containing the service name
+cannot obtain any of the properties in this document.  A client
+querying for TLSA records in an unsigned zone obtains the outcome
+INSECURE, whatever it finds there, and proceeds under {{RFC9289}}
+unchanged.  Publishing a TLSA RRset without signing the zone gives an
+attacker something to remove rather than the client something to rely
+on.
+
+The same is true of a denial of existence obtained from an unsigned
+zone.  It is the validation of the denial, not the denial itself, that
+lets a client conclude the operator published nothing.
+
+## Downgrade resistance of opportunistic DANE {#adaptive}
+
+Opportunistic mode ({{modes}}) adapts to what each operator has
+deployed, which is what makes it usable across a mixed server
+population.  It is worth stating why this adaptivity is not itself a
+downgrade path.
+
+Against a client that validates DNSSEC, an attacker who wants to move
+a server from SECURE_USABLE to a weaker class must either forge a
+denial of existence in a signed zone, which fails NSEC or NSEC3
+validation, or strip signatures, which yields ERROR and therefore
+failure rather than fallback.  The remaining class, INSECURE, arises
+only from a genuinely unsigned delegation, which the attacker cannot
+manufacture without control of the parent zone's signing key.
+
+One path remains, and it requires neither forgery nor signature
+stripping.  DNSSEC-signed RRsets cannot be securely revoked before
+they expire (Section 11 of {{RFC7671}}).  An attacker who captured a
+signed denial of existence for a TLSA owner name before the operator
+published the RRset can replay it; it validates until its signatures
+expire, and the client assigns SECURE_ABSENT and pins no floor.  The
+same window applies in the other direction: an attacker holding a key
+the operator has withdrawn can replay the RRset that still names it,
+and a client will authenticate to it.  {{dane-ee}} removes the
+presented certificate's validity dates from the decision, so the
+signature validity period the operator chooses is the only bound on
+either case; see {{ta-distribution}}.
+
+Apart from that window, the outcome classes an attacker can reach from
+SECURE_USABLE are the ones that fail the attempt.  A deployment that
+wants to close the window as well can adopt the policy in Section 6.4
+of {{RFC9289}}, which requires TLS and rejects a connection when host
+authentication fails, whatever the DNS outcome.
+
+This is the same argument that supports opportunistic DANE for SMTP
+{{RFC7672}}, and the same property that makes fleet-wide deployment
+practical: a client can be configured for opportunistic DANE once and
+will obtain the stronger behavior for every server whose operator has
+published records, without per-server configuration and without
+breaking against the servers whose operators have not.  On the
+relationship between this adaptivity and opportunistic security in
+general, see {{RFC7435}}.
 
 # Open Issues {#open-issues}
 
