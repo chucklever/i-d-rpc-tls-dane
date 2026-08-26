@@ -184,9 +184,7 @@ Specifying one is work for a future document.
 TLSA owner names are defined here for the transports {{RFC9289}}
 itself defines, namely TLS over TCP and DTLS over UDP.  A future
 document that specifies RPC over another transport is expected to
-define the corresponding owner-name convention. The downgrade
-resistance rule in {{floor}} is stated in terms that such a document
-can reuse without restating it.
+define the corresponding owner-name convention.
 
 # Updates to RFC 9289 {#updates}
 
@@ -1090,12 +1088,6 @@ therefore cannot join a floor-pinned association, since no DANE
 evaluation is possible for it ({{no-dane}}).  A client MUST refuse
 such an addition and record the refusal ({{audit}}); the association
 continues over the transports that do meet its floor.
-
-A floor that applied only to the connection on which it was determined
-would be no floor at all: an attacker who cannot strip the first
-connection's probe could obtain the same result by inducing the client
-to add a second, unprotected transport to the same association and
-carrying the traffic there.
 
 ## Derived associations {#derived}
 
