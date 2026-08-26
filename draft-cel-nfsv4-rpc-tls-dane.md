@@ -1427,8 +1427,7 @@ properties in this document without signing the zone.
 
 Opportunistic mode ({{modes}}) adapts to what each operator has
 deployed, which is what makes it usable across a mixed server
-population.  It is worth stating why this adaptivity is not itself a
-downgrade path.
+population.  This adaptivity is not itself a downgrade path.
 
 Against a client that validates DNSSEC, an attacker who wants to move
 a server from SECURE_USABLE to a weaker class must either forge a
@@ -1446,18 +1445,12 @@ floor pinned.  {{replay}} describes that window and its bound.
 
 Apart from that window, the outcome classes an attacker can reach from
 SECURE_USABLE are the ones that fail the attempt.  A deployment that
-wants to close the window as well can adopt the policy in Section 6.4
-of {{RFC9289}}, which requires TLS and rejects a connection when host
-authentication fails, whatever the DNS outcome.
+wants to close the window as well can adopt the stricter policy of
+Section 6.4 of {{RFC9289}}, whatever the DNS outcome.
 
 This is the same argument that supports opportunistic DANE for SMTP
-{{RFC7672}}, and the same property that makes fleet-wide deployment
-practical: a client can be configured for opportunistic DANE once and
-will obtain the stronger behavior for every server whose operator has
-published records, without per-server configuration and without
-breaking against the servers whose operators have not.  On the
-relationship between this adaptivity and opportunistic security in
-general, see {{RFC7435}}.
+{{RFC7672}}.  On the relationship between this adaptivity and
+opportunistic security in general, see {{RFC7435}}.
 
 # Open Issues {#open-issues}
 
