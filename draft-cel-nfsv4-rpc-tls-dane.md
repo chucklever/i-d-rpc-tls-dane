@@ -135,19 +135,15 @@ for them, DNS-Based Authentication of Named Entities (DANE)
   requires mutual peer authentication and rejection of a connection
   when host authentication fails".
 
-The appeal is that a TLSA RRset addresses these problems at once.  For
-an operator who already signs the DNS zone that names the servers,
-publishing a TLSA RRset per service replaces per-client trust anchor
-provisioning entirely: the binding between a server name and its
-public key travels in the DNS, alongside the name the client already
-had to resolve, and is maintained in one place by the party that
-operates the server.  It works with a self-signed server certificate
-and no certification authority at all.  And because a
-DNSSEC-validated TLSA RRset is an authenticated statement, made by the
-server operator and not interceptable on the RPC path, that TLS is
-expected to work with that service, a client holding one can no longer
-treat silent fallback to cleartext as an acceptable outcome.  The
-STRIPTLS attack fails closed instead of succeeding silently.
+A TLSA RRset addresses both problems at once.  Published in a zone
+the operator already signs, it carries the binding between a server
+name and its public key in the DNS, alongside the name the client had
+to resolve anyway, so no client needs certification authority
+material for that server.  And because a DNSSEC-validated TLSA RRset
+is an authenticated statement by the server operator that TLS is
+expected to work, a client holding one can no longer treat silent
+fallback to cleartext as acceptable: the STRIPTLS attack fails
+closed.
 
 However, {{RFC9289}} offers a sketch rather than a specification.  It
 does not say enough for a client implementer to build DANE support
