@@ -1352,12 +1352,9 @@ guarantees in this document resting on an unauthenticated reply.
 
 ## Derived associations {#sec-derived}
 
-The guarantees in this document attach to an association whose server
-the client selected by DNS name.  As {{derived}} describes,
-upper-layer protocols establish further associations to destinations
-the client did not so select.
-
-The practical consequence for NFSv4 {{RFC8881}} is that data-path
+A security floor does not extend to an association whose destination
+an upper-layer protocol supplied ({{derived}}).  The practical
+consequence for NFSv4 {{RFC8881}} is that data-path
 traffic is protected only as well as the weakest derived association
 carrying it.  A client that has pinned a floor for its metadata
 association, and then reads and writes file data over parallel NFS
