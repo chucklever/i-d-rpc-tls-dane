@@ -462,11 +462,8 @@ Accordingly:
 
 A TLSA RRset can authenticate a server at a port the client already
 knew.  It cannot retroactively secure the client's selection of that
-port.  This document defines no discovery mechanism of its own, and it
-does not need one: RPCBIND is itself an RPC program, so a client can
-apply {{RFC9289}} and this document to the RPCBIND service and obtain
-its ports over an authenticated channel.  {{sec-ports}} describes what
-that requires and what it is worth.
+port.  {{sec-ports}} describes how a client obtains ports from an
+authenticated source.
 
 ## Publishing and key rollover {#rollover}
 
@@ -1344,19 +1341,12 @@ unacceptable.
 
 ## Unauthenticated port selection {#sec-ports}
 
-As {{provenance}} describes, an attacker who can substitute the port
-in an unauthenticated RPCBIND {{RFC1833}} reply can cause the client
-to query for TLSA records at an owner name for which the operator
-published nothing, obtaining SECURE_ABSENT.  The rule in
-{{provenance}} -- that a floor is pinned only on a port of trusted
-provenance -- keeps an attacker from using a substituted port to pin a
-floor the operator did not intend.  It does not prevent the
-SECURE_ABSENT outcome, and it does not let the client discover what
-the operator published at the port it should have used; a client that
-obtains its ports from RPCBIND is left as exposed to cleartext
-fallback as an {{RFC9289}} client.  A client that must resist this
-attack should obtain service ports from local configuration rather
-than from RPCBIND.
+The rule in {{provenance}}, that a floor is pinned only on a port of
+trusted provenance, keeps an attacker who substitutes the port in an
+RPCBIND {{RFC1833}} reply from pinning a floor the operator did not
+intend.  It does not prevent the SECURE_ABSENT outcome that the
+substitution produces, so a client that obtains its ports from RPCBIND
+is left as exposed to cleartext fallback as an {{RFC9289}} client.
 
 An RPCBIND reply carries a universal address, not only a port:
 RPCBPROC_GETADDR "returns the universal address on which the program
@@ -1383,19 +1373,14 @@ requires no new protocol, and it raises no bootstrap problem, because
 the RPCBIND port is well known and is therefore of trusted provenance
 under {{provenance}}.
 
-Two limits apply.  A session established to the RPCBIND port
-authenticates the RPCBIND service at that port and says nothing about
-the service the client goes on to contact; that service is
-authenticated separately, against the TLSA RRset for its own port, and
-a security floor determined for one is not a floor for the other.  An
-operator who protects RPCBIND but publishes no TLSA RRset for the
-service itself has secured the discovery step alone.
-
-For a deployment that learns service ports from RPCBIND, protecting
-RPCBIND is not a refinement.  The guarantees in this document begin at
-the RPCBIND reply rather than at the connection to the service, and an
-unprotected RPCBIND leaves the rest of the mechanism resting on an
-unauthenticated reply.
+A session established to the RPCBIND port authenticates the RPCBIND
+service alone.  The service the client goes on to contact is
+authenticated separately, against the TLSA RRset for its own port,
+and a security floor determined for one is not a floor for the
+other.  An operator who protects RPCBIND but publishes no TLSA RRset
+for the service has secured the discovery step alone; one who
+publishes for the service but leaves RPCBIND unprotected has left the
+guarantees in this document resting on an unauthenticated reply.
 
 ## Derived associations {#sec-derived}
 
