@@ -219,10 +219,14 @@ requirement stated in the section named:
   this document states what a client concludes from each outcome
   rather than from a record's presence alone.
 
-* The second bullet of Section 6.1.1 and Section 6.4 of {{RFC9289}}
-  recommend a policy that requires TLS and rejects a connection when
-  host authentication fails.  {{floor}} and {{fallback}} require that
-  behavior where this document pins a security floor.  Where no floor is pinned, {{fallback}} is weaker,
+* The second bullet of Section 6.1.1 of {{RFC9289}} recommends a
+  policy that requires TLS on every connection, and Section 6.4
+  recommends, for AUTH_NULL and AUTH_SYS, TLSA records for both peers
+  and rejection of a connection when host authentication fails.
+  {{floor}} and {{fallback}} require the server-authentication half
+  of that behavior where this document pins a security floor; the
+  client-authentication half is out of scope ({{client-auth}}).
+  Where no floor is pinned, {{fallback}} is weaker,
   since it permits cleartext operation when the server returns a
   well-formed decline.  A deployment that adopts either recommendation
   in full is more restrictive than {{fallback}} requires and remains
