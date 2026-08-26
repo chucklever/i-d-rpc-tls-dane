@@ -1128,10 +1128,7 @@ applied, the combined record MUST include:
 
 The record MAY consist of correlatable events emitted by more than one
 component, provided that the events can be joined and that together
-they cover the whole list.  Implementations that divide the work of
-{{overview}} between components will naturally produce such a split,
-since no single component observes both the probe outcome and the
-certificate that was matched.  A correlation identifier used to join
+they cover the whole list.  A correlation identifier used to join
 such events MUST NOT carry information that is not already disclosed
 by the events themselves.
 
