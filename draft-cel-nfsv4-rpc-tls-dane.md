@@ -107,13 +107,9 @@ problems that follow from that, two stand out:
   rewrites the reply so that it does not carry the "STARTTLS" token,
   can make a TLS-capable server appear not to support RPC-with-TLS.  A
   client under an opportunistic policy then proceeds in cleartext.
-  Section 6.1 of {{RFC9289}} permits that outcome where
-  interoperability is the priority, and strongly encourages enforcing
-  TLS in all other cases.  Section 6.4 recommends, for AUTH_NULL and
-  AUTH_SYS, a policy that rejects a connection when host
-  authentication fails.  Whether a client falls back or fails closed
-  is decided by client-local policy alone; nothing the client learns
-  on the way to the server tells it that TLS was expected.
+  Whether a client falls back or fails closed is decided by
+  client-local policy alone; nothing the client learns on the way to
+  the server tells it that TLS was expected.
 
 {{RFC9289}} anticipated these problems and pointed at the same remedy
 for them, DNS-Based Authentication of Named Entities (DANE)
@@ -224,22 +220,18 @@ Elsewhere {{RFC9289}} makes a recommendation or leaves a choice to
 local policy.  This document replaces each of the following with a
 requirement stated in the section named:
 
-* The first bullet of Section 6.1.1 of {{RFC9289}} recommends that a
-  client under an opportunistic security policy check for the
-  existence of a TLSA record before initiating an association, and
-  disconnect if TLS cannot be negotiated or authentication fails.
-  {{lookup}}, {{behavior}}, and {{floor}} replace that recommendation.
+* The first bullet of Section 6.1.1 of {{RFC9289}} recommends a TLSA
+  check before an association is initiated, and disconnection when
+  TLS or authentication then fails.  {{lookup}}, {{behavior}}, and
+  {{floor}} replace that recommendation.
   The check is meaningful only if the answer is DNSSEC-validated, and
   this document states what a client concludes from each outcome
   rather than from a record's presence alone.
 
-* The second bullet of Section 6.1.1 of {{RFC9289}} recommends a
-  client security policy that requires a TLS session on every
-  connection, and Section 6.4 of {{RFC9289}} recommends, for AUTH_NULL
-  and AUTH_SYS, that both peers have DNSSEC TLSA records and a policy
-  that rejects a connection when host authentication fails.  {{floor}}
-  and {{fallback}} require that behavior where this document pins a
-  security floor.  Where no floor is pinned, {{fallback}} is weaker,
+* The second bullet of Section 6.1.1 and Section 6.4 of {{RFC9289}}
+  recommend a policy that requires TLS and rejects a connection when
+  host authentication fails.  {{floor}} and {{fallback}} require that
+  behavior where this document pins a security floor.  Where no floor is pinned, {{fallback}} is weaker,
   since it permits cleartext operation when the server returns a
   well-formed decline.  A deployment that adopts either recommendation
   in full is more restrictive than {{fallback}} requires and remains
