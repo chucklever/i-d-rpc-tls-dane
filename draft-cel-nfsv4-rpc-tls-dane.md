@@ -398,22 +398,18 @@ For example, an NFS server reached at "nfs.example.com" on the default
 NFS port over TCP publishes its TLSA RRset at
 "_2049._tcp.nfs.example.com".
 
-The port that appears in the owner name is the port to which the
-client actually connects, not a canonical or registered port for the
-RPC program in use.
-
 ## Alternate ports {#ports}
 
-RPC services are routinely offered on ports other than the registered
-one, either by site convention or because the client was directed to a
-particular port by local configuration.  This is a normal deployment
-pattern rather than an exceptional case.  A service reached on port
-20490 over TCP at "nfs.example.com" publishes its TLSA RRset at
+The port in the owner name is the port to which the client actually
+connects, not a registered port for the RPC program in use.  RPC
+services are routinely offered on other ports, by site convention or
+by local configuration: a service reached on port 20490 over TCP at
+"nfs.example.com" publishes its TLSA RRset at
 "_20490._tcp.nfs.example.com", and a server that offers the same
 service on several ports publishes one TLSA RRset per port.
 
 Because the port is part of the owner name, a TLSA RRset authenticates
-the server at a known port.  It says nothing about the same server at
+the server at a known port and says nothing about the same server at
 another port, in the same way that Section 4.1 of {{RFC9289}} observes
 that a successful AUTH_TLS probe on one port and transport implies
 nothing about any other.
