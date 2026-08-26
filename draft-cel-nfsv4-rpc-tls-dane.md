@@ -1417,17 +1417,11 @@ a lifetime of a few days for domains publishing high-value keys.
 
 ## Unsigned zones prove nothing {#unsigned}
 
-An operator who has not signed the zone containing the service name
-cannot obtain any of the properties in this document.  A client
-querying for TLSA records in an unsigned zone obtains the outcome
-INSECURE, whatever it finds there, and proceeds under {{RFC9289}}
-unchanged.  Publishing a TLSA RRset without signing the zone gives an
-attacker something to remove rather than the client something to rely
-on.
-
-The same is true of a denial of existence obtained from an unsigned
-zone.  It is the validation of the denial, not the denial itself, that
-lets a client conclude the operator published nothing.
+A TLSA RRset in an unsigned zone yields the outcome INSECURE whatever
+it contains, and so does a denial of existence from one.  Publishing
+without signing the zone gives an attacker something to remove rather
+than the client something to rely on; an operator obtains none of the
+properties in this document without signing the zone.
 
 ## Downgrade resistance of opportunistic DANE {#adaptive}
 
