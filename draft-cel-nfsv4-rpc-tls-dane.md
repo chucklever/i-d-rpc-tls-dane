@@ -285,9 +285,12 @@ Server association:
   a single administrative and security unit.  {{RFC9289}} uses the
   term "association" informally; this document uses "server
   association" whenever the distinction from a single connection
-  matters.  In NFS terms, a server association is what a single mount
-  point, together with any additional connections established for it,
-  is carried over.
+  matters.  A server association begins with the client's first
+  association attempt for it and ends when the administrative action
+  that created it is undone.  In NFS terms, a server association is
+  what a single mount point, together with any additional connections
+  established for it, is carried over, and it lasts from mount to
+  unmount.
 
 Association attempt:
 : One attempt by a client to establish a transport connection for a
@@ -889,9 +892,16 @@ association at a security level weaker than an authenticated TLS
 session, and MUST fail the association attempt rather than do so.
 
 The floor is a property of the server association, not of the
-connection on which it was determined.  Once pinned, it applies to
-every subsequent association attempt for that association, and to
-every transport that joins it; see {{assoc-scope}}.
+connection on which it was determined, and it persists for the
+lifetime of the association.  Once pinned, it applies to every
+subsequent association attempt for that association and to every
+transport that joins it ({{assoc-scope}}).  A later evaluation that
+pins no floor, whatever its outcome class, does not remove one
+already pinned: an operator who withdraws a TLSA RRset lowers the
+floor only for associations established after the withdrawal
+({{ta-distribution}}).  A client MUST retain a pinned floor, together
+with the selected TLSA base domain it was derived from, until the
+association ends.
 
 The floor is stated in terms of the security level reached rather than
 in terms of any particular attack.  Two instances of it are visible
@@ -1007,10 +1017,12 @@ point in the attempt reaches the point at which the handshake is
 authenticated.  Those are implementation matters.  Two properties are
 required of any such arrangement.
 
-* A client MUST evaluate DANE policy from DNS data that is current at
-  the time of the association attempt.  It MUST NOT reuse a result
-  obtained for an earlier attempt beyond the validity of the DNS data
-  the result was derived from.
+* A client MUST evaluate the DNS outcome class from DNS data that is
+  current at the time of the association attempt, and MUST NOT reuse
+  an outcome obtained for an earlier attempt beyond the validity of
+  the DNS data it was derived from.  The security floor is not such a
+  result: it persists across attempts ({{floor}}), and a fresh
+  evaluation can raise it or leave it but never lower it.
 
 * Within one association attempt, a client MUST NOT conclude at a
   security level weaker than any determination it has already made
@@ -1247,13 +1259,15 @@ the only expiry that applies.  A client cannot distinguish a replayed
 RRset from a current one, so the mitigation is operational and belongs
 to the publisher; see {{ta-distribution}}.
 
-This document does not require a client to re-evaluate DANE policy for
-an association that is already established.  {{coherence}} bounds the
-reuse of a result across association attempts, and a client that
-establishes a new transport for an association evaluates afresh
-({{add-xprt}}), but a long-lived session established against an RRset
-that has since been withdrawn continues under the conclusion reached
-when it was established.
+A security floor, once pinned, persists for the lifetime of the
+association ({{floor}}).  A replayed denial of existence therefore
+affects only an association's first attempt: replayed at a reconnect,
+it finds the floor already pinned, and the attempt fails rather than
+falls back.  Conversely, this document does not require a client to
+re-evaluate an association that is already established, so a
+long-lived session established against an RRset that has since been
+withdrawn continues under the conclusion reached when it was
+established.
 
 ## Fail-closed behavior is a denial-of-service surface
 
@@ -1400,7 +1414,11 @@ in that zone, and the operator maintains the binding in one place.  By
 {{dane-ee}}, the server certificate may be self-signed, and its
 notAfter date does not affect the outcome.  What an operator must do
 to keep the RRset and its certificates in step, in particular during
-key rollover, is specified in {{rollover}}.
+key rollover, is specified in {{rollover}}.  Withdrawing DANE takes
+the same posture: a client that has pinned a floor for an association
+keeps requiring authenticated TLS until that association ends
+({{floor}}), so removing the RRset lowers what clients require only
+as they remount.
 
 The signature validity period the operator chooses bounds the replay
 window described in {{replay}}.  Section 11 of {{RFC7671}} suggests
@@ -1432,7 +1450,9 @@ One path remains, and it requires neither forgery nor signature
 stripping: replay of a signed denial of existence captured before
 the operator published the RRset, which validates until its
 signatures expire and leaves the client at SECURE_ABSENT with no
-floor pinned.  {{replay}} describes that window and its bound.
+floor pinned.  {{replay}} describes that window and its bound; it
+applies to an association's first attempt only, since a pinned floor
+persists ({{floor}}).
 
 Apart from that window, the outcome classes an attacker can reach from
 SECURE_USABLE are the ones that fail the attempt.  A deployment that
