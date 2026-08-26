@@ -1026,13 +1026,9 @@ required of any such arrangement.
   disagree, the stronger conclusion governs.
 
 The second property is what makes the mechanism resistant to an
-attacker who can affect the timing of DNS answers.  Concretely: if a
-client determines SECURE_USABLE early in an attempt and a later
-evaluation within the same attempt yields SECURE_UNUSABLE,
-SECURE_ABSENT, INSECURE, or ERROR, the attempt MUST fail rather than
-proceed under the weaker conclusion.  A client MAY act on a
-strengthened conclusion -- a later evaluation that finds a usable
-RRset where an earlier one did not -- since doing so cannot lower the
+attacker who can affect the timing of DNS answers.  A client MAY act
+on a strengthened conclusion, a later evaluation that finds a usable
+RRset where an earlier one did not, since doing so cannot lower the
 security of the attempt.
 
 Legitimate causes of disagreement exist, such as a TLSA RRset
