@@ -258,11 +258,12 @@ This document assumes a working knowledge of RPC version 2
 The following terms are used as defined here.
 
 Reference name:
-: The DNS domain name by which the client selected the server it is
-  contacting.  In practice this is the name that appeared in the
-  administrative configuration that caused the association to be
-  established -- for NFS, the server component of the mount
-  specification.  {{refname}} states the requirements on it.
+: The DNS domain name that identifies to the client the server it is
+  contacting.  For an association established by administrative
+  configuration, it is the name that appeared in that configuration
+  -- for NFS, the server component of the mount specification.  For
+  a derived association ({{derived}}), it is the name the upper-layer
+  protocol supplied.  {{refname}} states the requirements on it.
 
 TLSA base domain:
 : The domain name to which the port and transport labels are
@@ -473,8 +474,7 @@ for it.
 ## Requirements on the reference name
 
 The TLSA base domains a client considers MUST be derived from the
-reference name by which the client selected the server, as specified
-in {{lookup}}.
+association's reference name, as specified in {{lookup}}.
 
 A client MUST NOT use a name obtained by reverse resolution of the
 server's network address as a reference name, or as the basis for one.
@@ -1085,19 +1085,19 @@ continues over the transports that do meet its floor.
 ## Derived associations {#derived}
 
 Upper-layer protocols direct clients to establish further associations
-whose destinations the client did not select by name.  NFSv4
-{{RFC8881}} does this in at least three ways: a parallel NFS layout
-identifies data servers, the file system location attributes identify
-referral targets, and a migration event identifies a new location for
-a file system.  Where the destination so identified is an address literal, or
-a name the client cannot relate to the reference name of the
-association it was directed from, the derived association has no DANE
-binding of its own.
+to destinations the client did not select.  NFSv4 {{RFC8881}} does
+this in at least three ways: a parallel NFS layout identifies data
+servers, the file system location attributes identify referral
+targets, and a migration event identifies a new location for a file
+system.  A destination so identified is either an address literal or
+a DNS name.  A name is the reference name of the derived association,
+subject to the input contract of {{refname}}; an address literal
+gives the derived association no DANE binding ({{no-dane}}).
 
 A security floor pinned for one server association does not extend to
 a derived association.  A client MUST evaluate DANE policy
-independently for each association it establishes, using the reference
-name for that association if it has one.  In mandatory mode, a derived
+independently for each association it establishes, from that
+association's own reference name.  In mandatory mode, a derived
 association for which no DANE binding can be established fails
 ({{modes}}), even though this may render some upper-layer features
 unusable ({{sec-derived}}).
