@@ -322,8 +322,9 @@ addition to what {{RFC9289}} already specifies, the following steps.
    reduces the results to a single DNS outcome class.  {{lookup}}
    specifies this procedure.
 
-3. It applies the outcome class to the association attempt.  A secure
-   outcome pins a security floor for the association ({{floor}}),
+3. It applies the outcome class to the association attempt.  An
+   outcome of SECURE_USABLE or SECURE_UNUSABLE pins a security floor
+   for the association ({{floor}}),
    which constrains whether cleartext operation remains permissible
    and which failures are recoverable.
 
