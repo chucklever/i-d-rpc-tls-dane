@@ -762,11 +762,6 @@ a server that selects its certificate by SNI will supply exactly that
 certificate.  The handshake then fails for a reason that has nothing
 to do with the security of either name.
 
-Note that an RRset of usage-2 records is SECURE_USABLE for a client
-implementing this document, since {{usages}} requires DANE-TA(2)
-support: DANE authenticates the peer, and the selected base domain is
-a reference identifier again by the ordinary rule above.
-
 The selected TLSA base domain is reported in the audit record
 ({{audit}}) in both cases, so that an operator can see which name the
 policy decision was derived from.
