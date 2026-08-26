@@ -1294,7 +1294,7 @@ party that operates the server also operates the zone.  Where that is
 not so -- where DNS is operated by a third party -- the trust
 concentration should be evaluated before deployment.
 
-## Replay and the limits of revocation
+## Replay and the limits of revocation {#replay}
 
 DNSSEC provides no way to revoke a signed RRset before its signatures
 expire (Section 11 of {{RFC7671}}).  Two consequences follow, and both
@@ -1485,13 +1485,9 @@ notAfter date does not affect the outcome.  What an operator must do
 to keep the RRset and its certificates in step, in particular during
 key rollover, is specified in {{rollover}}.
 
-Section 11 of {{RFC7671}} bears on the same deployment.  A signed TLSA
-RRset, and a signed denial of existence for one, remain valid to a
-client until their signatures expire, so the signature validity period
-the operator chooses bounds how long a withdrawn key or a
-pre-publication denial can be replayed at a client ({{adaptive}}).
-{{RFC7671}} suggests a signature lifetime of a few days for domains
-publishing high-value keys.
+The signature validity period the operator chooses bounds the replay
+window described in {{replay}}.  Section 11 of {{RFC7671}} suggests
+a lifetime of a few days for domains publishing high-value keys.
 
 ## Unsigned zones prove nothing {#unsigned}
 
@@ -1523,17 +1519,10 @@ only from a genuinely unsigned delegation, which the attacker cannot
 manufacture without control of the parent zone's signing key.
 
 One path remains, and it requires neither forgery nor signature
-stripping.  DNSSEC-signed RRsets cannot be securely revoked before
-they expire (Section 11 of {{RFC7671}}).  An attacker who captured a
-signed denial of existence for a TLSA owner name before the operator
-published the RRset can replay it; it validates until its signatures
-expire, and the client assigns SECURE_ABSENT and pins no floor.  The
-same window applies in the other direction: an attacker holding a key
-the operator has withdrawn can replay the RRset that still names it,
-and a client will authenticate to it.  {{dane-ee}} removes the
-presented certificate's validity dates from the decision, so the
-signature validity period the operator chooses is the only bound on
-either case; see {{ta-distribution}}.
+stripping: replay of a signed denial of existence captured before
+the operator published the RRset, which validates until its
+signatures expire and leaves the client at SECURE_ABSENT with no
+floor pinned.  {{replay}} describes that window and its bound.
 
 Apart from that window, the outcome classes an attacker can reach from
 SECURE_USABLE are the ones that fail the attempt.  A deployment that
