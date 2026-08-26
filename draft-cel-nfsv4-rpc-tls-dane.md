@@ -272,15 +272,12 @@ Usable record:
 
 Server association:
 : The set of transport connections a client operates toward one
-  server, selected by one reference name, and treated by the client as
-  a single administrative and security unit.  {{RFC9289}} uses the
-  term "association" informally; this document uses "server
-  association" whenever the distinction from a single connection
-  matters.  A server association begins with the client's first
-  association attempt for it and ends when the administrative action
-  that created it is undone.  In NFS terms, a server association is
-  what a single mount point, together with any additional connections
-  established for it, is carried over, and it lasts from mount to
+  server, selected by one reference name, and treated as a single
+  administrative and security unit; {{RFC9289}} uses "association"
+  informally.  It begins with the client's first association attempt
+  and ends when the administrative action that created it is undone.
+  For NFS, it is what a mount point and any additional connections
+  established for it are carried over, and it lasts from mount to
   unmount.
 
 Association attempt:
@@ -364,12 +361,11 @@ Mandatory:
   that cannot carry a DANE binding at all ({{no-dane}}) fails rather
   than falling back to PKIX.
 
-Mandatory mode never silently degrades to another mode.  In
-particular, an implementation that has not implemented some part of
-this specification -- a transport for which it defines no owner name,
-a certificate usage it does not support -- MUST fail an association
-attempt made in mandatory mode rather than proceed without the
-protection the mode was configured to obtain.
+Mandatory mode never silently degrades.  An implementation that lacks
+some part of this specification, such as a transport for which it
+defines no owner name, MUST fail an association attempt made in
+mandatory mode rather than proceed without the protection the mode
+was configured to obtain.
 
 # TLSA Records for RPC Services {#records}
 
@@ -440,15 +436,12 @@ authenticated source.
 ## Publishing and key rollover {#rollover}
 
 Publishers MUST observe the requirements of Section 8 of {{RFC7671}},
-in particular during key rollover: for each combination of certificate
-usage, selector, and matching type it publishes, the RRset must at all
-times contain a record matching the certificate that every server
-answering for the name may present.  A client that has pinned a floor
-on the strength of an RRset will fail rather than fall back when the
-RRset and the certificate disagree, so a rollover performed in the
-wrong order takes the service down instead of silently reducing its
-security.  That is the intended behavior, but operators should plan
-for it.
+in particular during key rollover: the RRset must at all times contain
+a record matching the certificate that every server answering for the
+name may present.  A client that has pinned a floor fails rather than
+falls back when the RRset and the certificate disagree, so a rollover
+performed in the wrong order takes the service down.  That is
+intended, but operators should plan for it.
 
 # The Reference Name {#refname}
 
@@ -564,11 +557,9 @@ ERROR:
   prevents the client from assigning one of the four classes above.
 
 An ERROR outcome MUST NOT be treated as equivalent to INSECURE, and
-MUST NOT authorize cleartext operation.  The reasoning is that of
-Sections 2.1.1 and 2.1.2 of {{RFC7672}}: the conditions that produce
-ERROR are exactly the conditions an attacker can produce at will, so
-a client that degrades gracefully on ERROR has no downgrade
-resistance at all.
+MUST NOT authorize cleartext operation: as Sections 2.1.1 and 2.1.2
+of {{RFC7672}} observe, the conditions that produce it are the ones
+an attacker can produce at will.
 An implementation MAY retry a lookup that produced ERROR; if no
 attempt yields a validated answer, the outcome remains ERROR.
 
@@ -891,8 +882,7 @@ Section 4.1 of {{RFC9289}} specifies that a client that does not
 receive the "STARTTLS" indication MUST NOT send a ClientHello, and
 that "RPC operation may continue, depending on local policy, but
 without confidentiality, integrity, or peer authentication protection
-from (D)TLS".  This document specifies that local policy for a client
-implementing DANE.
+from (D)TLS".  This document specifies that local policy.
 
 A client classifies the result of the AUTH_TLS probe into exactly one
 of the following outcomes.
@@ -972,10 +962,9 @@ negotiation failures, and the unavailability of whatever local
 component performs the handshake.
 
 Section 4.1 of {{RFC9289}} describes a client that reports a
-handshake failure after a successful probe to the upper layer the
-same way it reports an AUTH_ERROR rejection from the server.  For a
-client implementing this document, that behavior is a requirement
-rather than a description.
+handshake failure after a successful probe the same way it reports an
+AUTH_ERROR rejection; for a client implementing this document that
+is a requirement.
 
 ## Coherence within an association attempt {#coherence}
 
@@ -1015,17 +1004,16 @@ the new data succeeds.
 The DANE policy mode, the reference name, and any pinned security
 floor are properties of a server association.  A client MUST be able
 to apply different policies concurrently to different server
-associations, since a single host commonly contacts servers whose
-operators differ in whether they have deployed DNSSEC and published
-TLSA records.
+associations, since the servers a host contacts differ in whether
+they have deployed DANE.
 
 A client that shares underlying state between server associations --
-connection caching, session reuse, or an internal client object shared
-between two mounts of the same server -- MUST NOT share it between
-associations whose DANE policy modes differ, or whose reference names
-differ.  Two names that resolve to the same address may have different
-TLSA RRsets published for them, and an association established under
-one name has not authenticated the server for the other.
+connection caching, session reuse, or a client object shared between
+two mounts of the same server -- MUST NOT share it between
+associations whose DANE policy modes or reference names differ.  Two
+names that resolve to the same address may have different TLSA
+RRsets, and an association established under one name has not
+authenticated the server for the other.
 
 ## Transports joining an association later {#add-xprt}
 
@@ -1168,14 +1156,12 @@ Experience:
   handshake failure that section describes.
 
 : Second, the implementation performs the usability filtering of
-  {{usable}}, including digest algorithm agility, in its own code
-  rather than relying on the TLS library's DANE support, so that the
-  outcome classification does not depend on library internals.  The
-  library's raw verification interface reports parse success in its
-  return value and verification results in a separate output
-  parameter; an implementation that checks only the return value
-  accepts unauthenticated peers.  Implementers are cautioned to check
-  both.
+  {{usable}} in its own code rather than relying on the TLS library's
+  DANE support, so that the outcome classification does not depend on
+  library internals.  The library's raw verification interface
+  reports parse success in its return value and verification results
+  in a separate output parameter; an implementation that checks only
+  the return value accepts unauthenticated peers.
 
 
 # Security Considerations {#security}
@@ -1196,13 +1182,12 @@ continue to perform those checks independently; a DANE match does not
 perform them.
 
 Control of the zone that publishes the TLSA RRset is control of the
-service's authentication.  This concentrates trust in the zone
-operator and in the DNSSEC chain above it, and removes it from the
-certification authorities the client would otherwise trust.  For the
-deployments described in {{ta-distribution}} that is the point: the
-party that operates the server also operates the zone.  Where that is
-not so -- where DNS is operated by a third party -- the trust
-concentration should be evaluated before deployment.
+service's authentication.  Trust moves from the certification
+authorities the client would otherwise trust to the zone operator and
+the DNSSEC chain above it.  For the deployments in
+{{ta-distribution}} that is the point, since the party that operates
+the server also operates the zone; where DNS is operated by a third
+party, the concentration should be evaluated before deployment.
 
 ## Replay and the limits of revocation {#replay}
 
@@ -1213,17 +1198,14 @@ the client can do.
 
 An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
-period.  The client assigns SECURE_ABSENT, pins no floor, and is left
-where {{RFC9289}} alone would have left it.  This is the residual
-described in {{adaptive}}.
+period; the client assigns SECURE_ABSENT and pins no floor
+({{adaptive}}).
 
 An attacker who holds a key the operator has withdrawn can replay the
-TLSA RRset that still names it, and a client that matches it will
-authenticate the peer.  {{dane-ee}} directs a client to disregard the
-presented certificate's validity dates, so the RRset's signatures are
-the only expiry that applies.  A client cannot distinguish a replayed
-RRset from a current one, so the mitigation is operational and belongs
-to the publisher; see {{ta-distribution}}.
+TLSA RRset that still names it, and a client will authenticate the
+peer; since {{dane-ee}} disregards the certificate's validity dates,
+the RRset's signatures are the only expiry.  The mitigation is
+operational and belongs to the publisher ({{ta-distribution}}).
 
 A security floor, once pinned, persists for the lifetime of the
 association ({{floor}}).  A replayed denial of existence therefore
@@ -1244,11 +1226,10 @@ the client's DNS -- by dropping responses, by inducing SERVFAIL, or by
 corrupting signatures to produce a bogus validation result -- can
 therefore prevent the client from establishing associations.
 
-This is a deliberate trade.  The alternative, degrading to cleartext
-or to unauthenticated TLS when DNS is disrupted, hands the same
-attacker the ability to strip protection silently, which is the attack
-this document exists to prevent.  An attacker who can disrupt DNS can
-in any case usually disrupt the RPC traffic itself.  Opportunistic
+This is a deliberate trade: degrading when DNS is disrupted hands the
+same attacker the ability to strip protection silently, and an
+attacker who can disrupt DNS can usually disrupt the RPC traffic
+itself.  Opportunistic
 mode does not relieve this exposure, since ERROR fails the attempt in
 both active modes; operators for whom availability outweighs
 confidentiality express that by leaving DANE disabled for the
@@ -1305,18 +1286,15 @@ the limitation visible rather than silent, at the cost of the feature.
 
 ## Privacy considerations
 
-TLSA queries for RPC services disclose, to any observer of the
-client's DNS traffic, which RPC services the client is about to
-contact and on which ports, at the time it is about to contact them.
-The names and addresses involved are already disclosed by the address
-resolution the client must perform in any case, and by the RPC traffic
-itself; the port and transport labels in the owner name are
-additional.  This is the same exposure discussed in Section 6.1.2 of
-{{RFC9289}} for the cleartext portion of association establishment,
-and the same mitigations -- protecting the client's DNS transport, or
-resolving locally -- apply.  Pervasive monitoring {{RFC7258}} of DNS
-traffic is a known concern for DANE generally; {{RFC9076}} surveys
-what DNS transactions disclose to observers.
+TLSA queries disclose, to an observer of the client's DNS traffic,
+which RPC services the client is about to contact and on which ports.
+The names and addresses are already disclosed by address resolution
+and by the RPC traffic itself; the port and transport labels are
+additional.  This is the exposure discussed in Section 6.1.2 of
+{{RFC9289}}, and the same mitigations, protecting the client's DNS
+transport or resolving locally, apply.  {{RFC9076}} surveys what DNS
+transactions disclose, and pervasive monitoring {{RFC7258}} of DNS is
+a known concern for DANE generally.
 
 ## Client authentication {#client-auth}
 
