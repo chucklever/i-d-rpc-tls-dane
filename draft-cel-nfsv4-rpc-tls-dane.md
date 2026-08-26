@@ -1205,13 +1205,8 @@ Experience:
   findings are reflected in the text of this document.
 
 : First, the reference-identity rule in {{selected}} for the
-  SECURE_UNUSABLE class was added as a result of implementation.  A
-  securely CNAME-expanded name whose TLSA RRset contained no record
-  the implementation could use caused the client to send the expanded
-  base domain in SNI, per Section 7 of {{RFC7671}}, and then to
-  perform PKIX name checks against the original reference name.  The
-  server selected a certificate on the basis of SNI, and the handshake
-  failed.  {{selected}} states the resulting rule and its rationale.
+  SECURE_UNUSABLE class was added after the implementation hit the
+  handshake failure that section describes.
 
 : Second, the implementation performs the usability filtering of
   {{usable}}, including digest algorithm agility, in its own code
