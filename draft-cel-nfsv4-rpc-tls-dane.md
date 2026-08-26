@@ -1283,11 +1283,11 @@ This is a deliberate trade.  The alternative, degrading to cleartext
 or to unauthenticated TLS when DNS is disrupted, hands the same
 attacker the ability to strip protection silently, which is the attack
 this document exists to prevent.  An attacker who can disrupt DNS can
-in any case usually disrupt the RPC traffic itself.  Operators for
-whom availability outweighs confidentiality can express that by
-configuring opportunistic rather than mandatory mode, and by leaving
-DANE disabled for associations where even the opportunistic floor is
-unacceptable.
+in any case usually disrupt the RPC traffic itself.  Opportunistic
+mode does not relieve this exposure, since ERROR fails the attempt in
+both active modes; operators for whom availability outweighs
+confidentiality express that by leaving DANE disabled for the
+associations concerned.
 
 ## Unauthenticated port selection {#sec-ports}
 
