@@ -696,17 +696,9 @@ The rules this encodes, stated in prose:
 * A validated denial of existence continues the search, per Section 7
   of {{RFC7671}}, which directs a client that finds no TLSA record at
   the expanded name to query at the original name.  If no candidate
-  remains, the outcome is SECURE_ABSENT.
-
-* An insecure answer at a candidate that is not the last one continues
-  the search: the client has not yet exhausted the names at which the
-  operator may have published a signed RRset.  An insecure answer at
-  the last candidate makes the outcome INSECURE.
-
-* A bogus or indeterminate validation state, or a lookup failure, at
-  any point where the algorithm requires an answer makes the outcome
-  ERROR immediately.  It is not recovered from by trying the next
-  candidate.
+  remains, the outcome is SECURE_ABSENT.  An insecure answer likewise
+  continues the search, since the operator may have published a
+  signed RRset at a later candidate.
 
 A client MUST assign the same outcome class as this procedure would
 for the same DNS data.  Implementations are not required to perform
