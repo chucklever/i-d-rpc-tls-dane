@@ -367,9 +367,9 @@ Mandatory:
 : The client performs the procedures in this document and additionally
   requires that the server be authenticated by DANE.  Any outcome
   other than SECURE_USABLE followed by a successful DANE
-  authentication fails the association attempt.  A destination that
-  cannot carry a DANE binding at all ({{no-dane}}) fails rather than
-  falling back to PKIX.
+  authentication MUST fail the association attempt.  A destination
+  that cannot carry a DANE binding at all ({{no-dane}}) fails rather
+  than falling back to PKIX.
 
 Mandatory mode never silently degrades to another mode.  In
 particular, an implementation that has not implemented some part of
@@ -525,7 +525,7 @@ For such a destination:
   all, it does so by the rules of Section 5.2.1 of {{RFC9289}}, which
   provide for matching an iPAddress subjectAltName.
 
-* In mandatory mode, the association attempt MUST fail.
+* In mandatory mode, the association attempt fails ({{modes}}).
 
 # Locating the TLSA RRset {#lookup}
 
@@ -1105,9 +1105,9 @@ A security floor pinned for one server association does not extend to
 a derived association.  A client MUST evaluate DANE policy
 independently for each association it establishes, using the reference
 name for that association if it has one.  In mandatory mode, a derived
-association for which no DANE binding can be established MUST fail
-rather than proceed, even though this may render some upper-layer
-features unusable ({{sec-derived}}).
+association for which no DANE binding can be established fails
+({{modes}}), even though this may render some upper-layer features
+unusable ({{sec-derived}}).
 
 Defining DNS-based identities for the destinations that upper-layer
 protocols hand out -- so that a data server or a referral target can
