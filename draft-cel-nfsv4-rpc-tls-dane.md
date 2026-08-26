@@ -1396,10 +1396,6 @@ where the detail and the discussion live.
   the security floor in {{floor}} follows the answer.
   [Issue 1](https://github.com/chucklever/i-d-rpc-tls-dane/issues/1)
 
-* {{selected}}: whether SNI carries the original reference name or the
-  selected TLSA base domain for the SECURE_UNUSABLE class.
-  [Issue 2](https://github.com/chucklever/i-d-rpc-tls-dane/issues/2)
-
 * {{probe}}: whether the partition of AUTH_TLS probe results, and in
   particular which of them count as DECLINED, preserves reachability
   to the pre-{{RFC9289}} server population.
@@ -1410,17 +1406,9 @@ where the detail and the discussion live.
   takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
   [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
 
-* {{usages}}: whether support for PKIX-TA(0) and PKIX-EE(1) stays
-  optional, or this document specifies behavior for those usages.
-  [Issue 5](https://github.com/chucklever/i-d-rpc-tls-dane/issues/5)
-
 * {{sec-ports}}: whether obtaining service ports over an authenticated
   channel is required, recommended, or left as description.
   [Issue 6](https://github.com/chucklever/i-d-rpc-tls-dane/issues/6)
-
-* {{scope}}: whether an owner-name convention is needed for transports
-  other than those {{RFC9289}} defines.
-  [Issue 7](https://github.com/chucklever/i-d-rpc-tls-dane/issues/7)
 
 * {{scope}}: whether an association using the pre-shared key mechanism
   of Section 5.2.2 of {{RFC9289}} consults TLSA records for downgrade
