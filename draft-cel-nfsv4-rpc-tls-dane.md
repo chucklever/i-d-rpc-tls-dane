@@ -159,10 +159,11 @@ those documents anticipate application protocols making.
 
 ## Scope {#scope}
 
-This document defines client behavior and places no new requirements
-on RPC servers beyond the publication requirement in {{rollover}};
-{{deployment}} gives the operational guidance that accompanies it.
-A server that conforms to {{RFC9289}} interoperates with a client
+This document defines client behavior and places no requirements on
+RPC servers.  Its one requirement on the server side, in
+{{rollover}}, binds the publisher of the TLSA RRset; {{deployment}}
+gives the operational guidance that accompanies it.  A server that
+conforms to {{RFC9289}} interoperates with a client
 implementing this document without modification.
 
 This document specifies the use of DANE to authenticate an RPC server
