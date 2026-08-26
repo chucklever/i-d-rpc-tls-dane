@@ -555,10 +555,7 @@ same rule.
 
 A client reduces the result of its TLSA lookups for one reference
 name, port, and transport to exactly one of the following five outcome
-classes.  Throughout, "usable" has the meaning given in {{usable}},
-and is therefore relative to the certificate usages, selectors,
-matching types, and digest algorithms the client has implemented and
-enabled.
+classes.  Throughout, "usable" has the meaning given in {{usable}}.
 
 SECURE_USABLE:
 : A DNSSEC-validated TLSA RRset was found, and at least one record in
@@ -735,8 +732,7 @@ follows.
 A matching type the client does not support MUST NOT suppress the
 strongest type it does support, and malformed records MUST be
 discarded in step 1 so that they do not influence the strength
-selection in step 3.  Discarding a record in steps 1 through 3 is not
-an authentication failure; it is what "unusable" means.
+selection in step 3.
 
 If any record survives step 3, the RRset is usable and the outcome is
 SECURE_USABLE.  If none does, the RRset is unusable and the outcome is
