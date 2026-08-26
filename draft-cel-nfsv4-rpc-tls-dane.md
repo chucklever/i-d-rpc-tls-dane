@@ -354,8 +354,11 @@ Opportunistic:
 : The client performs the procedures in this document.  A DNS outcome
   class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor and
   constrains the association as specified in {{behavior}} and
-  {{floor}}.  Outcome classes that establish no floor leave the
-  association attempt subject to {{RFC9289}} unchanged.  This mode is
+  {{floor}}.  SECURE_ABSENT and INSECURE pin no floor; {{fallback}}
+  then governs whether the attempt may proceed in cleartext, and any
+  TLS session established is authenticated by the PKIX rules of
+  Section 5.2.1 of {{RFC9289}}.  ERROR fails the attempt
+  ({{behavior}}).  This mode is
   intended for fleet-wide deployment against a server population that
   has not uniformly published TLSA records; see {{adaptive}}.
 
@@ -512,10 +515,11 @@ fails the input contract above.
 
 For such a destination:
 
-* In opportunistic mode, the client proceeds under {{RFC9289}}
-  unchanged.  In particular, if the client authenticates the server at
-  all, it does so by the rules of Section 5.2.1 of {{RFC9289}}, which
-  provide for matching an iPAddress subjectAltName.
+* In opportunistic mode, no floor is pinned and {{fallback}} governs
+  whether the attempt may proceed in cleartext.  If the client
+  authenticates the server, it does so by the rules of Section 5.2.1
+  of {{RFC9289}}, which provide for matching an iPAddress
+  subjectAltName.
 
 * In mandatory mode, the association attempt fails ({{modes}}).
 
@@ -843,8 +847,8 @@ established, whatever the provenance of the port.
 |---|---|---|
 | SECURE_USABLE | TLS is required, and the server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. | As for opportunistic. |
 | SECURE_UNUSABLE | TLS is required, and the server MUST be authenticated per Section 5.2.1 of {{RFC9289}}. | The attempt MUST fail. |
-| SECURE_ABSENT | No additional requirement; {{RFC9289}} applies unchanged. | The attempt MUST fail. |
-| INSECURE | No additional requirement; {{RFC9289}} applies unchanged. | The attempt MUST fail. |
+| SECURE_ABSENT | No floor is pinned; {{fallback}} governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of {{RFC9289}}. | The attempt MUST fail. |
+| INSECURE | As for SECURE_ABSENT. | The attempt MUST fail. |
 | ERROR | The attempt MUST fail. | The attempt MUST fail. |
 {: #behavior-table title="Required client behavior by DNS outcome class"}
 
