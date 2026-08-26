@@ -205,9 +205,6 @@ requirement stated in the section named:
   check before an association is initiated, and disconnection when
   TLS or authentication then fails.  {{lookup}}, {{behavior}}, and
   {{floor}} replace that recommendation.
-  The check is meaningful only if the answer is DNSSEC-validated, and
-  this document states what a client concludes from each outcome
-  rather than from a record's presence alone.
 
 * The second bullet of Section 6.1.1 of {{RFC9289}} recommends a
   policy that requires TLS on every connection, and Section 6.4
@@ -216,11 +213,9 @@ requirement stated in the section named:
   {{floor}} and {{fallback}} require the server-authentication half
   of that behavior where this document pins a security floor; the
   client-authentication half is out of scope ({{client-auth}}).
-  Where no floor is pinned, {{fallback}} is weaker,
-  since it permits cleartext operation when the server returns a
-  well-formed decline.  A deployment that adopts either recommendation
-  in full is more restrictive than {{fallback}} requires and remains
-  conformant to this document.
+  Where no floor is pinned, {{fallback}} permits cleartext operation
+  on a well-formed decline; a deployment that adopts either
+  recommendation in full remains conformant.
 
 * Section 4.1 of {{RFC9289}} leaves to local policy whether RPC
   operation continues in cleartext when the AUTH_TLS probe does not
@@ -418,15 +413,12 @@ The distinction that matters for downgrade resistance is not the value
 of the port but where the client obtained it.
 
 An RPC client may learn the port for a program from the server's
-RPCBIND service {{RFC1833}}.  RPCBIND replies are not authenticated.
-An attacker who substitutes a port in an RPCBIND reply thereby
+RPCBIND service {{RFC1833}}, whose replies are not authenticated.  An
+attacker who substitutes a port in an RPCBIND reply thereby
 substitutes the first label of the TLSA owner name the client will
-query.  The query is then made at a name for which the operator
-published nothing, the validating resolver returns an authenticated
-denial of existence, and the client assigns the outcome class
-SECURE_ABSENT ({{outcomes}}).  No floor is pinned, and a client in
-opportunistic mode proceeds as though the operator had published
-nothing at all.
+query.  The query is made at a name for which the operator published
+nothing, and the client assigns SECURE_ABSENT ({{outcomes}}) and pins
+no floor.
 
 Accordingly:
 
@@ -738,18 +730,14 @@ original reference name as the Server Name Indication value, and MUST
 use the original reference name as the reference identifier for the
 PKIX name checks that {{behavior}} then requires.
 
-This departs from Section 7 of {{RFC7671}}, and the reason is specific
-to what SECURE_UNUSABLE means.  A DANE client is told to put the
-expanded base domain in SNI because it is prepared to accept a
-certificate issued for that name: the TLSA RRset at that name is the
-authority it will authenticate against.  A client that can use no
-record in the RRset is not prepared to accept such a certificate.  It
-is about to fall back to PKIX authentication against the name the
-administrator configured.  Sending the base domain in SNI would ask
-the server for a certificate the client is then obliged to reject, and
-a server that selects its certificate by SNI will supply exactly that
-certificate.  The handshake then fails for a reason that has nothing
-to do with the security of either name.
+This departs from Section 7 of {{RFC7671}} because of what
+SECURE_UNUSABLE means.  A DANE client puts the expanded base domain in
+SNI because it is prepared to accept a certificate issued for that
+name.  A client that can use no record in the RRset is about to fall
+back to PKIX authentication against the configured name; sending the
+base domain in SNI would ask a server that selects its certificate by
+SNI for a certificate the client must then reject, and the handshake
+fails for a reason unrelated to the security of either name.
 
 The selected TLSA base domain is reported in the audit record
 ({{audit}}) in both cases, so that an operator can see which name the
@@ -770,10 +758,8 @@ A client that does not support them treats records carrying them as
 unusable in step 2 of {{usable}}.  Where such records are the only
 ones published, the outcome is SECURE_UNUSABLE, and {{behavior}}
 requires the client to authenticate the server by the PKIX rules of
-Section 5.2.1 of {{RFC9289}}.  That is a weaker check than the
-published records call for, since the client omits the additional
-constraint the record expresses.  It is never weaker than
-{{RFC9289}} alone, so the degradation is safe.
+Section 5.2.1 of {{RFC9289}}.  That check is weaker than the
+published records call for, but never weaker than {{RFC9289}} alone.
 
 A client MUST support the selectors Cert(0) and SPKI(1) and the
 matching types Full(0) and SHA2-256(1), which is the support that
