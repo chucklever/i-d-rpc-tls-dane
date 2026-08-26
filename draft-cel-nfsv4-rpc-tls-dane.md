@@ -1253,7 +1253,9 @@ RRset published for that port and transport, and make its lookups
 over the resulting session.  The ports it learns then come from an
 authenticated source.  The RPCBIND port is well known and therefore
 of trusted provenance under {{provenance}}, so there is no bootstrap
-problem.
+problem.  This document describes the arrangement rather than
+requiring it, since no RPCBIND implementation is known to support
+RPC-with-TLS.
 
 A session established to the RPCBIND port authenticates the RPCBIND
 service alone.  The service the client goes on to contact is
@@ -1405,10 +1407,6 @@ where the detail and the discussion live.
   floor has been pinned and the server declines, or opportunistic mode
   takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
   [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
-
-* {{sec-ports}}: whether obtaining service ports over an authenticated
-  channel is required, recommended, or left as description.
-  [Issue 6](https://github.com/chucklever/i-d-rpc-tls-dane/issues/6)
 
 * {{scope}}: whether an association using the pre-shared key mechanism
   of Section 5.2.2 of {{RFC9289}} consults TLSA records for downgrade
