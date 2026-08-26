@@ -468,12 +468,9 @@ association's reference name, as specified in {{lookup}}.
 
 A client MUST NOT use a name obtained by reverse resolution of the
 server's network address as a reference name, or as the basis for one.
-Reverse resolution answers a question the client did not ask: it
-reports a name that the operator of the address block chose to
-associate with the address, which is not evidence that the client
-intended to reach the service named by it.  Accepting such a name
-would permit an entity that controls a reverse zone to select the TLSA
-RRset against which the client authenticates.
+Such a name is chosen by whoever controls the reverse zone, and
+accepting it would let that party select the TLSA RRset against which
+the client authenticates.
 
 Before treating a configured value as a reference name, a client MUST
 apply the following input contract.
@@ -613,22 +610,18 @@ CandidateBaseDomains(name):
 ~~~
 {: #candidate-alg title="Determining the candidate base domains"}
 
-The single-element result is the conservative case, and covers every
-situation in which the client cannot show that the redirection itself
-was authenticated: an unaliased name, a chain with an insecure link, a
-chain that resolves to different canonical names in different address
-families, and a name for which no address records were sought.  A
-client MUST NOT expand a chain that it has not validated end to end,
-because an unvalidated CNAME lets whoever forged it choose the base
-domain and therefore the TLSA RRset.
+The single-element result covers every case in which the client
+cannot show that the redirection itself was authenticated.  A client
+MUST NOT expand a chain that it has not validated end to end, because
+an unvalidated CNAME lets whoever forged it choose the base domain
+and therefore the TLSA RRset.
 
 A CNAME encountered at a TLSA owner name itself is followed by
-ordinary DNS resolution, subject to the same requirement that every
-link be secure; a chain with an insecure or bogus link yields INSECURE
-or ERROR respectively for that candidate.  Such a CNAME does not
-change which candidate is the selected TLSA base domain, since it
-redirects only the location of the records, not the identity of the
-service.
+ordinary DNS resolution under the same requirement; a chain with an
+insecure or bogus link yields INSECURE or ERROR respectively for that
+candidate.  Such a CNAME does not change which candidate is the
+selected TLSA base domain, since it redirects the records, not the
+identity of the service.
 
 ## Evaluation and result reduction {#reduction}
 
