@@ -1289,30 +1289,21 @@ intend.  It does not prevent the SECURE_ABSENT outcome that the
 substitution produces, so a client that obtains its ports from RPCBIND
 is left as exposed to cleartext fallback as an {{RFC9289}} client.
 
-An RPCBIND reply carries a universal address, not only a port:
-RPCBPROC_GETADDR "returns the universal address on which the program
-is awaiting call requests" (Section 2.2.1 of {{RFC1833}}).  An
-attacker who can rewrite that reply can therefore redirect the client
-to a different host as readily as to a different port.  Where DANE
-applies, that redirection is defended without further machinery, since
-the substituted host cannot present a certificate matching the TLSA
-RRset published for the reference name, and the handshake fails.
-Where the port was substituted as well, the outcome is SECURE_ABSENT,
-no floor is pinned, and neither the address nor the port is protected.
-The two cases differ only in whether the client reaches a TLS
-handshake at all.
+An RPCBIND reply carries a universal address (Section 2.2.1 of
+{{RFC1833}}), so an attacker who rewrites it can substitute the host
+as readily as the port.  A substituted host alone is defended by
+DANE, since it cannot present a certificate matching the TLSA RRset
+for the reference name; a substituted port yields SECURE_ABSENT, and
+neither the address nor the port is then protected.
 
 The remedy available today is to protect RPCBIND itself.  RPCBIND is
-an RPC program, and Section 4.1 of {{RFC9289}} requires an RPC server
-to listen for TLS-protected programs on the same ports it uses without
-TLS.  A client can therefore send an AUTH_TLS probe to the RPCBIND
-port, authenticate the RPCBIND service by the procedures in this
-document against the TLSA RRset published at the owner name that port
-and transport yield, and make its lookups over the resulting session.
-The ports it learns then come from an authenticated source.  This
-requires no new protocol, and it raises no bootstrap problem, because
-the RPCBIND port is well known and is therefore of trusted provenance
-under {{provenance}}.
+an RPC program, so a client can send an AUTH_TLS probe to its port,
+authenticate it by the procedures in this document against the TLSA
+RRset published for that port and transport, and make its lookups
+over the resulting session.  The ports it learns then come from an
+authenticated source.  The RPCBIND port is well known and therefore
+of trusted provenance under {{provenance}}, so there is no bootstrap
+problem.
 
 A session established to the RPCBIND port authenticates the RPCBIND
 service alone.  The service the client goes on to contact is
@@ -1357,27 +1348,18 @@ what DNS transactions disclose to observers.
 
 This document specifies the authentication of a server to a client
 only.  {{RFC9289}} also provides for mutual authentication, in which
-the client presents a certificate that the server validates by PKIX
-and identifies by the tuple of serial number and issuer.  DANE-based
-authentication in that direction is not specified here.
-
-The generic mechanism for it exists: {{I-D.ietf-dance-client-auth}}
-defines a TLS extension by which a client conveys the owner name of
-its own TLSA records, together with the semantics of those records;
-that mechanism updates {{RFC6698}} and {{RFC7671}}.
-An RPC profile of that mechanism would additionally need to choose the
-owner-name form for RPC peers, restrict the certificate usages, and
-specify how a DANE-authenticated client name maps onto RPC-layer
-authorization -- the role that a machine credential plays for NFS
-today.  That is a separate and short document, and is expected to
-follow the mechanism it would profile.
+the server validates the client's certificate by PKIX; DANE-based
+authentication in that direction is not specified here.  The generic
+mechanism exists in {{I-D.ietf-dance-client-auth}}, and an RPC
+profile of it would need to choose the owner-name form for RPC peers,
+restrict the certificate usages, and specify how a DANE-authenticated
+client name maps onto RPC-layer authorization.  That is work for a
+separate document.
 
 Until then, a deployment that requires mutual authentication uses the
 PKIX mechanism of Section 5.2.1 of {{RFC9289}} for the client
-direction while using DANE, as specified here, for the server
-direction.  The two are independent: {{behavior}} applies to the
-server's certificate whether or not the client presents one of its
-own.
+direction and DANE for the server direction; {{behavior}} applies to
+the server's certificate whether or not the client presents one.
 
 # IANA Considerations {#iana}
 
