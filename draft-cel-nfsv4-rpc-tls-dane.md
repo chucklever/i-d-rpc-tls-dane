@@ -935,7 +935,9 @@ DECLINED:
   a reply_stat of MSG_ACCEPTED with an AUTH_NONE verifier that does
   not carry the "STARTTLS" token, and a reply_stat of MSG_DENIED with
   a reject_stat of AUTH_ERROR.  These are the responses produced by a
-  server that does not implement the AUTH_TLS authentication flavor.
+  server that does not implement the AUTH_TLS authentication flavor;
+  in particular, AUTH_ERROR is how a server predating {{RFC9289}}
+  rejects an unrecognized flavor.
 
 RPCERR:
 : A complete, well-formed Reply was received that is neither of the
@@ -987,12 +989,6 @@ cannot forge a well-formed Reply.
 policy of Section 6.1.1 and Section 6.4 of {{RFC9289}}, at the cost of
 reachability to servers that predate it, is open.
 https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 \]\]
-
-Note that the DECLINED classification deliberately includes MSG_DENIED
-with AUTH_ERROR, because that is how a server predating {{RFC9289}}
-rejects an unrecognized authentication flavor.  Classifying it
-otherwise would break the interoperability that the AUTH_TLS probe
-exists to provide.
 
 ## Failure after a handshake is attempted {#no-retry}
 
