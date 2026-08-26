@@ -333,12 +333,11 @@ addition to what {{RFC9289}} already specifies, the following steps.
    result in the audit log that Section 6.1 of {{RFC9289}} already
    requires ({{audit}}).
 
-Steps 2 and 3 concern the association attempt as a whole and can
-therefore be performed before the AUTH_TLS probe is sent; step 4
-necessarily happens during the handshake.  This document does not
-specify how an implementation divides the work, only what a conforming
-client concludes.  {{coherence}} states the two constraints that a
-division of labor MUST respect.
+Steps 2 and 3 concern the association attempt as a whole and can be
+performed before the AUTH_TLS probe is sent; step 4 happens during
+the handshake.  How an implementation divides the work is not
+specified; {{coherence}} states the two constraints a division MUST
+respect.
 
 ## DANE policy modes {#modes}
 
@@ -844,15 +843,12 @@ established, whatever the provenance of the port.
 | ERROR | The attempt MUST fail. | The attempt MUST fail. |
 {: #behavior-table title="Required client behavior by DNS outcome class"}
 
-The SECURE_USABLE row is the central requirement of this document.
-Where the client has a validated, usable TLSA RRset, DANE governs.  A
+The SECURE_USABLE row is the central requirement of this document.  A
 client MUST NOT accept a PKIX authentication in place of the DANE
-authentication that the RRset calls for, however well-formed the
-certificate chain and however trusted the certification authority that
-issued it.  Permitting that substitution would return control of the
-association's authentication to whoever can obtain a certificate for
-the name, which is the outcome the TLSA RRset was published to
-prevent.
+authentication the RRset calls for, however trusted the issuing
+certification authority; that substitution would return control of
+the association's authentication to whoever can obtain a certificate
+for the name, which is what the TLSA RRset was published to prevent.
 
 The SECURE_UNUSABLE row strengthens the guidance in Section 10.3 of
 {{RFC7671}} and Section 2.2 of {{RFC7672}}, which require only
@@ -896,15 +892,12 @@ with the selected TLSA base domain it was derived from, until the
 association ends.
 
 The floor is stated in terms of the security level reached rather than
-in terms of any particular attack.  Two instances of it are visible
-today.  The first is the STRIPTLS attack of Section 6.1.1 of
-{{RFC9289}}, in which an attacker suppresses or rewrites the cleartext
-AUTH_TLS exchange so that the client believes TLS is unavailable;
-{{probe}} specifies the client's response.  The second is any
-mechanism by which an attacker induces a client to select a transport
-or path for which the client would apply weaker protection.  A
-document that specifies RPC over an additional transport can cite this
-section for the second case without restating it.
+of any particular attack.  It covers the STRIPTLS attack of
+Section 6.1.1 of {{RFC9289}}, to which {{probe}} specifies the
+client's response, and any mechanism by which an attacker induces a
+client to select a transport or path that receives weaker protection;
+a document specifying RPC over another transport can cite this
+section for the latter.
 
 ## AUTH_TLS probe outcomes {#probe}
 
@@ -972,12 +965,10 @@ cleartext.
 {: #fallback-table title="Cleartext fallback by AUTH_TLS probe outcome"}
 
 Only DECLINED permits cleartext operation, and only where no floor has
-been pinned.  The other non-ACCEPTED outcomes are not evidence that
-the server lacks RPC-with-TLS support; they are equally consistent
-with an attacker interfering with the cleartext exchange, and they are
-what such interference looks like.  A client that treats them as
-declines has no downgrade resistance even against an attacker who
-cannot forge a well-formed Reply.
+been pinned.  The other non-ACCEPTED outcomes are what an attacker
+interfering with the cleartext exchange looks like; a client that
+treats them as declines has no downgrade resistance even against an
+attacker who cannot forge a well-formed Reply.
 
 \[\[TODO: Whether opportunistic mode should instead take the stricter
 policy of Section 6.1.1 and Section 6.4 of {{RFC9289}}, at the cost of
@@ -1002,12 +993,11 @@ rather than a description.
 
 ## Coherence within an association attempt {#coherence}
 
-This document does not specify how an implementation obtains DNS data,
-how many times within one association attempt it evaluates the
-procedure in {{lookup}}, or how a policy result determined at one
-point in the attempt reaches the point at which the handshake is
-authenticated.  Those are implementation matters.  Two properties are
-required of any such arrangement.
+How an implementation obtains DNS data, how many times within one
+association attempt it evaluates {{lookup}}, and how a policy result
+reaches the point at which the handshake is authenticated are
+implementation matters.  Two properties are required of any
+arrangement.
 
 * A client MUST evaluate the DNS outcome class from DNS data that is
   current at the time of the association attempt, and MUST NOT reuse
@@ -1027,12 +1017,10 @@ on a strengthened conclusion, a later evaluation that finds a usable
 RRset where an earlier one did not, since doing so cannot lower the
 security of the attempt.
 
-Legitimate causes of disagreement exist, such as a TLSA RRset
-republished during a key rollover, and a client that fails such an
-attempt will succeed on a subsequent one evaluated wholly against the
-new data.  Failing and retrying is the correct handling: the client
-cannot distinguish a rollover from an attack from within a single
-attempt.
+A TLSA RRset republished mid-attempt during a key rollover produces
+the same disagreement.  The client cannot distinguish it from an
+attack within a single attempt, and a retry evaluated wholly against
+the new data succeeds.
 
 # Association Scope and Policy Granularity {#assoc-scope}
 
