@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-25T01:36:48.794224+00:00",
+  "timestamp": "2026-08-27T08:35:51.982641+00:00",
   "repo": "chucklever/i-d-rpc-tls-dane",
   "labels": [
     {
@@ -78,7 +78,7 @@
       "id": "I_kwDOT89kGc8AAAABNkRwpQ",
       "title": "SNI for SECURE_UNUSABLE: original reference name, or selected TLSA base domain?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/2",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -87,9 +87,17 @@
       ],
       "body": "\"The selected TLSA base domain, SNI, and reference identifiers\" departs from Section 7 of RFC 7671 by sending the original reference name rather than the selected TLSA base domain in SNI for the SECURE_UNUSABLE outcome class.\n\nThe alternative considered and rejected was to send the base domain and accept it as an additional PKIX reference identifier, which widens what an opportunistic client accepts beyond what Section 5.2.1 of RFC 9289 specifies.",
       "createdAt": "2026-08-20T16:00:35Z",
-      "updatedAt": "2026-08-20T16:00:35Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-08-26T16:49:08Z",
+      "closedAt": "2026-08-26T16:49:08Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: the client sends the original reference name in SNI for SECURE_UNUSABLE.\n\nThe tlshd implementation hit the failure that sending the base domain causes. A server that selects its certificate by SNI supplied one for the base domain, and the client then rejected it under the PKIX name check against the configured name. The rule and its rationale are in the section on the selected TLSA base domain, SNI, and reference identifiers; the Implementation Status section records the finding.\n\nThe alternative, accepting the base domain as an additional PKIX reference identifier, widens what an opportunistic client accepts beyond RFC 9289 Section 5.2.1 and is rejected.",
+          "createdAt": "2026-08-26T16:49:08Z",
+          "updatedAt": "2026-08-26T16:49:08Z"
+        }
+      ]
     },
     {
       "number": 3,
@@ -132,7 +140,7 @@
       "id": "I_kwDOT89kGc8AAAABNkRyUQ",
       "title": "PKIX-TA(0) and PKIX-EE(1): leave optional, or specify behavior for them?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/5",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -141,16 +149,24 @@
       ],
       "body": "\"Certificate usages\" makes support for PKIX-TA(0) and PKIX-EE(1) optional and treats unsupported records as unusable.\n\nRPC-with-TLS requires PKIX support in every client. Whether this document should instead specify behavior for those usages is an open question.",
       "createdAt": "2026-08-20T16:00:38Z",
-      "updatedAt": "2026-08-20T16:00:38Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-08-26T16:49:10Z",
+      "closedAt": "2026-08-26T16:49:10Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: support for PKIX-TA(0) and PKIX-EE(1) stays optional.\n\nRFC 7672 Section 3.1.3 sets the precedent for opportunistic DANE: publishers SHOULD NOT include those usages, client treatment is undefined, and a client MAY treat such records as unusable. Its argument that the PKIX usages add no security, since an attacker able to defeat DNSSEC can replace them with any other usage, applies to RPC-with-TLS as much as to SMTP. The draft's usability filtering treats them as unusable, and a client then authenticates by RFC 9289 Section 5.2.1 when such records are the only ones published, which is never weaker than RFC 9289 alone.\n\nReopen if the working group wants the constrained-PKIX behavior specified for clients that already carry the PKIX code RFC 9289 requires.",
+          "createdAt": "2026-08-26T16:49:10Z",
+          "updatedAt": "2026-08-26T16:49:10Z"
+        }
+      ]
     },
     {
       "number": 6,
       "id": "I_kwDOT89kGc8AAAABNkRzLA",
       "title": "RPCBIND over an authenticated channel: require, recommend, or describe?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/6",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -159,16 +175,24 @@
       ],
       "body": "\"Unauthenticated port selection\" observes that a client can obtain service ports over an authenticated channel by applying RFC 9289 and this document to the RPCBIND service itself, and states that observation without normative force.\n\nNo RPCBIND implementation is known to support RPC-with-TLS.\n\nWhether this document should require that arrangement, recommend it, or leave it as description is open.",
       "createdAt": "2026-08-20T16:00:39Z",
-      "updatedAt": "2026-08-20T16:00:39Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-08-26T16:50:20Z",
+      "closedAt": "2026-08-26T16:50:20Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: the arrangement stays as description.\n\nNo RPCBIND implementation is known to support RPC-with-TLS, so a requirement would be unimplementable and a recommendation one nobody could follow. The section on unauthenticated port selection now says so, so the absence of a MUST does not read as an oversight. Reopen when an RPCBIND implementation supports RPC-with-TLS and the question of requiring the arrangement becomes live.",
+          "createdAt": "2026-08-26T16:50:19Z",
+          "updatedAt": "2026-08-26T16:50:19Z"
+        }
+      ]
     },
     {
       "number": 7,
       "id": "I_kwDOT89kGc8AAAABNkR0bA",
       "title": "No TLSA owner-name convention for transports beyond those RFC 9289 defines",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/7",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -177,9 +201,17 @@
       ],
       "body": "\"Scope\" proposes no owner-name convention for transports other than those RFC 9289 defines.\n\nSection 4 of draft-ietf-dnsop-svcb-dane, a DNSOP working group document, adds \"quic\" to the transport names of Section 3 of RFC 6698 and registers the node name \"_quic\", expressly to distinguish TLSA records for DTLS from those for QUIC. A future document specifying RPC over QUIC would take the label from there rather than define one.\n\nThat draft expired at revision -05 on 4 September 2025.",
       "createdAt": "2026-08-20T16:00:41Z",
-      "updatedAt": "2026-08-20T16:00:41Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-08-26T16:49:12Z",
+      "closedAt": "2026-08-26T16:49:12Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: no change to this document.\n\nThe Scope section already says a future document that specifies RPC over another transport defines the corresponding owner-name convention. For QUIC, that label would follow draft-ietf-dnsop-svcb-dane, which registers the \"_quic\" node name; the draft is still at -05 and expired, so there is nothing for this document to cite yet.",
+          "createdAt": "2026-08-26T16:49:12Z",
+          "updatedAt": "2026-08-26T16:49:12Z"
+        }
+      ]
     },
     {
       "number": 8,
