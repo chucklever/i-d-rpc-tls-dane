@@ -844,14 +844,6 @@ the server is never anonymous to the client, and accepting
 unauthenticated TLS here would be a downgrade relative to the base
 specification rather than an improvement on cleartext.
 
-\[\[TODO: Whether this row should instead require only the
-unauthenticated TLS that Section 10.3 of {{RFC7671}} calls for, or
-fail the attempt as mandatory mode does, is open.  A resolution
-toward unauthenticated TLS also changes the security floor, which
-{{floor}} and the definition in Conventions state as an
-authenticated TLS session.
-https://github.com/chucklever/i-d-rpc-tls-dane/issues/1 \]\]
-
 # Downgrade Resistance {#downgrade}
 
 ## The security floor {#floor}
@@ -1420,12 +1412,6 @@ This section is to be removed before publishing as an RFC.
 
 Each item is tracked as an issue in this document's issue tracker,
 where the detail and the discussion live.
-
-* {{behavior}}: whether the SECURE_UNUSABLE class requires an
-  authenticated TLS session, the unauthenticated TLS that Section 10.3
-  of {{RFC7671}} calls for, or a failed attempt.  The definition of
-  the security floor in {{floor}} follows the answer.
-  [Issue 1](https://github.com/chucklever/i-d-rpc-tls-dane/issues/1)
 
 * {{probe}}: whether the partition of AUTH_TLS probe results, and in
   particular which of them count as DECLINED, preserves reachability
