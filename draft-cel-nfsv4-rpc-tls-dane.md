@@ -1354,6 +1354,18 @@ The signature validity period the operator chooses bounds the replay
 window described in {{replay}}.  Section 11 of {{RFC7671}} suggests
 a lifetime of a few days for domains publishing high-value keys.
 
+The Server Name Indication value such a deployment receives is not
+fixed.  {{selected}} sends the selected TLSA base domain when the
+outcome is SECURE_USABLE and the original reference name when it is
+SECURE_UNUSABLE, and the two differ whenever the RRset was found at
+a securely CNAME-expanded name.  A server that selects its
+certificate strictly by SNI, and fails a handshake carrying a name
+it does not recognize, rejects clients that conform to this
+document.  A server should instead present its default certificate,
+the one its TLSA RRset matches, when the SNI value is absent or
+unrecognized.  Section 8.1 of {{RFC7672}} gives SMTP servers the
+same guidance for the same reason.
+
 ## Unsigned zones prove nothing {#unsigned}
 
 A TLSA RRset in an unsigned zone yields the outcome INSECURE whatever
