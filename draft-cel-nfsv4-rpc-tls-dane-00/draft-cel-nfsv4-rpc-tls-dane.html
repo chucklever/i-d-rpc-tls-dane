@@ -1,0 +1,3282 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Using RPC-with-TLS with DNS-Based Authentication of Named Entities</title>
+<meta content="Charles Lever" name="author">
+<meta content="
+       RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
+(DANE) is available on platforms where it is deployed, and recommends
+that a client operating under an opportunistic security policy check
+for a TLSA record before initiating an association, but does not say
+how.  This document specifies the missing details, so that a TLSA
+record authenticates an RPC server with no certification authority
+trust anchor provisioned on the client.  It updates RFC 9289. 
+    " name="description">
+<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="RPC" name="keyword">
+<meta content="TLS" name="keyword">
+<meta content="DANE" name="keyword">
+<meta content="TLSA" name="keyword">
+<meta content="DNSSEC" name="keyword">
+<meta content="STRIPTLS" name="keyword">
+<meta content="draft-cel-nfsv4-rpc-tls-dane-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.0
+    Python 3.14.7
+    ConfigArgParse 1.7.5
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.5
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.2
+-->
+<link href="draft-cel-nfsv4-rpc-tls-dane.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">RPC TLS with DANE</td>
+<td class="right">September 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Lever</td>
+<td class="center">Expires 5 March 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network File System Version 4</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-cel-nfsv4-rpc-tls-dane-latest</dd>
+<dt class="label-updates">Updates:</dt>
+<dd class="updates">
+<a href="https://www.rfc-editor.org/rfc/rfc9289" class="eref">9289</a> (if approved)</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-09-01" class="published">1 September 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-03-05">5 March 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">C. Lever, <span class="editor">Ed.</span>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Using RPC-with-TLS with DNS-Based Authentication of Named Entities</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
+(DANE) is available on platforms where it is deployed, and recommends
+that a client operating under an opportunistic security policy check
+for a TLSA record before initiating an association, but does not say
+how.  This document specifies the missing details, so that a TLSA
+record authenticates an RPC server with no certification authority
+trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://chucklever.github.io/i-d-rpc-tls-dane/draft-cel-nfsv4-rpc-tls-dane.html">https://chucklever.github.io/i-d-rpc-tls-dane/draft-cel-nfsv4-rpc-tls-dane.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-cel-nfsv4-rpc-tls-dane/">https://datatracker.ietf.org/doc/draft-cel-nfsv4-rpc-tls-dane/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        nfsv4 Working Group mailing list (<span><a href="mailto:nfsv4@ietf.org">mailto:nfsv4@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/nfsv4/">https://mailarchive.ietf.org/arch/browse/nfsv4/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/nfsv4/">https://www.ietf.org/mailman/listinfo/nfsv4/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/chucklever/i-d-rpc-tls-dane">https://github.com/chucklever/i-d-rpc-tls-dane</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 5 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-scope" class="internal xref">Scope</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-updates-to-rfc-9289" class="internal xref">Updates to RFC 9289</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-overview-of-operation" class="internal xref">Overview of Operation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-dane-policy-modes" class="internal xref">DANE policy modes</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-tlsa-records-for-rpc-servic" class="internal xref">TLSA Records for RPC Services</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-owner-names" class="internal xref">Owner names</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-alternate-ports" class="internal xref">Alternate ports</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-port-provenance" class="internal xref">Port provenance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-publishing-and-key-rollover" class="internal xref">Publishing and key rollover</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-the-reference-name" class="internal xref">The Reference Name</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-requirements-on-the-referen" class="internal xref">Requirements on the reference name</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-destinations-that-carry-no-" class="internal xref">Destinations that carry no DANE binding</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-locating-the-tlsa-rrset" class="internal xref">Locating the TLSA RRset</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-resolver-trust" class="internal xref">Resolver trust</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-dns-outcome-classes" class="internal xref">DNS outcome classes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-candidate-tlsa-base-domains" class="internal xref">Candidate TLSA base domains</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-evaluation-and-result-reduc" class="internal xref">Evaluation and result reduction</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-usable-records-and-digest-a" class="internal xref">Usable records and digest algorithm agility</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.6">
+                <p id="section-toc.1-1.7.2.6.1"><a href="#section-7.6" class="auto internal xref">7.6</a>.  <a href="#name-the-selected-tlsa-base-doma" class="internal xref">The selected TLSA base domain, SNI, and reference identifiers</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-authenticating-the-server" class="internal xref">Authenticating the Server</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-certificate-usages" class="internal xref">Certificate usages</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-dane-ee3" class="internal xref">DANE-EE(3)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-dane-ta2" class="internal xref">DANE-TA(2)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-required-client-behavior-by" class="internal xref">Required client behavior by outcome class</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-downgrade-resistance" class="internal xref">Downgrade Resistance</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-the-security-floor" class="internal xref">The security floor</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-auth_tls-probe-outcomes" class="internal xref">AUTH_TLS probe outcomes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-cleartext-fallback" class="internal xref">Cleartext fallback</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
+                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-failure-after-a-handshake-i" class="internal xref">Failure after a handshake is attempted</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
+                <p id="section-toc.1-1.9.2.5.1"><a href="#section-9.5" class="auto internal xref">9.5</a>.  <a href="#name-coherence-within-an-associa" class="internal xref">Coherence within an association attempt</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-association-scope-and-polic" class="internal xref">Association Scope and Policy Granularity</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-policy-is-per-association" class="internal xref">Policy is per association</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-transports-joining-an-assoc" class="internal xref">Transports joining an association later</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-derived-associations" class="internal xref">Derived associations</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-auditing" class="internal xref">Auditing</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-implementation-status" class="internal xref">Implementation Status</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-tlshd-ktls-utils" class="internal xref">tlshd (ktls-utils)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-what-dane-authentication-do" class="internal xref">What DANE authentication does and does not establish</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-replay-and-the-limits-of-re" class="internal xref">Replay and the limits of revocation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
+                <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-fail-closed-behavior-is-a-d" class="internal xref">Fail-closed behavior is a denial-of-service surface</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
+                <p id="section-toc.1-1.13.2.4.1"><a href="#section-13.4" class="auto internal xref">13.4</a>.  <a href="#name-unauthenticated-port-select" class="internal xref">Unauthenticated port selection</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
+                <p id="section-toc.1-1.13.2.5.1"><a href="#section-13.5" class="auto internal xref">13.5</a>.  <a href="#name-derived-associations-2" class="internal xref">Derived associations</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.6">
+                <p id="section-toc.1-1.13.2.6.1"><a href="#section-13.6" class="auto internal xref">13.6</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy considerations</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.7">
+                <p id="section-toc.1-1.13.2.7.1"><a href="#section-13.7" class="auto internal xref">13.7</a>.  <a href="#name-client-authentication" class="internal xref">Client authentication</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#section-14" class="auto internal xref">14</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#section-15" class="auto internal xref">15</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.1">
+                <p id="section-toc.1-1.15.2.1.1"><a href="#section-15.1" class="auto internal xref">15.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.2">
+                <p id="section-toc.1-1.15.2.2.1"><a href="#section-15.2" class="auto internal xref">15.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-deployment-considerations" class="internal xref">Deployment Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.1">
+                <p id="section-toc.1-1.16.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-publishing-tlsa-records-for" class="internal xref">Publishing TLSA records for RPC services</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.2">
+                <p id="section-toc.1-1.16.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-unsigned-zones-prove-nothin" class="internal xref">Unsigned zones prove nothing</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.3">
+                <p id="section-toc.1-1.16.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-downgrade-resistance-of-opp" class="internal xref">Downgrade resistance of opportunistic DANE</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
+            <p id="section-toc.1-1.17.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-open-issues" class="internal xref">Open Issues</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18">
+            <p id="section-toc.1-1.18.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.19">
+            <p id="section-toc.1-1.19.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="intro">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">RPC-with-TLS <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> protects Remote Procedure Call <span>[<a href="#RFC5531" class="cite xref">RFC5531</a>]</span>
+traffic by encapsulating it in a TLS <span>[<a href="#RFC9846" class="cite xref">RFC9846</a>]</span> session.  A client
+discovers whether a server supports the mechanism by sending a NULL
+procedure carrying the AUTH_TLS authentication flavor, in cleartext,
+before the TLS handshake begins.  A server that supports RPC-with-TLS
+replies with a "STARTTLS" token, after which the client sends a
+ClientHello on the same connection or to the same UDP destination
+port.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires every RPC-with-TLS implementation
+to support authenticating server certificates by PKIX <span>[<a href="#RFC5280" class="cite xref">RFC5280</a>]</span> trust
+against a locally configured expected DNS-ID.  The client resolves
+that name in the DNS to reach the server, but the DNS supplies nothing
+that authenticates the server or that says the server is expected to
+speak TLS.  Two deployment problems follow:<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-3.1">
+          <p id="section-1-3.1.1">Trust anchor distribution.  Every client must be provisioned with
+the certification authority material needed to validate the servers
+it will contact, and kept current as certificates are rotated.  A
+server operator without a certification authority has no way to
+tell clients what key to expect other than by configuring each of
+them.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.2">
+          <p id="section-1-3.2.1">STRIPTLS.  The AUTH_TLS probe and its reply are exchanged in
+cleartext.  An on-path attacker who suppresses the probe, or
+rewrites the reply so that it does not carry the "STARTTLS" token,
+makes a TLS-capable server appear not to support RPC-with-TLS, and
+a client under an opportunistic policy proceeds in cleartext.
+Nothing the client learns on the way to the server tells it that
+TLS was expected.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-4"><span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> anticipated these problems and pointed at the same remedy
+for them, DNS-Based Authentication of Named Entities (DANE)
+<span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>, in several places:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-5.1">
+          <p id="section-1-5.1.1">Section 1 lists DNSSEC/DANE among the platform facilities that
+RPC-with-TLS support is assumed to build on.<a href="#section-1-5.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-5.2">
+          <p id="section-1-5.2.1">Section 6.1.1 offers a TLSA record as one of two mitigations for
+STRIPTLS attacks: it "can alert clients that TLS is expected to
+work, and provide a binding of a hostname to the X.509 identity",
+and a client under an opportunistic security policy should check
+for one before initiating an association.  The other mitigation, a
+policy that requires TLS on every connection, is strongly
+encouraged where TLSA records are not available.<a href="#section-1-5.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-5.3">
+          <p id="section-1-5.3.1">Section 6.4 lists among its best security policy practices that,
+when using AUTH_NULL or AUTH_SYS, "both peers are <span class="bcp14">RECOMMENDED</span> to
+have DNSSEC TLSA records" together with "a security policy that
+requires mutual peer authentication and rejection of a connection
+when host authentication fails".<a href="#section-1-5.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-6">A TLSA RRset addresses both problems at once.  Published in a zone
+the operator already signs, it carries the binding between a server
+name and its public key in the DNS, alongside the name the client had
+to resolve anyway, so no client needs certification authority
+material for that server.  And because a DNSSEC-validated TLSA RRset
+is an authenticated statement by the server operator that TLS is
+expected to work, a client holding one can no longer treat silent
+fallback to cleartext as acceptable: the STRIPTLS attack fails
+closed.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">However, <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> offers a sketch rather than a specification.  It
+leaves unspecified the owner names at which a client queries for the
+TLSA record, whether a lookup failure is treated as an absent record,
+the name the client sends in SNI and verifies in the server's
+certificate when a record is found, and which outcomes of the AUTH_TLS
+probe still permit cleartext.  Two independent implementations
+resolving these questions differently would not interoperate: one
+fails a handshake that the other completes.  A client that makes the
+permissive choice at each point obtains none of the downgrade
+resistance a TLSA record appears to promise.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8">To close these gaps, this document specifies DANE
+for RPC-with-TLS completely enough to implement and deploy, following
+the operational specifications of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> and
+making the RPC-specific choices those documents leave to application
+protocols.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<div id="scope">
+<section id="section-1.1">
+        <h3 id="name-scope">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
+        </h3>
+<p id="section-1.1-1">This document defines client behavior and places no requirements on
+RPC servers.  Its one requirement on the server side, in
+<a href="#rollover" class="auto internal xref">Section 5.4</a>, binds the publisher of the TLSA RRset; <a href="#deployment" class="auto internal xref">Appendix A</a>
+gives the operational guidance that accompanies it.  A server that
+conforms to <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> interoperates with a client
+implementing this document without modification.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">This document specifies the use of DANE to authenticate an RPC server
+to an RPC client.  Authentication of an RPC client to an RPC server by
+means of DANE is out of scope; see <a href="#client-auth" class="auto internal xref">Section 13.7</a>.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">This document applies where the server authenticates itself with a
+certificate.  A server association that uses the pre-shared key
+mechanism of Section 5.2.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> presents no certificate for
+DANE to authenticate. The procedures in this document do not apply to
+it.  The exclusion extends to downgrade resistance: such an
+association does not consult TLSA records to pin a security floor
+(<a href="#floor" class="auto internal xref">Section 9.1</a>).  The provisioned key is itself the operator's commitment
+to TLS, and it is already in the client's possession, so local policy
+can require TLS for the association without a DNS lookup.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.1-4">Section 5.1 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> also provides for matching a DANE-EE(3)
+record against a raw public key <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>; <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines no
+way to convey one, so that case does not arise here.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.1-5">TLSA owner names are defined here for the transports <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>
+itself defines, namely TLS over TCP and DTLS over UDP.  A future
+document that specifies RPC over another transport is expected to
+define the corresponding owner-name convention.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="updates">
+<section id="section-2">
+      <h2 id="name-updates-to-rfc-9289">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-updates-to-rfc-9289" class="section-name selfRef">Updates to RFC 9289</a>
+      </h2>
+<p id="section-2-1">Two requirements of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> are changed here:<a href="#section-2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2-2.1">
+          <p id="section-2-2.1.1">Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires PKIX path validation and a
+check of the expected DNS-ID or iPAddress subjectAltName against the
+presented certificate.  Those requirements continue to apply
+unchanged wherever this document requires PKIX authentication, and
+to the name checks performed for certificate usage DANE-TA(2).  They
+do not apply to a server authenticated by a DANE-EE(3) match, for
+the reasons given in Section 5.1 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and restated in
+<a href="#dane-ee" class="auto internal xref">Section 8.2</a>.<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.2">
+          <p id="section-2-2.2.1">Where <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> cites <span>[<a href="#RFC6125" class="cite xref">RFC6125</a>]</span> for certificate name checks,
+clients implementing this document perform those checks per
+<span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, which obsoletes <span>[<a href="#RFC6125" class="cite xref">RFC6125</a>]</span>.  The additional
+restriction in Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, that a DNS domain name
+in an RPC-with-TLS certificate contain no wildcard character, is
+retained.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-2-3">Elsewhere <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> makes a recommendation or leaves a choice to
+local policy.  This document replaces each of the following with a
+requirement stated in the section named:<a href="#section-2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2-4.1">
+          <p id="section-2-4.1.1">The first bullet of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> recommends a TLSA
+check before an association is initiated, and disconnection when
+TLS or authentication then fails.  <a href="#lookup" class="auto internal xref">Section 7</a>, <a href="#behavior" class="auto internal xref">Section 8.4</a>, and
+<a href="#floor" class="auto internal xref">Section 9.1</a> replace that recommendation.<a href="#section-2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-4.2">
+          <p id="section-2-4.2.1">The second bullet of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> recommends a
+policy that requires TLS on every connection, and Section 6.4
+recommends, for AUTH_NULL and AUTH_SYS, TLSA records for both peers
+and rejection of a connection when host authentication fails.
+<a href="#floor" class="auto internal xref">Section 9.1</a> and <a href="#fallback" class="auto internal xref">Section 9.3</a> require the server-authentication half
+of that behavior where this document pins a security floor; the
+client-authentication half is out of scope (<a href="#client-auth" class="auto internal xref">Section 13.7</a>).
+Where no floor is pinned, <a href="#fallback" class="auto internal xref">Section 9.3</a> permits cleartext operation
+on a well-formed decline; a deployment that adopts either
+recommendation in full remains conformant.<a href="#section-2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-4.3">
+          <p id="section-2-4.3.1">Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> leaves to local policy whether RPC
+operation continues in cleartext when the AUTH_TLS probe does not
+yield the "STARTTLS" indication.  <a href="#fallback" class="auto internal xref">Section 9.3</a> specifies that
+policy, and it is more restrictive than what <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> permits.<a href="#section-2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-2-5">This document also extends the audit log that Section 6.1 of
+<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires: <a href="#audit" class="auto internal xref">Section 11</a> adds to the required content of that
+log and permits it to be assembled from correlatable events.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">Nothing in this document changes the TLS version, ALPN, cipher suite,
+confidentiality, or transport requirements of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, nor its
+provisions for pre-shared keys or for RPCSEC_GSS.<a href="#section-2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-3">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-3-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">This document assumes a working knowledge of RPC version 2
+<span>[<a href="#RFC5531" class="cite xref">RFC5531</a>]</span>, of RPC-with-TLS <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and of DANE <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>
+        <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.  It uses the DNSSEC validation states "secure",
+"insecure", "bogus", and "indeterminate" as defined in Section 5 of
+<span>[<a href="#RFC4033" class="cite xref">RFC4033</a>]</span>.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">The following terms are used as defined here.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-4">
+        <dt id="section-3-4.1">Reference name:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.2">
+          <p id="section-3-4.2.1">The DNS domain name that identifies to the client the server it is
+contacting.  For an association established by administrative
+configuration, it is the name that appeared in that configuration
+-- for NFS, the server component of the mount specification.  For
+a derived association (<a href="#derived" class="auto internal xref">Section 10.3</a>), it is the name the upper-layer
+protocol supplied.  <a href="#refname" class="auto internal xref">Section 6</a> states the requirements on it.<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.3">TLSA base domain:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.4">
+          <p id="section-3-4.4.1">The domain name to which the port and transport labels are
+prepended to form a TLSA owner name, as in Section 3 of
+<span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>.  A client may have more than one candidate base domain
+for a single reference name; see <a href="#candidates" class="auto internal xref">Section 7.3</a>.<a href="#section-3-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.5">Selected TLSA base domain:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.6">
+          <p id="section-3-4.6.1">The candidate TLSA base domain whose evaluation produced the DNS
+outcome class for the association attempt.  See <a href="#selected" class="auto internal xref">Section 7.6</a>.<a href="#section-3-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.7">DNS outcome class:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.8">
+          <p id="section-3-4.8.1">One of the five results defined in <a href="#outcomes" class="auto internal xref">Section 7.2</a> that a client
+assigns to a TLSA lookup for a given reference name, port, and
+transport.<a href="#section-3-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.9">Usable record:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.10">
+          <p id="section-3-4.10.1">A TLSA record that the client is able to use to authenticate a
+server certificate, in the sense of Section 4.1 of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> and
+as further constrained by <a href="#usable" class="auto internal xref">Section 7.5</a>.<a href="#section-3-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.11">Server association:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.12">
+          <p id="section-3-4.12.1">The set of transport connections a client operates toward one
+server, selected by one reference name, and treated as a single
+administrative and security unit; <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> uses "association"
+informally.  It begins with the client's first association attempt
+and ends when the administrative action that created it is undone.
+For NFS, it is what a mount point and any additional connections
+established for it are carried over, and it lasts from mount to
+unmount.<a href="#section-3-4.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.13">Association attempt:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.14">
+          <p id="section-3-4.14.1">One attempt by a client to establish a transport connection for a
+server association, from the selection of a destination through
+either the completion of a TLS handshake, a decision to proceed in
+cleartext, or failure.<a href="#section-3-4.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.15">Security floor:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.16">
+          <p id="section-3-4.16.1">The minimum acceptable security level that a client has determined
+for a server association, and below which it <span class="bcp14">MUST NOT</span> operate.  See
+<a href="#floor" class="auto internal xref">Section 9.1</a>.<a href="#section-3-4.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.17">DANE policy mode:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.18">
+          <p id="section-3-4.18.1">The client's configured disposition toward DANE for a given server
+association: disabled, opportunistic, or mandatory.  See <a href="#modes" class="auto internal xref">Section 4.1</a>.<a href="#section-3-4.18.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="overview">
+<section id="section-4">
+      <h2 id="name-overview-of-operation">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-overview-of-operation" class="section-name selfRef">Overview of Operation</a>
+      </h2>
+<p id="section-4-1">A client that has DANE enabled for a server association performs, in
+addition to what <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> already specifies, the following steps.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4-2">
+<li id="section-4-2.1">
+          <p id="section-4-2.1.1">It derives a reference name for the server it is about to contact,
+subject to the requirements in <a href="#refname" class="auto internal xref">Section 6</a>.  A destination the
+client cannot name in the DNS, such as one selected by IP address
+literal, carries no DANE binding and is handled per <a href="#no-dane" class="auto internal xref">Section 6.2</a>.<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-2.2">
+          <p id="section-4-2.2.1">It looks up TLSA records at the owner names derived from that
+reference name, the destination port, and the transport, and
+reduces the results to a single DNS outcome class.  <a href="#lookup" class="auto internal xref">Section 7</a>
+specifies this procedure.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-2.3">
+          <p id="section-4-2.3.1">It applies the outcome class to the association attempt.  An
+outcome of SECURE_USABLE or SECURE_UNUSABLE pins a security floor
+for the association (<a href="#floor" class="auto internal xref">Section 9.1</a>),
+which constrains whether cleartext operation remains permissible
+and which failures are recoverable.<a href="#section-4-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-2.4">
+          <p id="section-4-2.4.1">If a TLS handshake takes place, it authenticates the server
+according to the outcome class: by DANE (<a href="#authn" class="auto internal xref">Section 8</a>) where the
+client found a usable record, and by the PKIX rules of
+Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> otherwise.<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-2.5">
+          <p id="section-4-2.5.1">It records the policy inputs, the decision, and the authentication
+result in the audit log that Section 6.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> already
+requires (<a href="#audit" class="auto internal xref">Section 11</a>).<a href="#section-4-2.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-4-3">Steps 2 and 3 concern the association attempt as a whole and can be
+performed before the AUTH_TLS probe is sent; step 4 happens during
+the handshake.  How an implementation divides the work is not
+specified; <a href="#coherence" class="auto internal xref">Section 9.5</a> states the two constraints a division <span class="bcp14">MUST</span>
+respect.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div id="modes">
+<section id="section-4.1">
+        <h3 id="name-dane-policy-modes">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-dane-policy-modes" class="section-name selfRef">DANE policy modes</a>
+        </h3>
+<p id="section-4.1-1">A client implementing this document <span class="bcp14">MUST</span> support the following three
+policy modes, and <span class="bcp14">MUST</span> allow the mode to be configured independently
+for each server association.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-2">
+          <dt id="section-4.1-2.1">Disabled:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">The client performs none of the procedures in this document.  Its
+behavior is that specified by <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.1-2.3">Opportunistic:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-2.4">
+            <p id="section-4.1-2.4.1">The client performs the procedures in this document.  A DNS outcome
+class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor and
+constrains the association as specified in <a href="#behavior" class="auto internal xref">Section 8.4</a> and
+<a href="#floor" class="auto internal xref">Section 9.1</a>.  SECURE_ABSENT and INSECURE pin no floor; <a href="#fallback" class="auto internal xref">Section 9.3</a>
+then governs whether the attempt may proceed in cleartext, and any
+TLS session established is authenticated by the PKIX rules of
+Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  ERROR fails the attempt
+(<a href="#behavior" class="auto internal xref">Section 8.4</a>).  This mode is
+intended for fleet-wide deployment against a server population that
+has not uniformly published TLSA records; see <a href="#adaptive" class="auto internal xref">Appendix A.3</a>.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.1-2.5">Mandatory:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-2.6">
+            <p id="section-4.1-2.6.1">The client performs the procedures in this document and additionally
+requires that the server be authenticated by DANE.  Any outcome
+other than SECURE_USABLE followed by a successful DANE
+authentication <span class="bcp14">MUST</span> fail the association attempt.  A destination
+that cannot carry a DANE binding at all (<a href="#no-dane" class="auto internal xref">Section 6.2</a>) fails rather
+than falling back to PKIX.<a href="#section-4.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.1-3">Mandatory mode never silently degrades.  An implementation that lacks
+some part of this specification, such as a transport for which it
+defines no owner name, <span class="bcp14">MUST</span> fail an association attempt made in
+mandatory mode rather than proceed without the protection the mode
+was configured to obtain.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="records">
+<section id="section-5">
+      <h2 id="name-tlsa-records-for-rpc-servic">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-tlsa-records-for-rpc-servic" class="section-name selfRef">TLSA Records for RPC Services</a>
+      </h2>
+<div id="owner-names">
+<section id="section-5.1">
+        <h3 id="name-owner-names">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-owner-names" class="section-name selfRef">Owner names</a>
+        </h3>
+<p id="section-5.1-1">TLSA owner names for RPC services follow the convention in Section 3
+of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> without modification.  The owner name is formed by
+prepending, to a TLSA base domain:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-2.1">
+            <p id="section-5.1-2.1.1">the second label "_tcp" for RPC-with-TLS over TCP, or "_udp" for
+RPC-with-DTLS over UDP, per Sections 5.1.1 and 5.1.2 of
+<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>; and<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-2.2">
+            <p id="section-5.1-2.2.1">the first label, consisting of an underscore followed by the decimal
+representation, without leading zeros, of the port number to which
+the client connects.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.1-3">For example, an NFS server reached at "nfs.example.com" on the default
+NFS port over TCP publishes its TLSA RRset at
+"_2049._tcp.nfs.example.com".<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ports">
+<section id="section-5.2">
+        <h3 id="name-alternate-ports">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-alternate-ports" class="section-name selfRef">Alternate ports</a>
+        </h3>
+<p id="section-5.2-1">The port in the owner name is the port to which the client actually
+connects, not a registered port for the RPC program in use.  RPC
+services are routinely offered on other ports, by site convention or
+by local configuration: a service reached on port 20490 over TCP at
+"nfs.example.com" publishes its TLSA RRset at
+"_20490._tcp.nfs.example.com", and a server that offers the same
+service on several ports publishes one TLSA RRset per port.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Because the port is part of the owner name, a TLSA RRset authenticates
+the server at a known port and says nothing about the same server at
+another port, in the same way that Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> observes
+that a successful AUTH_TLS probe on one port and transport implies
+nothing about any other.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="provenance">
+<section id="section-5.3">
+        <h3 id="name-port-provenance">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-port-provenance" class="section-name selfRef">Port provenance</a>
+        </h3>
+<p id="section-5.3-1">The distinction that matters for downgrade resistance is not the value
+of the port but where the client obtained it.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">An RPC client may learn the port for a program from the server's
+RPCBIND service <span>[<a href="#RFC1833" class="cite xref">RFC1833</a>]</span>, whose replies are not authenticated.  An
+attacker who substitutes a port in an RPCBIND reply thereby
+substitutes the first label of the TLSA owner name the client will
+query.  The query is made at a name for which the operator published
+nothing, and the client assigns SECURE_ABSENT (<a href="#outcomes" class="auto internal xref">Section 7.2</a>) and pins
+no floor.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">Accordingly:<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-4.1">
+            <p id="section-5.3-4.1.1">DANE authentication as specified in <a href="#authn" class="auto internal xref">Section 8</a> applies at whatever
+port the client connects to, whatever the provenance of that port.<a href="#section-5.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-4.2">
+            <p id="section-5.3-4.2.1">A client <span class="bcp14">MUST NOT</span> pin a security floor (<a href="#floor" class="auto internal xref">Section 9.1</a>) on the basis of a
+DNS outcome derived from a port the client obtained from an
+unauthenticated source.  Ports obtained from local configuration,
+including a configured default for the RPC program, are trusted for
+this purpose; ports obtained from an unauthenticated RPCBIND reply,
+or from any other unauthenticated in-band source, are not.<a href="#section-5.3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-5">A TLSA RRset can authenticate a server at a port the client already
+knew.  It cannot retroactively secure the client's selection of that
+port.  <a href="#sec-ports" class="auto internal xref">Section 13.4</a> describes how a client obtains ports from an
+authenticated source.<a href="#section-5.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="rollover">
+<section id="section-5.4">
+        <h3 id="name-publishing-and-key-rollover">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-publishing-and-key-rollover" class="section-name selfRef">Publishing and key rollover</a>
+        </h3>
+<p id="section-5.4-1">Publishers <span class="bcp14">MUST</span> observe the requirements of Section 8 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>,
+in particular during key rollover: the RRset must at all times contain
+a record matching the certificate that every server answering for the
+name may present.  A client that has pinned a floor fails rather than
+falls back when the RRset and the certificate disagree, so a rollover
+performed in the wrong order takes the service down.  That is
+intended, but operators should plan for it.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="refname">
+<section id="section-6">
+      <h2 id="name-the-reference-name">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-the-reference-name" class="section-name selfRef">The Reference Name</a>
+      </h2>
+<div id="requirements-on-the-reference-name">
+<section id="section-6.1">
+        <h3 id="name-requirements-on-the-referen">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-requirements-on-the-referen" class="section-name selfRef">Requirements on the reference name</a>
+        </h3>
+<p id="section-6.1-1">The TLSA base domains a client considers <span class="bcp14">MUST</span> be derived from the
+association's reference name, as specified in <a href="#lookup" class="auto internal xref">Section 7</a>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">A client <span class="bcp14">MUST NOT</span> use a name obtained by reverse resolution of the
+server's network address as a reference name, or as the basis for one.
+Such a name is chosen by whoever controls the reverse zone, and
+accepting it would let that party select the TLSA RRset against which
+the client authenticates.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">Before treating a configured value as a reference name, a client <span class="bcp14">MUST</span>
+apply the following input contract.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1-4.1">
+            <p id="section-6.1-4.1.1">If the value is an IPv4 or IPv6 address literal, including an IPv6
+literal bearing a zone identifier, it is not a DNS name.  The
+destination carries no DANE binding; see <a href="#no-dane" class="auto internal xref">Section 6.2</a>.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-4.2">
+            <p id="section-6.1-4.2.1">An internationalized domain name <span class="bcp14">MUST</span> be converted to A-label form
+<span>[<a href="#RFC5890" class="cite xref">RFC5890</a>]</span> before it is used to construct an owner name, as
+Section 3 of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> requires.<a href="#section-6.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-4.3">
+            <p id="section-6.1-4.3.1">The value <span class="bcp14">MUST</span> satisfy the syntax and length limits for DNS names in
+<span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span>, in both wire and presentation form.  A value with an
+empty or over-long label, or one that exceeds the total name length
+limit once the port and transport labels have been prepended, is not
+usable as a reference name, and the association attempt is handled
+as in <a href="#no-dane" class="auto internal xref">Section 6.2</a>.<a href="#section-6.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-4.4">
+            <p id="section-6.1-4.4.1">ASCII case is not significant.  A client that compares reference
+names -- to decide whether two association attempts concern the same
+server association, for instance -- <span class="bcp14">MUST</span> compare them
+case-insensitively.<a href="#section-6.1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.1-4.5">
+            <p id="section-6.1-4.5.1">A trailing empty label, written as a trailing dot in presentation
+form, is retained when constructing DNS queries and removed when the
+name is used as a Server Name Indication (SNI) value <span>[<a href="#RFC6066" class="cite xref">RFC6066</a>]</span> or
+as a
+PKIX reference identifier.<a href="#section-6.1-4.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="no-dane">
+<section id="section-6.2">
+        <h3 id="name-destinations-that-carry-no-">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-destinations-that-carry-no-" class="section-name selfRef">Destinations that carry no DANE binding</a>
+        </h3>
+<p id="section-6.2-1">A destination selected by IP address literal has no DNS name from
+which a TLSA base domain could be derived, and DANE does not apply to
+it; this matches the treatment of address literals in Section 2.2 of
+<span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>.  The same holds for a destination whose configured name
+fails the input contract above.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">For such a destination:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.2-3.1">
+            <p id="section-6.2-3.1.1">In opportunistic mode, no floor is pinned and <a href="#fallback" class="auto internal xref">Section 9.3</a> governs
+whether the attempt may proceed in cleartext.  If the client
+authenticates the server, it does so by the rules of Section 5.2.1
+of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, which provide for matching an iPAddress
+subjectAltName.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.2-3.2">
+            <p id="section-6.2-3.2.1">In mandatory mode, the association attempt fails (<a href="#modes" class="auto internal xref">Section 4.1</a>).<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="lookup">
+<section id="section-7">
+      <h2 id="name-locating-the-tlsa-rrset">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-locating-the-tlsa-rrset" class="section-name selfRef">Locating the TLSA RRset</a>
+      </h2>
+<div id="resolver">
+<section id="section-7.1">
+        <h3 id="name-resolver-trust">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-resolver-trust" class="section-name selfRef">Resolver trust</a>
+        </h3>
+<p id="section-7.1-1">Every guarantee in this document rests on the client obtaining DNSSEC
+validation states it can trust.  A client that accepts the AD bit from
+a remote validating resolver has moved its trust to that resolver and
+to the path between them, which is precisely the kind of unprotected
+path this document exists to defend against.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">Accordingly, a client implementing this document <span class="bcp14">SHOULD</span> validate
+DNSSEC responses itself, or obtain them from a validating resolver it
+trusts over a channel whose integrity is protected.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3"><a href="#outcomes" class="auto internal xref">Section 7.2</a> classes a failure to load, read, or parse the trust
+anchors as ERROR, not INSECURE, since a client without them cannot
+distinguish an unsigned zone from a signed one.  An anchor maintained
+automatically <span>[<a href="#RFC5011" class="cite xref">RFC5011</a>]</span> that has fallen out of date is subject to
+the same rule.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="outcomes">
+<section id="section-7.2">
+        <h3 id="name-dns-outcome-classes">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-dns-outcome-classes" class="section-name selfRef">DNS outcome classes</a>
+        </h3>
+<p id="section-7.2-1">A client reduces the result of its TLSA lookups for one reference
+name, port, and transport to exactly one of the following five outcome
+classes.  Throughout, "usable" has the meaning given in <a href="#usable" class="auto internal xref">Section 7.5</a>.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.2-2">
+          <dt id="section-7.2-2.1">SECURE_USABLE:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.2">
+            <p id="section-7.2-2.2.1">A DNSSEC-validated TLSA RRset was found, and at least one record in
+it is usable.  The client authenticates the server by DANE.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.3">SECURE_UNUSABLE:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.4">
+            <p id="section-7.2-2.4.1">A DNSSEC-validated TLSA RRset was found, and no record in
+it is usable.  The operator has committed to TLS, but the client
+cannot perform DANE authentication against what was published.<a href="#section-7.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.5">SECURE_ABSENT:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.6">
+            <p id="section-7.2-2.6.1">The candidate base domains were exhausted without finding a
+validated TLSA RRset, and the last candidate evaluated yielded a
+DNSSEC-validated denial of existence.  The operator has published no
+signed TLSA RRset for this service.<a href="#section-7.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.7">INSECURE:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.8">
+            <p id="section-7.2-2.8.1">The search ended at a TLSA owner name that lies in a provably
+unsigned span of the DNS.  DANE does not apply, and no conclusion
+can be drawn from the absence or presence of records.<a href="#section-7.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.9">ERROR:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.10">
+            <p id="section-7.2-2.10.1">The client could not obtain a validated answer.  This class covers a
+"bogus" or "indeterminate" validation result, a timeout, a SERVFAIL
+or other error response, a malformed reply, a failure to load, read,
+or parse the resolver's trust anchors, and any other condition that
+prevents the client from assigning one of the four classes above.<a href="#section-7.2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-7.2-3">An ERROR outcome <span class="bcp14">MUST NOT</span> be treated as equivalent to INSECURE, and
+<span class="bcp14">MUST NOT</span> authorize cleartext operation: as Sections 2.1.1 and 2.1.2
+of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> observe, the conditions that produce it are the ones
+an attacker can produce at will.
+An implementation <span class="bcp14">MAY</span> retry a lookup that produced ERROR; if no
+attempt yields a validated answer, the outcome remains ERROR.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="candidates">
+<section id="section-7.3">
+        <h3 id="name-candidate-tlsa-base-domains">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-candidate-tlsa-base-domains" class="section-name selfRef">Candidate TLSA base domains</a>
+        </h3>
+<p id="section-7.3-1">RPC-with-TLS has no service location indirection of the kind that MX
+or SRV records provide, so the redirection case that Section 7 of
+<span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> addresses arises for RPC through CNAME aliasing.  A client
+therefore determines an ordered list of candidate base domains before
+querying for TLSA records, as shown in <a href="#candidate-alg" class="auto internal xref">Figure 1</a>.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<span id="name-determining-the-candidate-b"></span><div id="candidate-alg">
+<figure id="figure-1">
+          <div class="alignLeft art-text artwork" id="section-7.3-2.1">
+<pre>
+CandidateBaseDomains(name):
+
+  Resolve the address records for "name" in each address family
+  the client will use for this association attempt, following
+  any CNAME chain hop by hop and noting the DNSSEC validation
+  state of each link.
+
+  If any step of that resolution is bogus or indeterminate, or
+  fails to complete:
+      return error
+
+  If "name" is an alias, and in every address family resolved
+  the chain reaches the same canonical name, and every link of
+  every such chain is secure:
+      return [ canonical-name, name ]
+
+  return [ name ]
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-determining-the-candidate-b" class="selfRef">Determining the candidate base domains</a>
+          </figcaption></figure>
+</div>
+<p id="section-7.3-3">The single-element result covers every case in which the client
+cannot show that the redirection itself was authenticated.  A client
+<span class="bcp14">MUST NOT</span> expand a chain that it has not validated end to end, because
+an unvalidated CNAME lets whoever forged it choose the base domain
+and therefore the TLSA RRset.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-7.3-4">A CNAME encountered at a TLSA owner name itself is followed by
+ordinary DNS resolution under the same requirement; a chain with an
+insecure or bogus link yields INSECURE or ERROR respectively for that
+candidate.  Such a CNAME does not change which candidate is the
+selected TLSA base domain, since it redirects the records, not the
+identity of the service.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reduction">
+<section id="section-7.4">
+        <h3 id="name-evaluation-and-result-reduc">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-evaluation-and-result-reduc" class="section-name selfRef">Evaluation and result reduction</a>
+        </h3>
+<p id="section-7.4-1">A client evaluates the candidate list in order, as shown in
+<a href="#reduction-alg" class="auto internal xref">Figure 2</a>.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<span id="name-tlsa-lookup-and-result-redu"></span><div id="reduction-alg">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-7.4-2.1">
+<pre>
+Evaluate(refname, port, proto):
+
+  name = Normalize(refname)               ; input contract
+  if name is an address literal:
+      return "no DANE binding"
+
+  candidates = CandidateBaseDomains(name) ; preceding figure
+  if candidates is error:
+      return ERROR
+
+  for C in candidates:                    ; in order
+      owner = "_" + port + "._" + proto + "." + C
+      R = Lookup(owner, TLSA)
+
+      if R is bogus or indeterminate or failed:
+          return ERROR
+
+      if R is secure and carries a TLSA RRset:
+          selected_base_domain = C
+          if AnyUsable(R):                ; usability filtering
+              return SECURE_USABLE
+          else:
+              return SECURE_UNUSABLE
+
+      if R is secure and is a denial of existence:
+          continue
+
+      if R is insecure:
+          if C is not the last candidate:
+              continue
+          else:
+              return INSECURE
+
+  return SECURE_ABSENT
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-tlsa-lookup-and-result-redu" class="selfRef">TLSA lookup and result reduction</a>
+          </figcaption></figure>
+</div>
+<p id="section-7.4-3">The rules this encodes, stated in prose:<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.4-4.1">
+            <p id="section-7.4-4.1.1">A validated TLSA RRset is final, whether or not the client can use
+the records in it.  Finding one stops the search; the client does
+not fall back to a later candidate in the hope of finding records it
+likes better.  This is what makes SECURE_UNUSABLE a distinct outcome
+rather than a variety of absence.<a href="#section-7.4-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.4-4.2">
+            <p id="section-7.4-4.2.1">A validated denial of existence continues the search, per Section 7
+of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>, which directs a client that finds no TLSA record at
+the expanded name to query at the original name.  If no candidate
+remains, the outcome is SECURE_ABSENT.  An insecure answer likewise
+continues the search, since the operator may have published a
+signed RRset at a later candidate.<a href="#section-7.4-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.4-5">A client <span class="bcp14">MUST</span> assign the same outcome class as this procedure would
+for the same DNS data.  Implementations are not required to perform
+the queries in this order, or to perform queries whose result cannot
+affect the outcome.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="usable">
+<section id="section-7.5">
+        <h3 id="name-usable-records-and-digest-a">
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-usable-records-and-digest-a" class="section-name selfRef">Usable records and digest algorithm agility</a>
+        </h3>
+<p id="section-7.5-1">Whether a record is usable is determined before any attempt is made to
+match it against a certificate, and a record that is usable but does
+not match the server's certificate is an authentication failure, never
+a reason to reclassify the RRset as unusable.  Conflating the two
+would let an attacker who can influence the certificate a server
+presents convert a DANE mismatch into a fallback.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-2">A client determines the usable records in a validated TLSA RRset as
+follows.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.5-3">
+<li id="section-7.5-3.1">
+            <p id="section-7.5-3.1.1">Discard any record whose RDATA is truncated, whose certificate
+association data has a length inconsistent with its matching type,
+or that is otherwise malformed.<a href="#section-7.5-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-7.5-3.2">
+            <p id="section-7.5-3.2.1">Discard any record whose certificate usage, selector, or matching
+type the client has not implemented or has been configured not to
+use.  Certificate usage support is specified in <a href="#usages" class="auto internal xref">Section 8.1</a>.<a href="#section-7.5-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-7.5-3.3">
+            <p id="section-7.5-3.3.1">Apply digest algorithm agility per Section 9 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>: for
+each combination of certificate usage and selector remaining, the
+client retains records with a matching type of Full(0), and records
+whose matching type is the strongest the client supports among
+those present for that usage and selector.  Records using a weaker
+supported matching type are discarded.<a href="#section-7.5-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-7.5-4">A matching type the client does not support <span class="bcp14">MUST NOT</span> suppress the
+strongest type it does support, and malformed records <span class="bcp14">MUST</span> be
+discarded in step 1 so that they do not influence the strength
+selection in step 3.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
+<p id="section-7.5-5">If any record survives step 3, the RRset is usable and the outcome is
+SECURE_USABLE.  If none does, the RRset is unusable and the outcome is
+SECURE_UNUSABLE.<a href="#section-7.5-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="selected">
+<section id="section-7.6">
+        <h3 id="name-the-selected-tlsa-base-doma">
+<a href="#section-7.6" class="section-number selfRef">7.6. </a><a href="#name-the-selected-tlsa-base-doma" class="section-name selfRef">The selected TLSA base domain, SNI, and reference identifiers</a>
+        </h3>
+<p id="section-7.6-1">The selected TLSA base domain is the candidate at which the evaluation
+in <a href="#reduction" class="auto internal xref">Section 7.4</a> found a validated TLSA RRset.  It is defined only for
+the outcome classes SECURE_USABLE and SECURE_UNUSABLE.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
+<p id="section-7.6-2">When the outcome is SECURE_USABLE, the selected TLSA base domain <span class="bcp14">MUST</span>
+be sent as the Server Name Indication <span>[<a href="#RFC6066" class="cite xref">RFC6066</a>]</span> value and, for
+certificate usages other than DANE-EE(3), <span class="bcp14">MUST</span> be the primary
+reference identifier for certificate name checks.  This is the rule of
+Section 7 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.<a href="#section-7.6-2" class="pilcrow">¶</a></p>
+<p id="section-7.6-3">When the outcome is SECURE_UNUSABLE, the client <span class="bcp14">MUST</span> instead send the
+original reference name as the Server Name Indication value, and <span class="bcp14">MUST</span>
+use the original reference name as the reference identifier for the
+PKIX name checks that <a href="#behavior" class="auto internal xref">Section 8.4</a> then requires.<a href="#section-7.6-3" class="pilcrow">¶</a></p>
+<p id="section-7.6-4">This departs from Section 7 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> because of what
+SECURE_UNUSABLE means.  A DANE client puts the expanded base domain in
+SNI because it is prepared to accept a certificate issued for that
+name.  A client that can use no record in the RRset is about to fall
+back to PKIX authentication against the configured name; sending the
+base domain in SNI would ask a server that selects its certificate by
+SNI for a certificate the client must then reject, and the handshake
+fails for a reason unrelated to the security of either name.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
+<p id="section-7.6-5">The selected TLSA base domain is reported in the audit record
+(<a href="#audit" class="auto internal xref">Section 11</a>) in both cases, so that an operator can see which name the
+policy decision was derived from.<a href="#section-7.6-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="authn">
+<section id="section-8">
+      <h2 id="name-authenticating-the-server">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-authenticating-the-server" class="section-name selfRef">Authenticating the Server</a>
+      </h2>
+<div id="usages">
+<section id="section-8.1">
+        <h3 id="name-certificate-usages">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-certificate-usages" class="section-name selfRef">Certificate usages</a>
+        </h3>
+<p id="section-8.1-1">A client implementing this document <span class="bcp14">MUST</span> support certificate usages
+DANE-EE(3) and DANE-TA(2).  Both are used with the semantics given in
+Sections 5.1 and 5.2 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> respectively.  Section 4 of
+<span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> recommends exactly this pair, and cautions that
+simultaneous support for all four usages is not recommended.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">Support for certificate usages PKIX-TA(0) and PKIX-EE(1) is <span class="bcp14">OPTIONAL</span>.
+A client that does not support them treats records carrying them as
+unusable in step 2 of <a href="#usable" class="auto internal xref">Section 7.5</a>.  Where such records are the only
+ones published, the outcome is SECURE_UNUSABLE, and <a href="#behavior" class="auto internal xref">Section 8.4</a>
+requires the client to authenticate the server by the PKIX rules of
+Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  That check is weaker than the
+published records call for, but never weaker than <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> alone.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">A client <span class="bcp14">MUST</span> support the selectors Cert(0) and SPKI(1) and the
+matching types Full(0) and SHA2-256(1), which is the support that
+Section 6 of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> lets publishers rely on.  Support for
+SHA2-512(2) is <span class="bcp14">RECOMMENDED</span>.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dane-ee">
+<section id="section-8.2">
+        <h3 id="name-dane-ee3">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-dane-ee3" class="section-name selfRef">DANE-EE(3)</a>
+        </h3>
+<p id="section-8.2-1">Authentication by a DANE-EE(3) record consists of matching the
+server's end-entity certificate, or its SubjectPublicKeyInfo, against
+the certificate association data of a usable record, per Section 5.1
+of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">When such a match succeeds, the server is authenticated.  In
+particular, and following Section 5.1 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>:<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-3.1">
+            <p id="section-8.2-3.1.1">The client <span class="bcp14">MUST NOT</span> reject the server because no name in the
+presented certificate matches the reference name or the selected
+TLSA base domain.  The binding of key to name is made by the TLSA
+record, not by the certificate.<a href="#section-8.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-3.2">
+            <p id="section-8.2-3.2.1">The client <span class="bcp14">MUST NOT</span> reject the server because the presented
+certificate is expired or not yet valid.  The validity of the
+binding is the validity of the DNSSEC signatures over the TLSA
+RRset.<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-3.3">
+            <p id="section-8.2-3.3.1">The client <span class="bcp14">MUST NOT</span> require that the presented certificate chain to
+a trusted certification authority.<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-4">Consequently a self-signed server certificate, published as a
+DANE-EE(3) record with selector SPKI(1) and matching type
+SHA2-256(1), is a fully conforming deployment; see
+<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dane-ta">
+<section id="section-8.3">
+        <h3 id="name-dane-ta2">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-dane-ta2" class="section-name selfRef">DANE-TA(2)</a>
+        </h3>
+<p id="section-8.3-1">Authentication by a DANE-TA(2) record consists of validating the
+server's certificate chain to the trust anchor the record identifies,
+per Section 5.2 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>, and then performing name checks
+against the reference identifiers determined in <a href="#selected" class="auto internal xref">Section 7.6</a>.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3-2">Those name checks are performed per <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, retaining the
+restriction in Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that a DNS domain name in
+an RPC-with-TLS certificate <span class="bcp14">MUST NOT</span> contain the wildcard character
+"*".<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="behavior">
+<section id="section-8.4">
+        <h3 id="name-required-client-behavior-by">
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-required-client-behavior-by" class="section-name selfRef">Required client behavior by outcome class</a>
+        </h3>
+<p id="section-8.4-1"><a href="#behavior-table" class="auto internal xref">Table 1</a> states what a client <span class="bcp14">MUST</span> do for each DNS outcome
+class in each of the two active policy modes.  In every case where
+authentication is required, failure of that authentication fails the
+association attempt; see <a href="#no-retry" class="auto internal xref">Section 9.4</a>.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.4-2">The requirement that TLS be used is carried by the security floor.
+Where the DNS outcome was derived from a port of untrusted provenance,
+<a href="#provenance" class="auto internal xref">Section 5.3</a> withholds that floor, and <a href="#fallback" class="auto internal xref">Section 9.3</a> then governs
+whether the attempt may proceed in cleartext.  The authentication
+requirements in the table apply to any (D)TLS session that is
+established, whatever the provenance of the port.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
+<span id="name-required-client-behavior-by-"></span><div id="behavior-table">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-required-client-behavior-by-" class="selfRef">Required client behavior by DNS outcome class</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">DNS outcome</th>
+              <th class="text-left" rowspan="1" colspan="1">Opportunistic mode</th>
+              <th class="text-left" rowspan="1" colspan="1">Mandatory mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_USABLE</td>
+              <td class="text-left" rowspan="1" colspan="1">TLS is required, and the server <span class="bcp14">MUST</span> be authenticated by DANE per <a href="#authn" class="auto internal xref">Section 8</a>. PKIX authentication <span class="bcp14">MUST NOT</span> be substituted for it.</td>
+              <td class="text-left" rowspan="1" colspan="1">As for opportunistic.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_UNUSABLE</td>
+              <td class="text-left" rowspan="1" colspan="1">TLS is required, and the server <span class="bcp14">MUST</span> be authenticated per Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_ABSENT</td>
+              <td class="text-left" rowspan="1" colspan="1">No floor is pinned; <a href="#fallback" class="auto internal xref">Section 9.3</a> governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">INSECURE</td>
+              <td class="text-left" rowspan="1" colspan="1">As for SECURE_ABSENT.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">ERROR</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-8.4-4">The SECURE_USABLE row is the central requirement of this document.  A
+client <span class="bcp14">MUST NOT</span> accept a PKIX authentication in place of the DANE
+authentication the RRset calls for, however trusted the issuing
+certification authority; that substitution would return control of
+the association's authentication to whoever can obtain a certificate
+for the name, which is what the TLSA RRset was published to prevent.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
+<p id="section-8.4-5">The SECURE_UNUSABLE row strengthens the guidance in Section 10.3 of
+<span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and Section 2.2 of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>, which require only
+unauthenticated TLS in this case; Section 10.3 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>
+anticipates such a strengthening where expecting it is realistic for
+the application protocol.  For RPC-with-TLS the intermediate position
+is not available at all.  In both client deployment modes of
+Section 4.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> the client authenticates the server, so
+the server is never anonymous to the client, and accepting
+unauthenticated TLS here would be a downgrade relative to the base
+specification rather than an improvement on cleartext.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="downgrade">
+<section id="section-9">
+      <h2 id="name-downgrade-resistance">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-downgrade-resistance" class="section-name selfRef">Downgrade Resistance</a>
+      </h2>
+<div id="floor">
+<section id="section-9.1">
+        <h3 id="name-the-security-floor">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-the-security-floor" class="section-name selfRef">The security floor</a>
+        </h3>
+<p id="section-9.1-1">A DNS outcome class of SECURE_USABLE or SECURE_UNUSABLE pins a
+security floor for the server association, except where
+<a href="#provenance" class="auto internal xref">Section 5.3</a> withholds it: the client <span class="bcp14">MUST NOT</span> operate that
+association at a security level weaker than an authenticated TLS
+session, and <span class="bcp14">MUST</span> fail the association attempt rather than do so.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.1-2">The floor is a property of the server association, not of the
+connection on which it was determined, and it persists for the
+lifetime of the association.  Once pinned, it applies to every
+subsequent association attempt for that association and to every
+transport that joins it (<a href="#assoc-scope" class="auto internal xref">Section 10</a>).  A later evaluation that
+pins no floor, whatever its outcome class, does not remove one
+already pinned: an operator who withdraws a TLSA RRset lowers the
+floor only for associations established after the withdrawal
+(<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).  A client <span class="bcp14">MUST</span> retain a pinned floor, together
+with the selected TLSA base domain it was derived from, until the
+association ends.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
+<p id="section-9.1-3">The floor is stated in terms of the security level reached rather than
+of any particular attack.  It covers the STRIPTLS attack of
+Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, to which <a href="#probe" class="auto internal xref">Section 9.2</a> specifies the
+client's response, and any mechanism by which an attacker induces a
+client to select a transport or path that receives weaker protection;
+a document specifying RPC over another transport can cite this
+section for the latter.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="probe">
+<section id="section-9.2">
+        <h3 id="name-auth_tls-probe-outcomes">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-auth_tls-probe-outcomes" class="section-name selfRef">AUTH_TLS probe outcomes</a>
+        </h3>
+<p id="section-9.2-1">Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> specifies that a client that does not
+receive the "STARTTLS" indication <span class="bcp14">MUST NOT</span> send a ClientHello, and
+that "RPC operation may continue, depending on local policy, but
+without confidentiality, integrity, or peer authentication protection
+from (D)TLS".  This document specifies that local policy.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2-2">A client classifies the result of the AUTH_TLS probe into exactly one
+of the following outcomes.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.2-3">
+          <dt id="section-9.2-3.1">ACCEPTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.2">
+            <p id="section-9.2-3.2.1">A Reply was received with a reply_stat of MSG_ACCEPTED and an
+AUTH_NONE verifier containing the "STARTTLS" token, as specified in
+Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.3">DECLINED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.4">
+            <p id="section-9.2-3.4.1">A complete, well-formed Reply to the probe was received that
+indicates the server does not support RPC-with-TLS.  This comprises
+a reply_stat of MSG_ACCEPTED with an AUTH_NONE verifier that does
+not carry the "STARTTLS" token, and a reply_stat of MSG_DENIED with
+a reject_stat of AUTH_ERROR.  These are the responses produced by a
+server that does not implement the AUTH_TLS authentication flavor;
+in particular, AUTH_ERROR is how a server predating <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>
+rejects an unrecognized flavor.<a href="#section-9.2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.5">RPCERR:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.6">
+            <p id="section-9.2-3.6.1">A complete, well-formed Reply was received that is neither of the
+above -- for example a reply_stat of MSG_DENIED with a reject_stat
+of RPC_MISMATCH, or a reply_stat of MSG_ACCEPTED with a verifier
+whose flavor is not AUTH_NONE.<a href="#section-9.2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.7">MALFORMED:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.8">
+            <p id="section-9.2-3.8.1">A response was received that cannot be parsed as a well-formed RPC
+Reply to the probe, or whose verifier length is inconsistent with
+its declared flavor.<a href="#section-9.2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.9">UNREACHABLE:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.10">
+            <p id="section-9.2-3.10.1">The connection was refused or reset, or was closed before a Reply
+was received.<a href="#section-9.2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.11">TIMEOUT:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.12">
+            <p id="section-9.2-3.12.1">No response was received within the client's timeout.<a href="#section-9.2-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-3.13">LOCAL:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-3.14">
+            <p id="section-9.2-3.14.1">A local resource failure prevented the probe from being sent, or its
+result from being determined.<a href="#section-9.2-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="fallback">
+<section id="section-9.3">
+        <h3 id="name-cleartext-fallback">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-cleartext-fallback" class="section-name selfRef">Cleartext fallback</a>
+        </h3>
+<p id="section-9.3-1"><a href="#fallback-table" class="auto internal xref">Table 2</a> states whether the client may continue in
+cleartext.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<span id="name-cleartext-fallback-by-auth_"></span><div id="fallback-table">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-cleartext-fallback-by-auth_" class="selfRef">Cleartext fallback by AUTH_TLS probe outcome</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Probe outcome</th>
+              <th class="text-left" rowspan="1" colspan="1">Floor pinned</th>
+              <th class="text-left" rowspan="1" colspan="1">No floor pinned</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">ACCEPTED</td>
+              <td class="text-left" rowspan="1" colspan="1">Proceed to the TLS handshake.</td>
+              <td class="text-left" rowspan="1" colspan="1">Proceed to the TLS handshake.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">DECLINED</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">Cleartext operation is permitted, subject to local policy, per Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">RPCERR</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">MALFORMED</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">UNREACHABLE</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TIMEOUT</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">LOCAL</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-9.3-3">Only DECLINED permits cleartext operation, and only where no floor has
+been pinned.  The other non-ACCEPTED outcomes are what an attacker
+interfering with the cleartext exchange looks like; a client that
+treats them as declines has no downgrade resistance even against an
+attacker who cannot forge a well-formed Reply.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-4">[[TODO: Whether opportunistic mode should instead take the stricter
+policy of Section 6.1.1 and Section 6.4 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, at the cost of
+reachability to servers that predate it, is open.
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 ]]<a href="#section-9.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="no-retry">
+<section id="section-9.4">
+        <h3 id="name-failure-after-a-handshake-i">
+<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-failure-after-a-handshake-i" class="section-name selfRef">Failure after a handshake is attempted</a>
+        </h3>
+<p id="section-9.4-1">Once the AUTH_TLS probe has been ACCEPTED and a (D)TLS handshake has
+been attempted, the client <span class="bcp14">MUST NOT</span> retry the association attempt in
+cleartext, whatever the DNS outcome class and whatever the reason the
+handshake or the subsequent authentication failed.  This holds for
+DANE mismatches, PKIX validation failures where PKIX applies, TLS
+negotiation failures, and the unavailability of whatever local
+component performs the handshake.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.4-2">Section 4.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> describes a client that reports a
+handshake failure after a successful probe the same way it reports an
+AUTH_ERROR rejection; for a client implementing this document that
+is a requirement.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="coherence">
+<section id="section-9.5">
+        <h3 id="name-coherence-within-an-associa">
+<a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-coherence-within-an-associa" class="section-name selfRef">Coherence within an association attempt</a>
+        </h3>
+<p id="section-9.5-1">How an implementation obtains DNS data, how many times within one
+association attempt it evaluates <a href="#lookup" class="auto internal xref">Section 7</a>, and how a policy result
+reaches the point at which the handshake is authenticated are
+implementation matters.  Two properties are required of any
+arrangement.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.5-2.1">
+            <p id="section-9.5-2.1.1">A client <span class="bcp14">MUST</span> evaluate the DNS outcome class from DNS data that is
+current at the time of the association attempt, and <span class="bcp14">MUST NOT</span> reuse
+an outcome obtained for an earlier attempt beyond the validity of
+the DNS data it was derived from.  The security floor is not such a
+result: it persists across attempts (<a href="#floor" class="auto internal xref">Section 9.1</a>), and a fresh
+evaluation can raise it or leave it but never lower it.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-2.2">
+            <p id="section-9.5-2.2.1">Within one association attempt, a client <span class="bcp14">MUST NOT</span> conclude at a
+security level weaker than any determination it has already made
+during that attempt.  Where two evaluations during one attempt
+disagree, the stronger conclusion governs.<a href="#section-9.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.5-3">The second property is what makes the mechanism resistant to an
+attacker who can affect the timing of DNS answers.  A client <span class="bcp14">MAY</span> act
+on a strengthened conclusion, a later evaluation that finds a usable
+RRset where an earlier one did not, since doing so cannot lower the
+security of the attempt.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
+<p id="section-9.5-4">A TLSA RRset republished mid-attempt during a key rollover produces
+the same disagreement.  The client cannot distinguish it from an
+attack within a single attempt, and a retry evaluated wholly against
+the new data succeeds.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="assoc-scope">
+<section id="section-10">
+      <h2 id="name-association-scope-and-polic">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-association-scope-and-polic" class="section-name selfRef">Association Scope and Policy Granularity</a>
+      </h2>
+<div id="policy-is-per-association">
+<section id="section-10.1">
+        <h3 id="name-policy-is-per-association">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-policy-is-per-association" class="section-name selfRef">Policy is per association</a>
+        </h3>
+<p id="section-10.1-1">The DANE policy mode, the reference name, and any pinned security
+floor are properties of a server association.  A client <span class="bcp14">MUST</span> be able
+to apply different policies concurrently to different server
+associations, since the servers a host contacts differ in whether
+they have deployed DANE.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.1-2">A client that shares underlying state between server associations --
+connection caching, session reuse, or a client object shared between
+two mounts of the same server -- <span class="bcp14">MUST NOT</span> share it between
+associations whose DANE policy modes or reference names differ.  Two
+names that resolve to the same address may have different TLSA
+RRsets, and an association established under one name has not
+authenticated the server for the other.<a href="#section-10.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="add-xprt">
+<section id="section-10.2">
+        <h3 id="name-transports-joining-an-assoc">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-transports-joining-an-assoc" class="section-name selfRef">Transports joining an association later</a>
+        </h3>
+<p id="section-10.2-1">A client may add transports to an existing server association for
+additional bandwidth or additional server network paths.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<p id="section-10.2-2">While a security floor is pinned for an association, a transport <span class="bcp14">MUST NOT</span> join that association unless it carries the association's
+reference name and its own evaluation meets the association's floor.
+A transport whose destination is an address literal therefore cannot
+join a floor-pinned association (<a href="#no-dane" class="auto internal xref">Section 6.2</a>).  A client <span class="bcp14">MUST</span> refuse
+such an addition and record the refusal (<a href="#audit" class="auto internal xref">Section 11</a>); the association
+continues over the transports that do meet its floor.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="derived">
+<section id="section-10.3">
+        <h3 id="name-derived-associations">
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-derived-associations" class="section-name selfRef">Derived associations</a>
+        </h3>
+<p id="section-10.3-1">Upper-layer protocols direct clients to establish further associations
+to destinations the client did not select.  NFSv4 <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> does
+this in at least three ways: a parallel NFS layout identifies data
+servers, the file system location attributes identify referral
+targets, and a migration event identifies a new location for a file
+system.  A destination so identified is either an address literal or
+a DNS name.  A name is the reference name of the derived association,
+subject to the input contract of <a href="#refname" class="auto internal xref">Section 6</a>; an address literal
+gives the derived association no DANE binding (<a href="#no-dane" class="auto internal xref">Section 6.2</a>).<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+<p id="section-10.3-2">A security floor pinned for one server association does not extend to
+a derived association.  A client <span class="bcp14">MUST</span> evaluate DANE policy
+independently for each association it establishes, from that
+association's own reference name.  In mandatory mode, a derived
+association for which no DANE binding can be established fails
+(<a href="#modes" class="auto internal xref">Section 4.1</a>), even though this may render some upper-layer features
+unusable (<a href="#sec-derived" class="auto internal xref">Section 13.5</a>).<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+<p id="section-10.3-3">Defining DNS-based identities for the destinations that upper-layer
+protocols hand out -- so that a data server or a referral target can
+be named rather than addressed -- is work for the specifications of
+those protocols, and is outside the scope of this document.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="audit">
+<section id="section-11">
+      <h2 id="name-auditing">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-auditing" class="section-name selfRef">Auditing</a>
+      </h2>
+<p id="section-11-1">A client implementing this document <span class="bcp14">MUST</span> extend the audit log that
+Section 6.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires to cover the DANE policy
+decision.  For each association attempt in which DANE policy applied,
+the record <span class="bcp14">MUST</span> include:<a href="#section-11-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-11-2.1">
+          <p id="section-11-2.1.1">the reference name, and an indication of whether it was supplied by
+local configuration or derived some other way;<a href="#section-11-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.2">
+          <p id="section-11-2.2.1">the destination network address, port, and transport;<a href="#section-11-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.3">
+          <p id="section-11-2.3.1">the DANE policy mode in effect and where it came from;<a href="#section-11-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.4">
+          <p id="section-11-2.4.1">the DNS outcome class, and enough diagnostic detail to distinguish
+the conditions grouped under ERROR;<a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.5">
+          <p id="section-11-2.5.1">the selected TLSA base domain, where one was determined;<a href="#section-11-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.6">
+          <p id="section-11-2.6.1">the AUTH_TLS probe outcome (<a href="#probe" class="auto internal xref">Section 9.2</a>);<a href="#section-11-2.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.7">
+          <p id="section-11-2.7.1">the means by which the server was authenticated, if it was:
+DANE-EE(3), DANE-TA(2), or PKIX;<a href="#section-11-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.8">
+          <p id="section-11-2.8.1">for a DANE authentication, the usage, selector, and matching type
+of the record that matched; and<a href="#section-11-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.9">
+          <p id="section-11-2.9.1">the resulting disposition of the attempt: authenticated TLS,
+cleartext operation, or failure, with the reason for a failure.<a href="#section-11-2.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-11-3">The record <span class="bcp14">MAY</span> consist of correlatable events emitted by more than one
+component, provided that the events can be joined and that together
+they cover the whole list.  A correlation identifier used to join
+such events <span class="bcp14">MUST NOT</span> carry information that is not already disclosed
+by the events themselves.<a href="#section-11-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="impl-status">
+<section id="section-12">
+      <h2 id="name-implementation-status">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-implementation-status" class="section-name selfRef">Implementation Status</a>
+      </h2>
+<p id="section-12-1">This section is to be removed before publishing as an RFC.<a href="#section-12-1" class="pilcrow">¶</a></p>
+<p id="section-12-2">This section records the status of known implementations of the
+protocol defined by this specification at the time of posting of this
+Internet-Draft, and is based on a proposal described in <span>[<a href="#RFC7942" class="cite xref">RFC7942</a>]</span>.
+The description of implementations in this section is intended to
+assist the IETF in its decision processes in progressing drafts to
+RFCs.  Please note that the listing of any individual implementation
+here does not imply endorsement by the IETF.  Furthermore, no effort
+has been spent to verify the information presented here that was
+supplied by IETF contributors.  This is not intended as, and must not
+be construed to be, a catalog of available implementations or their
+features.  Readers are advised to note that other implementations may
+exist.<a href="#section-12-2" class="pilcrow">¶</a></p>
+<div id="tlshd-ktls-utils">
+<section id="section-12.1">
+        <h3 id="name-tlshd-ktls-utils">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-tlshd-ktls-utils" class="section-name selfRef">tlshd (ktls-utils)</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-12.1-1">
+          <dt id="section-12.1-1.1">Organization:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.2">
+            <p id="section-12.1-1.2.1">The ktls-utils project.<a href="#section-12.1-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.3">Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.4">
+            <p id="section-12.1-1.4.1">tlshd is the userspace handshake agent used by the Linux kernel's
+TLS handshake service.  It performs the (D)TLS handshake on behalf
+of in-kernel RPC-with-TLS consumers.<a href="#section-12.1-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.5">Implementation:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.6">
+            <p id="section-12.1-1.6.1">https://github.com/oracle/ktls-utils<a href="#section-12.1-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.7">Level of maturity:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.8">
+            <p id="section-12.1-1.8.1">Prototype.  The DANE support is not part of a released version at
+the time of writing, and is disabled by default.<a href="#section-12.1-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.9">Coverage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.10">
+            <p id="section-12.1-1.10.1">The reference-name input contract (<a href="#refname" class="auto internal xref">Section 6</a>); the candidate
+determination and result reduction of <a href="#lookup" class="auto internal xref">Section 7</a>, including secure
+CNAME expansion; the five outcome classes of <a href="#outcomes" class="auto internal xref">Section 7.2</a>; the
+usability filtering and digest algorithm agility of <a href="#usable" class="auto internal xref">Section 7.5</a>; the
+reference-identity rules of <a href="#selected" class="auto internal xref">Section 7.6</a>; certificate usage
+DANE-EE(3) (<a href="#dane-ee" class="auto internal xref">Section 8.2</a>); and the authentication behavior of
+<a href="#behavior" class="auto internal xref">Section 8.4</a> for both the client-anonymous and the mutually
+authenticated handshake path.<a href="#section-12.1-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.11"></dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.12">
+            <p id="section-12.1-1.12.1">Not implemented: certificate usage DANE-TA(2), DTLS over UDP, and
+the association-scope enforcement of <a href="#assoc-scope" class="auto internal xref">Section 10</a>, which belongs to the
+RPC client rather than to the handshake agent.<a href="#section-12.1-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.13">Licensing:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.14">
+            <p id="section-12.1-1.14.1">GPLv2.<a href="#section-12.1-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.15">Contact:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.16">
+            <p id="section-12.1-1.16.1">The editor of this document.<a href="#section-12.1-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.17">Experience:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.18">
+            <p id="section-12.1-1.18.1">The implementation was exercised against publicly available DANE
+test zones as well as against a locally signed test zone.  Two
+findings are reflected in the text of this document.<a href="#section-12.1-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.19"></dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.20">
+            <p id="section-12.1-1.20.1">First, the reference-identity rule in <a href="#selected" class="auto internal xref">Section 7.6</a> for the
+SECURE_UNUSABLE class was added after the implementation hit the
+handshake failure that section describes.<a href="#section-12.1-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-1.21"></dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.22">
+            <p id="section-12.1-1.22.1">Second, the implementation performs the usability filtering of
+<a href="#usable" class="auto internal xref">Section 7.5</a> in its own code rather than relying on the TLS library's
+DANE support, so that the outcome classification does not depend on
+library internals.  The library's raw verification interface
+reports parse success in its return value and verification results
+in a separate output parameter; an implementation that checks only
+the return value accepts unauthenticated peers.<a href="#section-12.1-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="security">
+<section id="section-13">
+      <h2 id="name-security-considerations">
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-13-1">The security considerations of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>, <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>,
+and <span>[<a href="#RFC4033" class="cite xref">RFC4033</a>]</span> apply.<a href="#section-13-1" class="pilcrow">¶</a></p>
+<div id="what-dane-authentication-does-and-does-not-establish">
+<section id="section-13.1">
+        <h3 id="name-what-dane-authentication-do">
+<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-what-dane-authentication-do" class="section-name selfRef">What DANE authentication does and does not establish</a>
+        </h3>
+<p id="section-13.1-1">A successful DANE-EE(3) match establishes that the peer holds the key
+that the operator of the TLSA base domain's zone published for that
+service at that port and transport.  It establishes nothing about the
+names in the presented certificate, its validity dates, or its issuer
+(<a href="#dane-ee" class="auto internal xref">Section 8.2</a>).  A deployment that relies on certificate contents for
+authorization -- an extended key usage check, a certificate policy, a
+subjectAltName URI -- as Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> permits, must
+continue to perform those checks independently; a DANE match does not
+perform them.<a href="#section-13.1-1" class="pilcrow">¶</a></p>
+<p id="section-13.1-2">Control of the zone that publishes the TLSA RRset is control of the
+service's authentication.  Trust moves from the certification
+authorities the client would otherwise trust to the zone operator and
+the DNSSEC chain above it.  For the deployments in
+<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a> that is the point, since the party that operates
+the server also operates the zone; where DNS is operated by a third
+party, the concentration should be evaluated before deployment.<a href="#section-13.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="replay">
+<section id="section-13.2">
+        <h3 id="name-replay-and-the-limits-of-re">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-replay-and-the-limits-of-re" class="section-name selfRef">Replay and the limits of revocation</a>
+        </h3>
+<p id="section-13.2-1">DNSSEC provides no way to revoke a signed RRset before its signatures
+expire (Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>).  Two consequences follow, and both
+are bounded by the signature validity period rather than by anything
+the client can do.<a href="#section-13.2-1" class="pilcrow">¶</a></p>
+<p id="section-13.2-2">An attacker who captured a signed denial of existence for a TLSA owner
+name before the operator published the RRset can replay it within that
+period; the client assigns SECURE_ABSENT and pins no floor
+(<a href="#adaptive" class="auto internal xref">Appendix A.3</a>).<a href="#section-13.2-2" class="pilcrow">¶</a></p>
+<p id="section-13.2-3">An attacker who holds a key the operator has withdrawn can replay the
+TLSA RRset that still names it, and a client will authenticate the
+peer; since <a href="#dane-ee" class="auto internal xref">Section 8.2</a> disregards the certificate's validity dates,
+the RRset's signatures are the only expiry.  The mitigation is
+operational and belongs to the publisher (<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).<a href="#section-13.2-3" class="pilcrow">¶</a></p>
+<p id="section-13.2-4">A security floor, once pinned, persists for the lifetime of the
+association (<a href="#floor" class="auto internal xref">Section 9.1</a>).  A replayed denial of existence therefore
+affects only an association's first attempt: replayed at a reconnect,
+it finds the floor already pinned, and the attempt fails rather than
+falls back.  Conversely, this document does not require a client to
+re-evaluate an association that is already established, so a
+long-lived session established against an RRset that has since been
+withdrawn continues under the conclusion reached when it was
+established.<a href="#section-13.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="fail-closed-behavior-is-a-denial-of-service-surface">
+<section id="section-13.3">
+        <h3 id="name-fail-closed-behavior-is-a-d">
+<a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-fail-closed-behavior-is-a-d" class="section-name selfRef">Fail-closed behavior is a denial-of-service surface</a>
+        </h3>
+<p id="section-13.3-1">The rules in <a href="#behavior" class="auto internal xref">Section 8.4</a>, <a href="#fallback" class="auto internal xref">Section 9.3</a>, and <a href="#coherence" class="auto internal xref">Section 9.5</a> require a
+client to fail an association attempt in circumstances where an
+<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> client would have continued.  An attacker who can disrupt
+the client's DNS -- by dropping responses, by inducing SERVFAIL, or by
+corrupting signatures to produce a bogus validation result -- can
+therefore prevent the client from establishing associations.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
+<p id="section-13.3-2">This is a deliberate trade: degrading when DNS is disrupted hands the
+same attacker the ability to strip protection silently, and an
+attacker who can disrupt DNS can usually disrupt the RPC traffic
+itself.  Opportunistic
+mode does not relieve this exposure, since ERROR fails the attempt in
+both active modes; operators for whom availability outweighs
+confidentiality express that by leaving DANE disabled for the
+associations concerned.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-ports">
+<section id="section-13.4">
+        <h3 id="name-unauthenticated-port-select">
+<a href="#section-13.4" class="section-number selfRef">13.4. </a><a href="#name-unauthenticated-port-select" class="section-name selfRef">Unauthenticated port selection</a>
+        </h3>
+<p id="section-13.4-1">The rule in <a href="#provenance" class="auto internal xref">Section 5.3</a>, that a floor is pinned only on a port of
+trusted provenance, keeps an attacker who substitutes the port in an
+RPCBIND <span>[<a href="#RFC1833" class="cite xref">RFC1833</a>]</span> reply from pinning a floor the operator did not
+intend.  It does not prevent the SECURE_ABSENT outcome that the
+substitution produces, so a client that obtains its ports from RPCBIND
+is left as exposed to cleartext fallback as an <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> client.<a href="#section-13.4-1" class="pilcrow">¶</a></p>
+<p id="section-13.4-2">An RPCBIND reply carries a universal address (Section 2.2.1 of
+<span>[<a href="#RFC1833" class="cite xref">RFC1833</a>]</span>), so an attacker who rewrites it can substitute the host
+as readily as the port.  A substituted host alone is defended by
+DANE, since it cannot present a certificate matching the TLSA RRset
+for the reference name; a substituted port yields SECURE_ABSENT, and
+neither the address nor the port is then protected.<a href="#section-13.4-2" class="pilcrow">¶</a></p>
+<p id="section-13.4-3">The remedy available today is to protect RPCBIND itself.  RPCBIND is
+an RPC program, so a client can send an AUTH_TLS probe to its port,
+authenticate it by the procedures in this document against the TLSA
+RRset published for that port and transport, and make its lookups
+over the resulting session.  The ports it learns then come from an
+authenticated source.  The RPCBIND port is well known and therefore
+of trusted provenance under <a href="#provenance" class="auto internal xref">Section 5.3</a>, so there is no bootstrap
+problem.  This document describes the arrangement rather than
+requiring it, since no RPCBIND implementation is known to support
+RPC-with-TLS.<a href="#section-13.4-3" class="pilcrow">¶</a></p>
+<p id="section-13.4-4">A session established to the RPCBIND port authenticates the RPCBIND
+service alone.  The service the client goes on to contact is
+authenticated separately, against the TLSA RRset for its own port,
+and a security floor determined for one is not a floor for the
+other.  An operator who protects RPCBIND but publishes no TLSA RRset
+for the service has secured the discovery step alone; one who
+publishes for the service but leaves RPCBIND unprotected has left the
+guarantees in this document resting on an unauthenticated reply.<a href="#section-13.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-derived">
+<section id="section-13.5">
+        <h3 id="name-derived-associations-2">
+<a href="#section-13.5" class="section-number selfRef">13.5. </a><a href="#name-derived-associations-2" class="section-name selfRef">Derived associations</a>
+        </h3>
+<p id="section-13.5-1">A security floor does not extend to an association whose destination
+an upper-layer protocol supplied (<a href="#derived" class="auto internal xref">Section 10.3</a>).  The practical
+consequence for NFSv4 <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> is that data-path
+traffic is protected only as well as the weakest derived association
+carrying it.  A client that has pinned a floor for its metadata
+association, and then reads and writes file data over parallel NFS
+data server connections established from address literals, has
+obtained no DANE protection for the data itself.  Operators should not
+infer from a floor pinned on the metadata association that the data
+path is equivalently protected.  A client in mandatory mode fails such
+connections rather than establishing them (<a href="#derived" class="auto internal xref">Section 10.3</a>), which makes
+the limitation visible rather than silent, at the cost of the feature.<a href="#section-13.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-13.6">
+        <h3 id="name-privacy-considerations">
+<a href="#section-13.6" class="section-number selfRef">13.6. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy considerations</a>
+        </h3>
+<p id="section-13.6-1">TLSA queries disclose, to an observer of the client's DNS traffic,
+which RPC services the client is about to contact and on which ports.
+The names and addresses are already disclosed by address resolution
+and by the RPC traffic itself; the port and transport labels are
+additional.  This is the exposure discussed in Section 6.1.2 of
+<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and the same mitigations, protecting the client's DNS
+transport or resolving locally, apply.  <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span> surveys what DNS
+transactions disclose, and pervasive monitoring <span>[<a href="#RFC7258" class="cite xref">RFC7258</a>]</span> of DNS is
+a known concern for DANE generally.<a href="#section-13.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-auth">
+<section id="section-13.7">
+        <h3 id="name-client-authentication">
+<a href="#section-13.7" class="section-number selfRef">13.7. </a><a href="#name-client-authentication" class="section-name selfRef">Client authentication</a>
+        </h3>
+<p id="section-13.7-1">This document specifies the authentication of a server to a client
+only.  <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> also provides for mutual authentication, in which
+the server validates the client's certificate by PKIX; DANE-based
+authentication in that direction is not specified here.  The generic
+mechanism exists in <span>[<a href="#I-D.ietf-dance-client-auth" class="cite xref">I-D.ietf-dance-client-auth</a>]</span>, and an RPC
+profile of it would need to choose the owner-name form for RPC peers,
+restrict the certificate usages, and specify how a DANE-authenticated
+client name maps onto RPC-layer authorization.  That is work for a
+separate document.<a href="#section-13.7-1" class="pilcrow">¶</a></p>
+<p id="section-13.7-2">Until then, a deployment that requires mutual authentication uses the
+PKIX mechanism of Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> for the client
+direction and DANE for the server direction; <a href="#behavior" class="auto internal xref">Section 8.4</a> applies to
+the server's certificate whether or not the client presents one.<a href="#section-13.7-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana">
+<section id="section-14">
+      <h2 id="name-iana-considerations">
+<a href="#section-14" class="section-number selfRef">14. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-14-1">This document requests no IANA actions.<a href="#section-14-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-15">
+      <h2 id="name-references">
+<a href="#section-15" class="section-number selfRef">15. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-15.1">
+        <h3 id="name-normative-references">
+<a href="#section-15.1" class="section-number selfRef">15.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC1035">[RFC1035]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4033">[RFC4033]</dt>
+        <dd>
+<span class="refAuthor">Arends, R.</span>, <span class="refAuthor">Austein, R.</span>, <span class="refAuthor">Larson, M.</span>, <span class="refAuthor">Massey, D.</span>, and <span class="refAuthor">S. Rose</span>, <span class="refTitle">"DNS Security Introduction and Requirements"</span>, <span class="seriesInfo">RFC 4033</span>, <span class="seriesInfo">DOI 10.17487/RFC4033</span>, <time datetime="2005-03" class="refDate">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4033">https://www.rfc-editor.org/rfc/rfc4033</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5280">[RFC5280]</dt>
+        <dd>
+<span class="refAuthor">Cooper, D.</span>, <span class="refAuthor">Santesson, S.</span>, <span class="refAuthor">Farrell, S.</span>, <span class="refAuthor">Boeyen, S.</span>, <span class="refAuthor">Housley, R.</span>, and <span class="refAuthor">W. Polk</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile"</span>, <span class="seriesInfo">RFC 5280</span>, <span class="seriesInfo">DOI 10.17487/RFC5280</span>, <time datetime="2008-05" class="refDate">May 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5280">https://www.rfc-editor.org/rfc/rfc5280</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5531">[RFC5531]</dt>
+        <dd>
+<span class="refAuthor">Thurlow, R.</span>, <span class="refTitle">"RPC: Remote Procedure Call Protocol Specification Version 2"</span>, <span class="seriesInfo">RFC 5531</span>, <span class="seriesInfo">DOI 10.17487/RFC5531</span>, <time datetime="2009-05" class="refDate">May 2009</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5531">https://www.rfc-editor.org/rfc/rfc5531</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5890">[RFC5890]</dt>
+        <dd>
+<span class="refAuthor">Klensin, J.</span>, <span class="refTitle">"Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework"</span>, <span class="seriesInfo">RFC 5890</span>, <span class="seriesInfo">DOI 10.17487/RFC5890</span>, <time datetime="2010-08" class="refDate">August 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5890">https://www.rfc-editor.org/rfc/rfc5890</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6066">[RFC6066]</dt>
+        <dd>
+<span class="refAuthor">Eastlake 3rd, D.</span>, <span class="refTitle">"Transport Layer Security (TLS) Extensions: Extension Definitions"</span>, <span class="seriesInfo">RFC 6066</span>, <span class="seriesInfo">DOI 10.17487/RFC6066</span>, <time datetime="2011-01" class="refDate">January 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6066">https://www.rfc-editor.org/rfc/rfc6066</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6698">[RFC6698]</dt>
+        <dd>
+<span class="refAuthor">Hoffman, P.</span> and <span class="refAuthor">J. Schlyter</span>, <span class="refTitle">"The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA"</span>, <span class="seriesInfo">RFC 6698</span>, <span class="seriesInfo">DOI 10.17487/RFC6698</span>, <time datetime="2012-08" class="refDate">August 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6698">https://www.rfc-editor.org/rfc/rfc6698</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7671">[RFC7671]</dt>
+        <dd>
+<span class="refAuthor">Dukhovni, V.</span> and <span class="refAuthor">W. Hardaker</span>, <span class="refTitle">"The DNS-Based Authentication of Named Entities (DANE) Protocol: Updates and Operational Guidance"</span>, <span class="seriesInfo">RFC 7671</span>, <span class="seriesInfo">DOI 10.17487/RFC7671</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7671">https://www.rfc-editor.org/rfc/rfc7671</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9289">[RFC9289]</dt>
+        <dd>
+<span class="refAuthor">Myklebust, T.</span> and <span class="refAuthor">C. Lever, Ed.</span>, <span class="refTitle">"Towards Remote Procedure Call Encryption by Default"</span>, <span class="seriesInfo">RFC 9289</span>, <span class="seriesInfo">DOI 10.17487/RFC9289</span>, <time datetime="2022-09" class="refDate">September 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9289">https://www.rfc-editor.org/rfc/rfc9289</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9525">[RFC9525]</dt>
+        <dd>
+<span class="refAuthor">Saint-Andre, P.</span> and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"Service Identity in TLS"</span>, <span class="seriesInfo">RFC 9525</span>, <span class="seriesInfo">DOI 10.17487/RFC9525</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9525">https://www.rfc-editor.org/rfc/rfc9525</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9846">[RFC9846]</dt>
+      <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 9846</span>, <span class="seriesInfo">DOI 10.17487/RFC9846</span>, <time datetime="2026-07" class="refDate">July 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9846">https://www.rfc-editor.org/rfc/rfc9846</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-15.2">
+        <h3 id="name-informative-references">
+<a href="#section-15.2" class="section-number selfRef">15.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-dance-client-auth">[I-D.ietf-dance-client-auth]</dt>
+        <dd>
+<span class="refAuthor">Huque, S.</span> and <span class="refAuthor">V. Dukhovni</span>, <span class="refTitle">"TLS Client Authentication via DANE TLSA records"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-dance-client-auth-13</span>, <time datetime="2026-07-23" class="refDate">23 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-dance-client-auth-13">https://datatracker.ietf.org/doc/html/draft-ietf-dance-client-auth-13</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1833">[RFC1833]</dt>
+        <dd>
+<span class="refAuthor">Srinivasan, R.</span>, <span class="refTitle">"Binding Protocols for ONC RPC Version 2"</span>, <span class="seriesInfo">RFC 1833</span>, <span class="seriesInfo">DOI 10.17487/RFC1833</span>, <time datetime="1995-08" class="refDate">August 1995</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1833">https://www.rfc-editor.org/rfc/rfc1833</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5011">[RFC5011]</dt>
+        <dd>
+<span class="refAuthor">StJohns, M.</span>, <span class="refTitle">"Automated Updates of DNS Security (DNSSEC) Trust Anchors"</span>, <span class="seriesInfo">STD 74</span>, <span class="seriesInfo">RFC 5011</span>, <span class="seriesInfo">DOI 10.17487/RFC5011</span>, <time datetime="2007-09" class="refDate">September 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5011">https://www.rfc-editor.org/rfc/rfc5011</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6125">[RFC6125]</dt>
+        <dd>
+<span class="refAuthor">Saint-Andre, P.</span> and <span class="refAuthor">J. Hodges</span>, <span class="refTitle">"Representation and Verification of Domain-Based Application Service Identity within Internet Public Key Infrastructure Using X.509 (PKIX) Certificates in the Context of Transport Layer Security (TLS)"</span>, <span class="seriesInfo">RFC 6125</span>, <span class="seriesInfo">DOI 10.17487/RFC6125</span>, <time datetime="2011-03" class="refDate">March 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6125">https://www.rfc-editor.org/rfc/rfc6125</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7250">[RFC7250]</dt>
+        <dd>
+<span class="refAuthor">Wouters, P., Ed.</span>, <span class="refAuthor">Tschofenig, H., Ed.</span>, <span class="refAuthor">Gilmore, J.</span>, <span class="refAuthor">Weiler, S.</span>, and <span class="refAuthor">T. Kivinen</span>, <span class="refTitle">"Using Raw Public Keys in Transport Layer Security (TLS) and Datagram Transport Layer Security (DTLS)"</span>, <span class="seriesInfo">RFC 7250</span>, <span class="seriesInfo">DOI 10.17487/RFC7250</span>, <time datetime="2014-06" class="refDate">June 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7250">https://www.rfc-editor.org/rfc/rfc7250</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7258">[RFC7258]</dt>
+        <dd>
+<span class="refAuthor">Farrell, S.</span> and <span class="refAuthor">H. Tschofenig</span>, <span class="refTitle">"Pervasive Monitoring Is an Attack"</span>, <span class="seriesInfo">BCP 188</span>, <span class="seriesInfo">RFC 7258</span>, <span class="seriesInfo">DOI 10.17487/RFC7258</span>, <time datetime="2014-05" class="refDate">May 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7258">https://www.rfc-editor.org/rfc/rfc7258</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7435">[RFC7435]</dt>
+        <dd>
+<span class="refAuthor">Dukhovni, V.</span>, <span class="refTitle">"Opportunistic Security: Some Protection Most of the Time"</span>, <span class="seriesInfo">RFC 7435</span>, <span class="seriesInfo">DOI 10.17487/RFC7435</span>, <time datetime="2014-12" class="refDate">December 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7435">https://www.rfc-editor.org/rfc/rfc7435</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7672">[RFC7672]</dt>
+        <dd>
+<span class="refAuthor">Dukhovni, V.</span> and <span class="refAuthor">W. Hardaker</span>, <span class="refTitle">"SMTP Security via Opportunistic DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS)"</span>, <span class="seriesInfo">RFC 7672</span>, <span class="seriesInfo">DOI 10.17487/RFC7672</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7672">https://www.rfc-editor.org/rfc/rfc7672</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7942">[RFC7942]</dt>
+        <dd>
+<span class="refAuthor">Sheffer, Y.</span> and <span class="refAuthor">A. Farrel</span>, <span class="refTitle">"Improving Awareness of Running Code: The Implementation Status Section"</span>, <span class="seriesInfo">BCP 205</span>, <span class="seriesInfo">RFC 7942</span>, <span class="seriesInfo">DOI 10.17487/RFC7942</span>, <time datetime="2016-07" class="refDate">July 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7942">https://www.rfc-editor.org/rfc/rfc7942</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8881">[RFC8881]</dt>
+        <dd>
+<span class="refAuthor">Noveck, D., Ed.</span> and <span class="refAuthor">C. Lever</span>, <span class="refTitle">"Network File System (NFS) Version 4 Minor Version 1 Protocol"</span>, <span class="seriesInfo">RFC 8881</span>, <span class="seriesInfo">DOI 10.17487/RFC8881</span>, <time datetime="2020-08" class="refDate">August 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8881">https://www.rfc-editor.org/rfc/rfc8881</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9076">[RFC9076]</dt>
+      <dd>
+<span class="refAuthor">Wicinski, T., Ed.</span>, <span class="refTitle">"DNS Privacy Considerations"</span>, <span class="seriesInfo">RFC 9076</span>, <span class="seriesInfo">DOI 10.17487/RFC9076</span>, <time datetime="2021-07" class="refDate">July 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9076">https://www.rfc-editor.org/rfc/rfc9076</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="deployment">
+<section id="appendix-A">
+      <h2 id="name-deployment-considerations">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-deployment-considerations" class="section-name selfRef">Deployment Considerations</a>
+      </h2>
+<div id="ta-distribution">
+<section id="appendix-A.1">
+        <h3 id="name-publishing-tlsa-records-for">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-publishing-tlsa-records-for" class="section-name selfRef">Publishing TLSA records for RPC services</a>
+        </h3>
+<p id="appendix-A.1-1">The simplest conforming deployment, and the one that addresses the
+operational problem described in <a href="#intro" class="auto internal xref">Section 1</a>, is to publish for
+each service a single DANE-EE(3) record with selector SPKI(1) and
+matching type SHA2-256(1), written "3 1 1", in a DNSSEC-signed zone:<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<span id="name-a-minimal-tlsa-rrset-for-an"></span><figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="appendix-A.1-2.1">
+<pre>
+_2049._tcp.nfs.example.com. IN TLSA 3 1 1 (
+                               2A1B4C...  )
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-a-minimal-tlsa-rrset-for-an" class="selfRef">A minimal TLSA RRset for an NFS service</a>
+          </figcaption></figure>
+<p id="appendix-A.1-3">Clients then need no certification authority material for those
+servers, the operator maintains the binding in one place, and by
+<a href="#dane-ee" class="auto internal xref">Section 8.2</a> the certificate may be self-signed with any notAfter
+date.  Keeping the RRset and certificates in step, in particular
+during key rollover, is specified in <a href="#rollover" class="auto internal xref">Section 5.4</a>.  Withdrawing DANE takes
+the same posture: a client that has pinned a floor for an association
+keeps requiring authenticated TLS until that association ends
+(<a href="#floor" class="auto internal xref">Section 9.1</a>), so removing the RRset lowers what clients require only
+as they remount.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">The signature validity period the operator chooses bounds the replay
+window described in <a href="#replay" class="auto internal xref">Section 13.2</a>.  Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> suggests
+a lifetime of a few days for domains publishing high-value keys.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">A publisher of DANE-TA(2) records has one further obligation.  A
+client validates the server's chain to the trust anchor the record
+identifies (<a href="#dane-ta" class="auto internal xref">Section 8.3</a>), and it has no trust store in which to
+find that anchor.  Unless the record carries the full trust anchor
+certificate, the server must therefore include the anchor in the
+chain it presents, even a self-signed root that a TLS server would
+ordinarily omit; Section 5.2.2 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> states the
+requirement.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-6">The Server Name Indication value such a deployment receives is not
+fixed.  <a href="#selected" class="auto internal xref">Section 7.6</a> sends the selected TLSA base domain when the
+outcome is SECURE_USABLE and the original reference name when it is
+SECURE_UNUSABLE, and the two differ whenever the RRset was found at
+a securely CNAME-expanded name.  A server that selects its
+certificate strictly by SNI, and fails a handshake carrying a name
+it does not recognize, rejects clients that conform to this
+document.  A server should instead present its default certificate,
+the one its TLSA RRset matches, when the SNI value is absent or
+unrecognized.  Section 8.1 of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> gives SMTP servers the
+same guidance for the same reason.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="unsigned">
+<section id="appendix-A.2">
+        <h3 id="name-unsigned-zones-prove-nothin">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-unsigned-zones-prove-nothin" class="section-name selfRef">Unsigned zones prove nothing</a>
+        </h3>
+<p id="appendix-A.2-1">A TLSA RRset in an unsigned zone yields the outcome INSECURE whatever
+it contains, and so does a denial of existence from one.  Publishing
+without signing the zone gives an attacker something to remove rather
+than the client something to rely on; an operator obtains none of the
+properties in this document without signing the zone.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="adaptive">
+<section id="appendix-A.3">
+        <h3 id="name-downgrade-resistance-of-opp">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-downgrade-resistance-of-opp" class="section-name selfRef">Downgrade resistance of opportunistic DANE</a>
+        </h3>
+<p id="appendix-A.3-1">Opportunistic mode (<a href="#modes" class="auto internal xref">Section 4.1</a>) adapts to what each operator has
+deployed, which is what makes it usable across a mixed server
+population.  This adaptivity is not itself a downgrade path.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-2">Against a client that validates DNSSEC, an attacker who wants to move
+a server from SECURE_USABLE to a weaker class must either forge a
+denial of existence in a signed zone, which fails NSEC or NSEC3
+validation, or strip signatures, which yields ERROR and therefore
+failure rather than fallback.  The remaining class, INSECURE, arises
+only from a genuinely unsigned delegation, which the attacker cannot
+manufacture without control of the parent zone's signing key.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-3">One path remains, and it requires neither forgery nor signature
+stripping: replay of a signed denial of existence captured before
+the operator published the RRset, which validates until its
+signatures expire and leaves the client at SECURE_ABSENT with no
+floor pinned.  <a href="#replay" class="auto internal xref">Section 13.2</a> describes that window and its bound; it
+applies to an association's first attempt only, since a pinned floor
+persists (<a href="#floor" class="auto internal xref">Section 9.1</a>).<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-4">Apart from that window, the outcome classes an attacker can reach from
+SECURE_USABLE are the ones that fail the attempt.  A deployment that
+wants to close the window as well can adopt the stricter policy of
+Section 6.4 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, whatever the DNS outcome.<a href="#appendix-A.3-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-5">This is the same argument that supports opportunistic DANE for SMTP
+<span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>.  On the relationship between this adaptivity and
+opportunistic security in general, see <span>[<a href="#RFC7435" class="cite xref">RFC7435</a>]</span>.<a href="#appendix-A.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="open-issues">
+<section id="appendix-B">
+      <h2 id="name-open-issues">
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-open-issues" class="section-name selfRef">Open Issues</a>
+      </h2>
+<p id="appendix-B-1">This section is to be removed before publishing as an RFC.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">Each item is tracked as an issue in this document's issue tracker,
+where the detail and the discussion live.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-B-3.1">
+          <p id="appendix-B-3.1.1"><a href="#probe" class="auto internal xref">Section 9.2</a>: whether the partition of AUTH_TLS probe results, and in
+particular which of them count as DECLINED, preserves reachability
+to the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> server population.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/3">Issue 3</a><a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.2">
+          <p id="appendix-B-3.2.1"><a href="#fallback" class="auto internal xref">Section 9.3</a>: whether cleartext operation remains permitted where no
+floor has been pinned and the server declines, or opportunistic mode
+takes the stricter policy of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-C">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-C-1">Much of the prose in this document was generated by Claude, a large
+language model, working from the editor's design, outline, and
+instructions, and was reviewed and revised by the editor, who is
+responsible for its content.  Claude is not an author of this
+document.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<p id="appendix-C-2">The editor is grateful to
+Bill Baker,
+Greg Marsden,
+and
+Martin Thomson
+for their input and support.<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<p id="appendix-C-3">Special thanks to
+Area Director
+Gorry Fairhurst,
+NFSv4 Working Group Chair
+Brian Pawlowski,
+and
+NFSv4 Working Group Secretary
+Thomas Haynes
+for their guidance and oversight.<a href="#appendix-C-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-D">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Charles Lever (<span class="role">editor</span>)</span></div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:cel-ietf@chucklever.net" class="email">cel-ietf@chucklever.net</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
