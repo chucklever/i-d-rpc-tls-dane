@@ -32,7 +32,7 @@ trust anchor provisioned on the client.  It updates RFC 9289.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.3
+    platformdirs 4.11.5
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
@@ -1052,11 +1052,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">RPC TLS with DANE</td>
-<td class="right">August 2026</td>
+<td class="right">September 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Lever</td>
-<td class="center">Expires 27 February 2027</td>
+<td class="center">Expires 5 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1072,12 +1072,12 @@ svg {
 <a href="https://www.rfc-editor.org/rfc/rfc9289" class="eref">9289</a> (if approved)</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-26" class="published">26 August 2026</time>
+<time datetime="2026-09-01" class="published">1 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-27">27 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-05">5 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1133,7 +1133,7 @@ trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-a
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 27 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1436,14 +1436,21 @@ is an authenticated statement by the server operator that TLS is
 expected to work, a client holding one can no longer treat silent
 fallback to cleartext as acceptable: the STRIPTLS attack fails
 closed.<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">However, <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> offers a sketch rather than a specification.  Two
-independent implementations reading Section 6.1.1 would not
-interoperate, and neither would obtain the security property a TLSA
-record appears to promise.  This document specifies DANE for
-RPC-with-TLS completely enough to implement and deploy, following
+<p id="section-1-7">However, <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> offers a sketch rather than a specification.  It
+leaves unspecified the owner names at which a client queries for the
+TLSA record, whether a lookup failure is treated as an absent record,
+the name the client sends in SNI and verifies in the server's
+certificate when a record is found, and which outcomes of the AUTH_TLS
+probe still permit cleartext.  Two independent implementations
+resolving these questions differently would not interoperate: one
+fails a handshake that the other completes.  A client that makes the
+permissive choice at each point obtains none of the downgrade
+resistance a TLSA record appears to promise.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8">To close these gaps, this document specifies DANE
+for RPC-with-TLS completely enough to implement and deploy, following
 the operational specifications of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> and
 making the RPC-specific choices those documents leave to application
-protocols.<a href="#section-1-7" class="pilcrow">¶</a></p>
+protocols.<a href="#section-1-8" class="pilcrow">¶</a></p>
 <div id="scope">
 <section id="section-1.1">
         <h3 id="name-scope">
@@ -1462,7 +1469,11 @@ means of DANE is out of scope; see <a href="#client-auth" class="auto internal x
 certificate.  A server association that uses the pre-shared key
 mechanism of Section 5.2.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> presents no certificate for
 DANE to authenticate. The procedures in this document do not apply to
-it.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+it.  The exclusion extends to downgrade resistance: such an
+association does not consult TLSA records to pin a security floor
+(<a href="#floor" class="auto internal xref">Section 9.1</a>).  The provisioned key is itself the operator's commitment
+to TLS, and it is already in the client's possession, so local policy
+can require TLS for the association without a DNS lookup.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <p id="section-1.1-4">Section 5.1 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> also provides for matching a DANE-EE(3)
 record against a raw public key <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>; <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines no
 way to convey one, so that case does not arise here.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
@@ -2331,13 +2342,6 @@ Section 4.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> t
 the server is never anonymous to the client, and accepting
 unauthenticated TLS here would be a downgrade relative to the base
 specification rather than an improvement on cleartext.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
-<p id="section-8.4-6">[[TODO: Whether this row should instead require only the
-unauthenticated TLS that Section 10.3 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> calls for, or
-fail the attempt as mandatory mode does, is open.  A resolution
-toward unauthenticated TLS also changes the security floor, which
-<a href="#floor" class="auto internal xref">Section 9.1</a> and the definition in Conventions state as an
-authenticated TLS session.
-https://github.com/chucklever/i-d-rpc-tls-dane/issues/1 ]]<a href="#section-8.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3134,6 +3138,25 @@ as they remount.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-4">The signature validity period the operator chooses bounds the replay
 window described in <a href="#replay" class="auto internal xref">Section 13.2</a>.  Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> suggests
 a lifetime of a few days for domains publishing high-value keys.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">A publisher of DANE-TA(2) records has one further obligation.  A
+client validates the server's chain to the trust anchor the record
+identifies (<a href="#dane-ta" class="auto internal xref">Section 8.3</a>), and it has no trust store in which to
+find that anchor.  Unless the record carries the full trust anchor
+certificate, the server must therefore include the anchor in the
+chain it presents, even a self-signed root that a TLS server would
+ordinarily omit; Section 5.2.2 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> states the
+requirement.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-6">The Server Name Indication value such a deployment receives is not
+fixed.  <a href="#selected" class="auto internal xref">Section 7.6</a> sends the selected TLSA base domain when the
+outcome is SECURE_USABLE and the original reference name when it is
+SECURE_UNUSABLE, and the two differ whenever the RRset was found at
+a securely CNAME-expanded name.  A server that selects its
+certificate strictly by SNI, and fails a handshake carrying a name
+it does not recognize, rejects clients that conform to this
+document.  A server should instead present its default certificate,
+the one its TLSA RRset matches, when the SNI value is absent or
+unrecognized.  Section 8.1 of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> gives SMTP servers the
+same guidance for the same reason.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="unsigned">
@@ -3191,29 +3214,16 @@ opportunistic security in general, see <span>[<a href="#RFC7435" class="cite xre
 where the detail and the discussion live.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-B-3.1">
-          <p id="appendix-B-3.1.1"><a href="#behavior" class="auto internal xref">Section 8.4</a>: whether the SECURE_UNUSABLE class requires an
-authenticated TLS session, the unauthenticated TLS that Section 10.3
-of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> calls for, or a failed attempt.  The definition of
-the security floor in <a href="#floor" class="auto internal xref">Section 9.1</a> follows the answer.
-<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/1">Issue 1</a><a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-B-3.2">
-          <p id="appendix-B-3.2.1"><a href="#probe" class="auto internal xref">Section 9.2</a>: whether the partition of AUTH_TLS probe results, and in
+          <p id="appendix-B-3.1.1"><a href="#probe" class="auto internal xref">Section 9.2</a>: whether the partition of AUTH_TLS probe results, and in
 particular which of them count as DECLINED, preserves reachability
 to the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> server population.
-<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/3">Issue 3</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/3">Issue 3</a><a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-3.3">
-          <p id="appendix-B-3.3.1"><a href="#fallback" class="auto internal xref">Section 9.3</a>: whether cleartext operation remains permitted where no
+        <li class="normal" id="appendix-B-3.2">
+          <p id="appendix-B-3.2.1"><a href="#fallback" class="auto internal xref">Section 9.3</a>: whether cleartext operation remains permitted where no
 floor has been pinned and the server declines, or opportunistic mode
 takes the stricter policy of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.
-<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-B-3.4">
-          <p id="appendix-B-3.4.1"><a href="#scope" class="auto internal xref">Section 1.1</a>: whether an association using the pre-shared key mechanism
-of Section 5.2.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> consults TLSA records for downgrade
-resistance.
-<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/8">Issue 8</a><a href="#appendix-B-3.4.1" class="pilcrow">¶</a></p>
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

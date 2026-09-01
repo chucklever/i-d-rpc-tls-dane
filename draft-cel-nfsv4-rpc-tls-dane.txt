@@ -3,10 +3,10 @@
 
 
 Network File System Version 4                              C. Lever, Ed.
-Internet-Draft                                            26 August 2026
+Internet-Draft                                          1 September 2026
 Updates: 9289 (if approved)                                             
 Intended status: Standards Track                                        
-Expires: 27 February 2027
+Expires: 5 March 2027
 
 
    Using RPC-with-TLS with DNS-Based Authentication of Named Entities
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 February 2027.
+   This Internet-Draft will expire on 5 March 2027.
 
 Copyright Notice
 
@@ -196,13 +196,21 @@ Table of Contents
    fallback to cleartext as acceptable: the STRIPTLS attack fails
    closed.
 
-   However, [RFC9289] offers a sketch rather than a specification.  Two
-   independent implementations reading Section 6.1.1 would not
-   interoperate, and neither would obtain the security property a TLSA
-   record appears to promise.  This document specifies DANE for RPC-
-   with-TLS completely enough to implement and deploy, following the
-   operational specifications of [RFC7671] and [RFC7672] and making the
-   RPC-specific choices those documents leave to application protocols.
+   However, [RFC9289] offers a sketch rather than a specification.  It
+   leaves unspecified the owner names at which a client queries for the
+   TLSA record, whether a lookup failure is treated as an absent record,
+   the name the client sends in SNI and verifies in the server's
+   certificate when a record is found, and which outcomes of the
+   AUTH_TLS probe still permit cleartext.  Two independent
+   implementations resolving these questions differently would not
+   interoperate: one fails a handshake that the other completes.  A
+   client that makes the permissive choice at each point obtains none of
+   the downgrade resistance a TLSA record appears to promise.
+
+   To close these gaps, this document specifies DANE for RPC-with-TLS
+   completely enough to implement and deploy, following the operational
+   specifications of [RFC7671] and [RFC7672] and making the RPC-specific
+   choices those documents leave to application protocols.
 
 1.1.  Scope
 
@@ -221,7 +229,12 @@ Table of Contents
    certificate.  A server association that uses the pre-shared key
    mechanism of Section 5.2.2 of [RFC9289] presents no certificate for
    DANE to authenticate.  The procedures in this document do not apply
-   to it.
+   to it.  The exclusion extends to downgrade resistance: such an
+   association does not consult TLSA records to pin a security floor
+   (Section 9.1).  The provisioned key is itself the operator's
+   commitment to TLS, and it is already in the client's possession, so
+   local policy can require TLS for the association without a DNS
+   lookup.
 
    Section 5.1 of [RFC7671] also provides for matching a DANE-EE(3)
    record against a raw public key [RFC7250]; [RFC9289] defines no way
@@ -902,14 +915,6 @@ Table of Contents
    unauthenticated TLS here would be a downgrade relative to the base
    specification rather than an improvement on cleartext.
 
-   [[TODO: Whether this row should instead require only the
-   unauthenticated TLS that Section 10.3 of [RFC7671] calls for, or fail
-   the attempt as mandatory mode does, is open.  A resolution toward
-   unauthenticated TLS also changes the security floor, which
-   Section 9.1 and the definition in Conventions state as an
-   authenticated TLS session. https://github.com/chucklever/i-d-rpc-tls-
-   dane/issues/1 ]]
-
 9.  Downgrade Resistance
 
 9.1.  The security floor
@@ -1534,6 +1539,26 @@ A.1.  Publishing TLSA records for RPC services
    window described in Section 13.2.  Section 11 of [RFC7671] suggests a
    lifetime of a few days for domains publishing high-value keys.
 
+   A publisher of DANE-TA(2) records has one further obligation.  A
+   client validates the server's chain to the trust anchor the record
+   identifies (Section 8.3), and it has no trust store in which to find
+   that anchor.  Unless the record carries the full trust anchor
+   certificate, the server must therefore include the anchor in the
+   chain it presents, even a self-signed root that a TLS server would
+   ordinarily omit; Section 5.2.2 of [RFC7671] states the requirement.
+
+   The Server Name Indication value such a deployment receives is not
+   fixed.  Section 7.6 sends the selected TLSA base domain when the
+   outcome is SECURE_USABLE and the original reference name when it is
+   SECURE_UNUSABLE, and the two differ whenever the RRset was found at a
+   securely CNAME-expanded name.  A server that selects its certificate
+   strictly by SNI, and fails a handshake carrying a name it does not
+   recognize, rejects clients that conform to this document.  A server
+   should instead present its default certificate, the one its TLSA
+   RRset matches, when the SNI value is absent or unrecognized.
+   Section 8.1 of [RFC7672] gives SMTP servers the same guidance for the
+   same reason.
+
 A.2.  Unsigned zones prove nothing
 
    A TLSA RRset in an unsigned zone yields the outcome INSECURE whatever
@@ -1580,13 +1605,6 @@ Appendix B.  Open Issues
    Each item is tracked as an issue in this document's issue tracker,
    where the detail and the discussion live.
 
-   *  Section 8.4: whether the SECURE_UNUSABLE class requires an
-      authenticated TLS session, the unauthenticated TLS that
-      Section 10.3 of [RFC7671] calls for, or a failed attempt.  The
-      definition of the security floor in Section 9.1 follows the
-      answer.  Issue 1 (https://github.com/chucklever/i-d-rpc-tls-dane/
-      issues/1)
-
    *  Section 9.2: whether the partition of AUTH_TLS probe results, and
       in particular which of them count as DECLINED, preserves
       reachability to the pre-[RFC9289] server population.  Issue 3
@@ -1596,11 +1614,6 @@ Appendix B.  Open Issues
       no floor has been pinned and the server declines, or opportunistic
       mode takes the stricter policy of Section 6.1.1 of [RFC9289].
       Issue 4 (https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
-
-   *  Section 1.1: whether an association using the pre-shared key
-      mechanism of Section 5.2.2 of [RFC9289] consults TLSA records for
-      downgrade resistance.  Issue 8 (https://github.com/chucklever/i-d-
-      rpc-tls-dane/issues/8)
 
 Acknowledgments
 
