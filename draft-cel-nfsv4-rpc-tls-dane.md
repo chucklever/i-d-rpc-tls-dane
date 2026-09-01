@@ -172,7 +172,11 @@ This document applies where the server authenticates itself with a
 certificate.  A server association that uses the pre-shared key
 mechanism of Section 5.2.2 of {{RFC9289}} presents no certificate for
 DANE to authenticate. The procedures in this document do not apply to
-it.
+it.  The exclusion extends to downgrade resistance: such an
+association does not consult TLSA records to pin a security floor
+({{floor}}).  The provisioned key is itself the operator's commitment
+to TLS, and it is already in the client's possession, so local policy
+can require TLS for the association without a DNS lookup.
 
 Section 5.1 of {{RFC7671}} also provides for matching a DANE-EE(3)
 record against a raw public key {{RFC7250}}; {{RFC9289}} defines no
@@ -1422,11 +1426,6 @@ where the detail and the discussion live.
   floor has been pinned and the server declines, or opportunistic mode
   takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
   [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
-
-* {{scope}}: whether an association using the pre-shared key mechanism
-  of Section 5.2.2 of {{RFC9289}} consults TLSA records for downgrade
-  resistance.
-  [Issue 8](https://github.com/chucklever/i-d-rpc-tls-dane/issues/8)
 
 # Acknowledgments
 {:numbered="false"}
