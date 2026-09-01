@@ -1354,6 +1354,15 @@ The signature validity period the operator chooses bounds the replay
 window described in {{replay}}.  Section 11 of {{RFC7671}} suggests
 a lifetime of a few days for domains publishing high-value keys.
 
+A publisher of DANE-TA(2) records has one further obligation.  A
+client validates the server's chain to the trust anchor the record
+identifies ({{dane-ta}}), and it has no trust store in which to
+find that anchor.  Unless the record carries the full trust anchor
+certificate, the server must therefore include the anchor in the
+chain it presents, even a self-signed root that a TLS server would
+ordinarily omit; Section 5.2.2 of {{RFC7671}} states the
+requirement.
+
 The Server Name Indication value such a deployment receives is not
 fixed.  {{selected}} sends the selected TLSA base domain when the
 outcome is SECURE_USABLE and the original reference name when it is
