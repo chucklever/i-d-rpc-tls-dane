@@ -138,11 +138,19 @@ expected to work, a client holding one can no longer treat silent
 fallback to cleartext as acceptable: the STRIPTLS attack fails
 closed.
 
-However, {{RFC9289}} offers a sketch rather than a specification.  Two
-independent implementations reading Section 6.1.1 would not
-interoperate, and neither would obtain the security property a TLSA
-record appears to promise.  This document specifies DANE for
-RPC-with-TLS completely enough to implement and deploy, following
+However, {{RFC9289}} offers a sketch rather than a specification.  It
+leaves unspecified the owner names at which a client queries for the
+TLSA record, whether a lookup failure is treated as an absent record,
+the name the client sends in SNI and verifies in the server's
+certificate when a record is found, and which outcomes of the AUTH_TLS
+probe still permit cleartext.  Two independent implementations
+resolving these questions differently would not interoperate: one
+fails a handshake that the other completes.  A client that makes the
+permissive choice at each point obtains none of the downgrade
+resistance a TLSA record appears to promise.
+
+To close these gaps, this document specifies DANE
+for RPC-with-TLS completely enough to implement and deploy, following
 the operational specifications of {{RFC7671}} and {{RFC7672}} and
 making the RPC-specific choices those documents leave to application
 protocols.
