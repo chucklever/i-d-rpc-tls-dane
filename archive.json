@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-01T04:31:49.132297+00:00",
+  "timestamp": "2026-09-03T03:53:15.592447+00:00",
   "repo": "chucklever/i-d-rpc-tls-dane",
   "labels": [
     {
@@ -60,7 +60,7 @@
       "id": "I_kwDOT89kGc8AAAABNkRwDA",
       "title": "SECURE_UNUSABLE: require authenticated TLS, or follow RFC 7671 and require only unauthenticated TLS?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/1",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -69,9 +69,17 @@
       ],
       "body": "\"Required client behavior by outcome class\" requires an authenticated TLS session for the SECURE_UNUSABLE outcome class in opportunistic mode. Section 10.3 of RFC 7671 and Section 2.2 of RFC 7672 require only unauthenticated TLS in this case.\n\nThe rationale for the stricter requirement is given in that section. Section 4.2 of RFC 9289 gives two modes of client deployment, server-only host authentication and mutual host authentication, and the client authenticates the server in both. Accepting unauthenticated TLS here would be a downgrade relative to the base specification rather than an improvement on cleartext.\n\nThe working group may want this stricter still, failing the attempt as mandatory mode does.\n\nFollowing RFC 7671 instead is not merely a looser reading of this document: RFC 9289 defines no unauthenticated TLS mode, so that choice would additionally have to update Section 4.2 of RFC 9289.",
       "createdAt": "2026-08-20T16:00:34Z",
-      "updatedAt": "2026-08-20T16:00:34Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-09-01T16:41:41Z",
+      "closedAt": "2026-09-01T16:41:41Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: the SECURE_UNUSABLE class keeps the authenticated TLS requirement.\n\nRFC 9289 defines no unauthenticated TLS mode: both client deployment modes of its Section 4.2 authenticate the server. Following Section 10.3 of RFC 7671 here would have to add such a mode to RFC 9289, and would be a downgrade relative to the base specification rather than an improvement on cleartext. The security floor keeps this class off the cleartext path, so the reachability concern behind RFC 7671's choice does not arise. The behavior section states this rationale in place. Reopen if a deployment needs the unauthenticated branch and is prepared to update Section 4.2 of RFC 9289 for it.",
+          "createdAt": "2026-09-01T16:41:40Z",
+          "updatedAt": "2026-09-01T16:41:40Z"
+        }
+      ]
     },
     {
       "number": 2,
@@ -218,7 +226,7 @@
       "id": "I_kwDOT89kGc8AAAABNkR1kA",
       "title": "Should PSK associations consult TLSA records for downgrade resistance?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/8",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -227,9 +235,17 @@
       ],
       "body": "\"Scope\" excludes associations that use the pre-shared key mechanism of Section 5.2.2 of RFC 9289.\n\nWhether such an association should nevertheless consult TLSA records for downgrade resistance, treating a validated RRset as the operator's commitment to TLS without using it for authentication, is an open question.",
       "createdAt": "2026-08-20T16:00:42Z",
-      "updatedAt": "2026-08-20T16:00:42Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-09-01T16:41:44Z",
+      "closedAt": "2026-09-01T16:41:44Z",
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Resolved: a pre-shared-key association does not consult TLSA records.\n\nThe provisioned key is itself the operator's commitment to TLS, and it is already in the client's possession, so local policy can require TLS for the association without a DNS lookup. A validated RRset would add nothing that provisioning the key did not. The Scope section now says so. Reopen if an implementation reports a pre-shared-key deployment that permits opportunistic fallback by design.",
+          "createdAt": "2026-09-01T16:41:44Z",
+          "updatedAt": "2026-09-01T16:41:44Z"
+        }
+      ]
     }
   ],
   "pulls": []
