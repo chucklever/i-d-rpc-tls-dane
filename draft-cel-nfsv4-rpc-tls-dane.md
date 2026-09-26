@@ -1119,11 +1119,11 @@ Description:
   of in-kernel RPC-with-TLS consumers.
 
 Implementation:
-: https://github.com/oracle/ktls-utils
+: https://github.com/linux-nfs/ktls-utils
 
 Level of maturity:
-: Prototype.  The DANE support is not part of a released version at
-  the time of writing, and is disabled by default.
+: Prototype.  The DANE support first shipped in ktls-utils 1.5.0,
+  and is disabled by default.
 
 Coverage:
 : The reference-name input contract ({{refname}}); the candidate
