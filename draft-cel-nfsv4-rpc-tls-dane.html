@@ -1927,9 +1927,13 @@ validation states it can trust.  A client that accepts the AD bit from
 a remote validating resolver has moved its trust to that resolver and
 to the path between them, which is precisely the kind of unprotected
 path this document exists to defend against.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">Accordingly, a client implementing this document <span class="bcp14">SHOULD</span> validate
+<p id="section-7.1-2">Accordingly, a client implementing this document <span class="bcp14">MUST</span> either validate
 DNSSEC responses itself, or obtain them from a validating resolver it
-trusts over a channel whose integrity is protected.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+trusts over an integrity-protected channel.  A protected channel is
+what Section 4.1 of <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> requires of a client that relies on
+another entity for validation.  A validating resolver on the same host,
+reached without crossing a network, satisfies that requirement.
+A client <span class="bcp14">SHOULD</span> validate DNSSEC responses itself.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3"><a href="#outcomes" class="auto internal xref">Section 7.2</a> classes a failure to load, read, or parse the trust
 anchors as ERROR, not INSECURE, since a client without them cannot
 distinguish an unsigned zone from a signed one.  An anchor maintained
@@ -2567,10 +2571,20 @@ attacker who can affect the timing of DNS answers.  A client <span class="bcp14"
 on a strengthened conclusion, a later evaluation that finds a usable
 RRset where an earlier one did not, since doing so cannot lower the
 security of the attempt.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
-<p id="section-9.5-4">A TLSA RRset republished mid-attempt during a key rollover produces
-the same disagreement.  The client cannot distinguish it from an
-attack within a single attempt, and a retry evaluated wholly against
-the new data succeeds.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-4">The second property orders outcome classes.  It does not order the
+contents of two RRsets.  Where two evaluations during one attempt both
+yield SECURE_USABLE and their usable records differ, neither
+conclusion is the stronger, and the client <span class="bcp14">MUST</span> authenticate the
+server against the usable records of one of those evaluations as a
+whole.  A client <span class="bcp14">MUST NOT</span> combine records drawn from different
+evaluations.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+<p id="section-9.5-5">A TLSA RRset republished mid-attempt during a key rollover produces
+this case.  When the publisher has observed <a href="#rollover" class="auto internal xref">Section 5.4</a>, both the old
+RRset and the new one match the certificate the server presents, and
+the attempt succeeds whichever evaluation the client uses.  When the
+publisher has not, the attempt can fail.  The client cannot
+distinguish that failure from an attack within a single attempt, and
+a retry evaluated wholly against the new data succeeds.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2664,14 +2678,17 @@ local configuration or derived some other way;<a href="#section-11-2.1.1" class=
           <p id="section-11-2.3.1">the DANE policy mode in effect and where it came from;<a href="#section-11-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.4">
-          <p id="section-11-2.4.1">the DNS outcome class, and enough diagnostic detail to distinguish
-the conditions grouped under ERROR;<a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
+          <p id="section-11-2.4.1">the DNS outcome class, with enough diagnostic detail to distinguish
+the conditions grouped under ERROR, or an indication that no lookup
+was made because the destination carries no DANE binding
+(<a href="#no-dane" class="auto internal xref">Section 6.2</a>);<a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.5">
           <p id="section-11-2.5.1">the selected TLSA base domain, where one was determined;<a href="#section-11-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.6">
-          <p id="section-11-2.6.1">the AUTH_TLS probe outcome (<a href="#probe" class="auto internal xref">Section 9.2</a>);<a href="#section-11-2.6.1" class="pilcrow">¶</a></p>
+          <p id="section-11-2.6.1">the AUTH_TLS probe outcome (<a href="#probe" class="auto internal xref">Section 9.2</a>), or an indication that the
+attempt failed before a probe was sent;<a href="#section-11-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.7">
           <p id="section-11-2.7.1">the means by which the server was authenticated, if it was:
@@ -2835,27 +2852,46 @@ party, the concentration should be evaluated before deployment.<a href="#section
 <a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-replay-and-the-limits-of-re" class="section-name selfRef">Replay and the limits of revocation</a>
         </h3>
 <p id="section-13.2-1">DNSSEC provides no way to revoke a signed RRset before its signatures
-expire (Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>).  Two consequences follow, and both
-are bounded by the signature validity period rather than by anything
+expire (Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>).  The following consequences are
+each bounded by a signature validity period rather than by anything
 the client can do.<a href="#section-13.2-1" class="pilcrow">¶</a></p>
 <p id="section-13.2-2">An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
 period; the client assigns SECURE_ABSENT and pins no floor
 (<a href="#adaptive" class="auto internal xref">Appendix A.3</a>).<a href="#section-13.2-2" class="pilcrow">¶</a></p>
-<p id="section-13.2-3">An attacker who holds a key the operator has withdrawn can replay the
+<p id="section-13.2-3">An attacker who captured the parent zone's signed proof that the
+operator's zone has no DS RRset, before the operator signed that zone,
+can replay it in the same way.  A validator shown that proof treats
+the zone as unsigned (Section 5.2 of <span>[<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>); the client assigns
+INSECURE and pins no floor.  The window is bounded by the validity
+period of the parent zone's signatures, which the operator of the
+service does not choose.<a href="#section-13.2-3" class="pilcrow">¶</a></p>
+<p id="section-13.2-4">An attacker who holds a key the operator has withdrawn can replay the
 TLSA RRset that still names it, and a client will authenticate the
 peer; since <a href="#dane-ee" class="auto internal xref">Section 8.2</a> disregards the certificate's validity dates,
 the RRset's signatures are the only expiry.  The mitigation is
-operational and belongs to the publisher (<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).<a href="#section-13.2-3" class="pilcrow">¶</a></p>
-<p id="section-13.2-4">A security floor, once pinned, persists for the lifetime of the
-association (<a href="#floor" class="auto internal xref">Section 9.1</a>).  A replayed denial of existence therefore
-affects only an association's first attempt: replayed at a reconnect,
-it finds the floor already pinned, and the attempt fails rather than
-falls back.  Conversely, this document does not require a client to
+operational and belongs to the publisher (<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).<a href="#section-13.2-4" class="pilcrow">¶</a></p>
+<p id="section-13.2-5">A security floor, once pinned, persists for the lifetime of the
+association (<a href="#floor" class="auto internal xref">Section 9.1</a>).  A replayed denial therefore cannot authorize
+cleartext operation once a floor is pinned: replayed at a reconnect,
+it leaves the floor in place, and a forged decline fails the attempt
+rather than permitting fallback.<a href="#section-13.2-5" class="pilcrow">¶</a></p>
+<p id="section-13.2-6">That guarantee has two limits.  An association whose attempts have so
+far pinned no floor stays exposed to the replay at every later
+attempt, until an evaluation pins one.  And the floor requires an
+authenticated TLS session, not DANE authentication.  An attempt that
+a replayed denial leaves at SECURE_ABSENT or INSECURE authenticates
+the server by the PKIX rules of Section 5.2.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, so
+within the replay window an attacker who can present a certificate
+those rules accept regains the substitution that <a href="#behavior" class="auto internal xref">Section 8.4</a> forbids
+for SECURE_USABLE.  Where the client trusts no certification
+authority that would issue such a certificate, as in the deployment
+<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a> describes, the attempt fails.<a href="#section-13.2-6" class="pilcrow">¶</a></p>
+<p id="section-13.2-7">Conversely, this document does not require a client to
 re-evaluate an association that is already established, so a
 long-lived session established against an RRset that has since been
 withdrawn continues under the conclusion reached when it was
-established.<a href="#section-13.2-4" class="pilcrow">¶</a></p>
+established.<a href="#section-13.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fail-closed-behavior-is-a-denial-of-service-surface">
@@ -2944,11 +2980,17 @@ the limitation visible rather than silent, at the cost of the feature.<a href="#
 which RPC services the client is about to contact and on which ports.
 The names and addresses are already disclosed by address resolution
 and by the RPC traffic itself; the port and transport labels are
-additional.  This is the exposure discussed in Section 6.1.2 of
-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and the same mitigations, protecting the client's DNS
-transport or resolving locally, apply.  <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span> surveys what DNS
-transactions disclose, and pervasive monitoring <span>[<a href="#RFC7258" class="cite xref">RFC7258</a>]</span> of DNS is
-a known concern for DANE generally.<a href="#section-13.6-1" class="pilcrow">¶</a></p>
+additional.  This disclosure happens before the exchanges that
+Section 6.1.2 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> discusses, and the precautions given
+there do not reach it.<a href="#section-13.6-1" class="pilcrow">¶</a></p>
+<p id="section-13.6-2"><span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span> surveys what DNS transactions disclose.  Two mitigations
+are available, and each is partial.  An encrypted transport to the
+resolver (Section 5.2 of <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span>) hides the queries from an
+observer of that path, but not from the resolver.  Resolving
+recursively on the client removes the third-party resolver, but
+exposes the client's address to the authoritative servers it queries
+(Section 6.2 of <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span>).  Pervasive monitoring <span>[<a href="#RFC7258" class="cite xref">RFC7258</a>]</span> of
+DNS is a known concern for DANE generally.<a href="#section-13.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="client-auth">
@@ -3061,6 +3103,10 @@ the server's certificate whether or not the client presents one.<a href="#sectio
         <dd>
 <span class="refAuthor">Srinivasan, R.</span>, <span class="refTitle">"Binding Protocols for ONC RPC Version 2"</span>, <span class="seriesInfo">RFC 1833</span>, <span class="seriesInfo">DOI 10.17487/RFC1833</span>, <time datetime="1995-08" class="refDate">August 1995</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1833">https://www.rfc-editor.org/rfc/rfc1833</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC4035">[RFC4035]</dt>
+        <dd>
+<span class="refAuthor">Arends, R.</span>, <span class="refAuthor">Austein, R.</span>, <span class="refAuthor">Larson, M.</span>, <span class="refAuthor">Massey, D.</span>, and <span class="refAuthor">S. Rose</span>, <span class="refTitle">"Protocol Modifications for the DNS Security Extensions"</span>, <span class="seriesInfo">RFC 4035</span>, <span class="seriesInfo">DOI 10.17487/RFC4035</span>, <time datetime="2005-03" class="refDate">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4035">https://www.rfc-editor.org/rfc/rfc4035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC5011">[RFC5011]</dt>
         <dd>
 <span class="refAuthor">StJohns, M.</span>, <span class="refTitle">"Automated Updates of DNS Security (DNSSEC) Trust Anchors"</span>, <span class="seriesInfo">STD 74</span>, <span class="seriesInfo">RFC 5011</span>, <span class="seriesInfo">DOI 10.17487/RFC5011</span>, <time datetime="2007-09" class="refDate">September 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5011">https://www.rfc-editor.org/rfc/rfc5011</a>&gt;</span>. </dd>
@@ -3136,7 +3182,9 @@ keeps requiring authenticated TLS until that association ends
 (<a href="#floor" class="auto internal xref">Section 9.1</a>), so removing the RRset lowers what clients require only
 as they remount.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-4">The signature validity period the operator chooses bounds the replay
-window described in <a href="#replay" class="auto internal xref">Section 13.2</a>.  Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> suggests
+windows described in <a href="#replay" class="auto internal xref">Section 13.2</a>, except that of a replayed proof of
+an unsigned delegation, which the parent zone's signatures bound.
+Section 11 of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> suggests
 a lifetime of a few days for domains publishing high-value keys.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-5">A publisher of DANE-TA(2) records has one further obligation.  A
 client validates the server's chain to the trust anchor the record
@@ -3183,16 +3231,21 @@ population.  This adaptivity is not itself a downgrade path.<a href="#appendix-A
 a server from SECURE_USABLE to a weaker class must either forge a
 denial of existence in a signed zone, which fails NSEC or NSEC3
 validation, or strip signatures, which yields ERROR and therefore
-failure rather than fallback.  The remaining class, INSECURE, arises
-only from a genuinely unsigned delegation, which the attacker cannot
-manufacture without control of the parent zone's signing key.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+failure rather than fallback.  The remaining class, INSECURE,
+requires a validated proof that a delegation above the owner name is
+unsigned, which the attacker cannot forge without control of the
+parent zone's signing key.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
 <p id="appendix-A.3-3">One path remains, and it requires neither forgery nor signature
-stripping: replay of a signed denial of existence captured before
-the operator published the RRset, which validates until its
-signatures expire and leaves the client at SECURE_ABSENT with no
-floor pinned.  <a href="#replay" class="auto internal xref">Section 13.2</a> describes that window and its bound; it
-applies to an association's first attempt only, since a pinned floor
-persists (<a href="#floor" class="auto internal xref">Section 9.1</a>).<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
+stripping: replay of a signed denial captured before the operator
+deployed DANE.  A denial of existence for the TLSA owner name,
+captured before the operator published the RRset, leaves the client
+at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
+from the parent before the operator signed the zone, leaves the
+client at INSECURE.  Either validates until its signatures expire,
+and neither outcome pins a floor.  <a href="#replay" class="auto internal xref">Section 13.2</a> describes that window
+and its bound.  Once a floor is pinned, a replayed denial can no
+longer authorize cleartext operation, since the floor persists
+(<a href="#floor" class="auto internal xref">Section 9.1</a>).<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.3-4">Apart from that window, the outcome classes an attacker can reach from
 SECURE_USABLE are the ones that fail the attempt.  A deployment that
 wants to close the window as well can adopt the stricter policy of
@@ -3224,6 +3277,12 @@ to the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> serve
 floor has been pinned and the server declines, or opportunistic mode
 takes the stricter policy of Section 6.1.1 of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.3">
+          <p id="appendix-B-3.3.1"><a href="#coherence" class="auto internal xref">Section 9.5</a>: how a resumed TLS session, in which the server
+presents no certificate, satisfies the DANE authentication the
+current attempt's DNS outcome requires.
+<a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/9">Issue 9</a><a href="#appendix-B-3.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

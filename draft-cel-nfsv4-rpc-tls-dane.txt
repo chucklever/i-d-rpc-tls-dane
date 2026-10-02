@@ -574,9 +574,13 @@ Table of Contents
    resolver and to the path between them, which is precisely the kind of
    unprotected path this document exists to defend against.
 
-   Accordingly, a client implementing this document SHOULD validate
+   Accordingly, a client implementing this document MUST either validate
    DNSSEC responses itself, or obtain them from a validating resolver it
-   trusts over a channel whose integrity is protected.
+   trusts over an integrity-protected channel.  A protected channel is
+   what Section 4.1 of [RFC6698] requires of a client that relies on
+   another entity for validation.  A validating resolver on the same
+   host, reached without crossing a network, satisfies that requirement.
+   A client SHOULD validate DNSSEC responses itself.
 
    Section 7.2 classes a failure to load, read, or parse the trust
    anchors as ERROR, not INSECURE, since a client without them cannot
@@ -1070,10 +1074,21 @@ Table of Contents
    RRset where an earlier one did not, since doing so cannot lower the
    security of the attempt.
 
+   The second property orders outcome classes.  It does not order the
+   contents of two RRsets.  Where two evaluations during one attempt
+   both yield SECURE_USABLE and their usable records differ, neither
+   conclusion is the stronger, and the client MUST authenticate the
+   server against the usable records of one of those evaluations as a
+   whole.  A client MUST NOT combine records drawn from different
+   evaluations.
+
    A TLSA RRset republished mid-attempt during a key rollover produces
-   the same disagreement.  The client cannot distinguish it from an
-   attack within a single attempt, and a retry evaluated wholly against
-   the new data succeeds.
+   this case.  When the publisher has observed Section 5.4, both the old
+   RRset and the new one match the certificate the server presents, and
+   the attempt succeeds whichever evaluation the client uses.  When the
+   publisher has not, the attempt can fail.  The client cannot
+   distinguish that failure from an attack within a single attempt, and
+   a retry evaluated wholly against the new data succeeds.
 
 10.  Association Scope and Policy Granularity
 
@@ -1145,12 +1160,15 @@ Table of Contents
 
    *  the DANE policy mode in effect and where it came from;
 
-   *  the DNS outcome class, and enough diagnostic detail to distinguish
-      the conditions grouped under ERROR;
+   *  the DNS outcome class, with enough diagnostic detail to
+      distinguish the conditions grouped under ERROR, or an indication
+      that no lookup was made because the destination carries no DANE
+      binding (Section 6.2);
 
    *  the selected TLSA base domain, where one was determined;
 
-   *  the AUTH_TLS probe outcome (Section 9.2);
+   *  the AUTH_TLS probe outcome (Section 9.2), or an indication that
+      the attempt failed before a probe was sent;
 
    *  the means by which the server was authenticated, if it was: DANE-
       EE(3), DANE-TA(2), or PKIX;
@@ -1259,14 +1277,22 @@ Table of Contents
 13.2.  Replay and the limits of revocation
 
    DNSSEC provides no way to revoke a signed RRset before its signatures
-   expire (Section 11 of [RFC7671]).  Two consequences follow, and both
-   are bounded by the signature validity period rather than by anything
+   expire (Section 11 of [RFC7671]).  The following consequences are
+   each bounded by a signature validity period rather than by anything
    the client can do.
 
    An attacker who captured a signed denial of existence for a TLSA
    owner name before the operator published the RRset can replay it
    within that period; the client assigns SECURE_ABSENT and pins no
    floor (Appendix A.3).
+
+   An attacker who captured the parent zone's signed proof that the
+   operator's zone has no DS RRset, before the operator signed that
+   zone, can replay it in the same way.  A validator shown that proof
+   treats the zone as unsigned (Section 5.2 of [RFC4035]); the client
+   assigns INSECURE and pins no floor.  The window is bounded by the
+   validity period of the parent zone's signatures, which the operator
+   of the service does not choose.
 
    An attacker who holds a key the operator has withdrawn can replay the
    TLSA RRset that still names it, and a client will authenticate the
@@ -1275,14 +1301,27 @@ Table of Contents
    operational and belongs to the publisher (Appendix A.1).
 
    A security floor, once pinned, persists for the lifetime of the
-   association (Section 9.1).  A replayed denial of existence therefore
-   affects only an association's first attempt: replayed at a reconnect,
-   it finds the floor already pinned, and the attempt fails rather than
-   falls back.  Conversely, this document does not require a client to
-   re-evaluate an association that is already established, so a long-
-   lived session established against an RRset that has since been
-   withdrawn continues under the conclusion reached when it was
-   established.
+   association (Section 9.1).  A replayed denial therefore cannot
+   authorize cleartext operation once a floor is pinned: replayed at a
+   reconnect, it leaves the floor in place, and a forged decline fails
+   the attempt rather than permitting fallback.
+
+   That guarantee has two limits.  An association whose attempts have so
+   far pinned no floor stays exposed to the replay at every later
+   attempt, until an evaluation pins one.  And the floor requires an
+   authenticated TLS session, not DANE authentication.  An attempt that
+   a replayed denial leaves at SECURE_ABSENT or INSECURE authenticates
+   the server by the PKIX rules of Section 5.2.1 of [RFC9289], so within
+   the replay window an attacker who can present a certificate those
+   rules accept regains the substitution that Section 8.4 forbids for
+   SECURE_USABLE.  Where the client trusts no certification authority
+   that would issue such a certificate, as in the deployment
+   Appendix A.1 describes, the attempt fails.
+
+   Conversely, this document does not require a client to re-evaluate an
+   association that is already established, so a long-lived session
+   established against an RRset that has since been withdrawn continues
+   under the conclusion reached when it was established.
 
 13.3.  Fail-closed behavior is a denial-of-service surface
 
@@ -1360,11 +1399,18 @@ Table of Contents
    which RPC services the client is about to contact and on which ports.
    The names and addresses are already disclosed by address resolution
    and by the RPC traffic itself; the port and transport labels are
-   additional.  This is the exposure discussed in Section 6.1.2 of
-   [RFC9289], and the same mitigations, protecting the client's DNS
-   transport or resolving locally, apply.  [RFC9076] surveys what DNS
-   transactions disclose, and pervasive monitoring [RFC7258] of DNS is a
-   known concern for DANE generally.
+   additional.  This disclosure happens before the exchanges that
+   Section 6.1.2 of [RFC9289] discusses, and the precautions given there
+   do not reach it.
+
+   [RFC9076] surveys what DNS transactions disclose.  Two mitigations
+   are available, and each is partial.  An encrypted transport to the
+   resolver (Section 5.2 of [RFC9076]) hides the queries from an
+   observer of that path, but not from the resolver.  Resolving
+   recursively on the client removes the third-party resolver, but
+   exposes the client's address to the authoritative servers it queries
+   (Section 6.2 of [RFC9076]).  Pervasive monitoring [RFC7258] of DNS is
+   a known concern for DANE generally.
 
 13.7.  Client authentication
 
@@ -1465,6 +1511,11 @@ Table of Contents
               RFC 1833, DOI 10.17487/RFC1833, August 1995,
               <https://www.rfc-editor.org/rfc/rfc1833>.
 
+   [RFC4035]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
+              Rose, "Protocol Modifications for the DNS Security
+              Extensions", RFC 4035, DOI 10.17487/RFC4035, March 2005,
+              <https://www.rfc-editor.org/rfc/rfc4035>.
+
    [RFC5011]  StJohns, M., "Automated Updates of DNS Security (DNSSEC)
               Trust Anchors", STD 74, RFC 5011, DOI 10.17487/RFC5011,
               September 2007, <https://www.rfc-editor.org/rfc/rfc5011>.
@@ -1535,8 +1586,10 @@ A.1.  Publishing TLSA records for RPC services
    only as they remount.
 
    The signature validity period the operator chooses bounds the replay
-   window described in Section 13.2.  Section 11 of [RFC7671] suggests a
-   lifetime of a few days for domains publishing high-value keys.
+   windows described in Section 13.2, except that of a replayed proof of
+   an unsigned delegation, which the parent zone's signatures bound.
+   Section 11 of [RFC7671] suggests a lifetime of a few days for domains
+   publishing high-value keys.
 
    A publisher of DANE-TA(2) records has one further obligation.  A
    client validates the server's chain to the trust anchor the record
@@ -1576,16 +1629,21 @@ A.3.  Downgrade resistance of opportunistic DANE
    a server from SECURE_USABLE to a weaker class must either forge a
    denial of existence in a signed zone, which fails NSEC or NSEC3
    validation, or strip signatures, which yields ERROR and therefore
-   failure rather than fallback.  The remaining class, INSECURE, arises
-   only from a genuinely unsigned delegation, which the attacker cannot
-   manufacture without control of the parent zone's signing key.
+   failure rather than fallback.  The remaining class, INSECURE,
+   requires a validated proof that a delegation above the owner name is
+   unsigned, which the attacker cannot forge without control of the
+   parent zone's signing key.
 
    One path remains, and it requires neither forgery nor signature
-   stripping: replay of a signed denial of existence captured before the
-   operator published the RRset, which validates until its signatures
-   expire and leaves the client at SECURE_ABSENT with no floor pinned.
-   Section 13.2 describes that window and its bound; it applies to an
-   association's first attempt only, since a pinned floor persists
+   stripping: replay of a signed denial captured before the operator
+   deployed DANE.  A denial of existence for the TLSA owner name,
+   captured before the operator published the RRset, leaves the client
+   at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
+   from the parent before the operator signed the zone, leaves the
+   client at INSECURE.  Either validates until its signatures expire,
+   and neither outcome pins a floor.  Section 13.2 describes that window
+   and its bound.  Once a floor is pinned, a replayed denial can no
+   longer authorize cleartext operation, since the floor persists
    (Section 9.1).
 
    Apart from that window, the outcome classes an attacker can reach
@@ -1613,6 +1671,11 @@ Appendix B.  Open Issues
       no floor has been pinned and the server declines, or opportunistic
       mode takes the stricter policy of Section 6.1.1 of [RFC9289].
       Issue 4 (https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
+
+   *  Section 9.5: how a resumed TLS session, in which the server
+      presents no certificate, satisfies the DANE authentication the
+      current attempt's DNS outcome requires.  Issue 9
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/9)
 
 Acknowledgments
 
