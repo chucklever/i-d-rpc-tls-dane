@@ -1017,10 +1017,11 @@ arrangement.
 
 * A client MUST evaluate the DNS outcome class from DNS data that is
   current at the time of the association attempt, and MUST NOT reuse
-  an outcome obtained for an earlier attempt beyond the validity of
-  the DNS data it was derived from.  The security floor is not such a
+  an outcome obtained for an earlier attempt beyond the TTL of the
+  DNS data it was derived from.  The security floor is not such a
   result: it persists across attempts ({{floor}}), and a fresh
-  evaluation can raise it or leave it but never lower it.
+  evaluation can pin a floor or leave one in place but never remove
+  it.
 
 * Within one association attempt, a client MUST NOT conclude at a
   security level weaker than any determination it has already made
