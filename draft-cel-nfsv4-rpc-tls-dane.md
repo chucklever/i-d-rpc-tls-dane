@@ -523,9 +523,13 @@ a remote validating resolver has moved its trust to that resolver and
 to the path between them, which is precisely the kind of unprotected
 path this document exists to defend against.
 
-Accordingly, a client implementing this document SHOULD validate
+Accordingly, a client implementing this document MUST either validate
 DNSSEC responses itself, or obtain them from a validating resolver it
-trusts over a channel whose integrity is protected.
+trusts over an integrity-protected channel.  A protected channel is
+what Section 4.1 of {{RFC6698}} requires of a client that relies on
+another entity for validation.  A validating resolver on the same host,
+reached without crossing a network, satisfies that requirement.
+A client SHOULD validate DNSSEC responses itself.
 
 {{outcomes}} classes a failure to load, read, or parse the trust
 anchors as ERROR, not INSECURE, since a client without them cannot
