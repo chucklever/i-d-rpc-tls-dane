@@ -309,8 +309,8 @@ Association attempt:
 
 Security floor:
 : The minimum acceptable security level that a client has determined
-  for a server association, and below which it MUST NOT operate.  See
-  {{floor}}.
+  for a server association, and below which it does not operate.
+  {{floor}} states the requirement.
 
 DANE policy mode:
 : The client's configured disposition toward DANE for a given server
@@ -350,8 +350,8 @@ addition to what {{RFC9289}} already specifies, the following steps.
 Steps 2 and 3 concern the association attempt as a whole and can be
 performed before the AUTH_TLS probe is sent; step 4 happens during
 the handshake.  How an implementation divides the work is not
-specified; {{coherence}} states the two constraints a division MUST
-respect.
+specified; {{coherence}} states the constraints that any division has
+to respect.
 
 ## DANE policy modes {#modes}
 
@@ -461,12 +461,12 @@ authenticated source.
 ## Publishing and key rollover {#rollover}
 
 Publishers MUST observe the requirements of Section 8 of {{RFC7671}},
-in particular during key rollover: the RRset must at all times contain
-a record matching the certificate that every server answering for the
-name may present.  A client that has pinned a floor fails rather than
+in particular during key rollover.  Those requirements keep in the
+RRset, at all times, a record matching the certificate that each
+server answering for the name may present.  A client that has pinned a floor fails rather than
 falls back when the RRset and the certificate disagree, so a rollover
 performed in the wrong order takes the service down.  That is
-intended, but operators should plan for it.
+intended, but operators need to plan for it.
 
 # The Reference Name {#refname}
 
@@ -1234,8 +1234,8 @@ service at that port and transport.  It establishes nothing about the
 names in the presented certificate, its validity dates, or its issuer
 ({{dane-ee}}).  A deployment that relies on certificate contents for
 authorization -- an extended key usage check, a certificate policy, a
-subjectAltName URI -- as Section 5.2.1 of {{RFC9289}} permits, must
-continue to perform those checks independently; a DANE match does not
+subjectAltName URI -- as Section 5.2.1 of {{RFC9289}} permits, needs
+to keep performing those checks independently; a DANE match does not
 perform them.
 
 Control of the zone that publishes the TLSA RRset is control of the
@@ -1451,7 +1451,7 @@ A publisher of DANE-TA(2) records has one further obligation.  A
 client validates the server's chain to the trust anchor the record
 identifies ({{dane-ta}}), and it has no trust store in which to
 find that anchor.  Unless the record carries the full trust anchor
-certificate, the server must therefore include the anchor in the
+certificate, the server therefore has to include the anchor in the
 chain it presents, even a self-signed root that a TLS server would
 ordinarily omit; Section 5.2.2 of {{RFC7671}} states the
 requirement.
