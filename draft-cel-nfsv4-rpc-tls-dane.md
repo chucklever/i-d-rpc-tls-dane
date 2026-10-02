@@ -1038,21 +1038,15 @@ conclusion governs regardless of which evaluation produced it, so a
 later evaluation that finds a usable RRset where an earlier one did
 not replaces the earlier conclusion.
 
-The second property orders outcome classes.  It does not order the
-contents of two RRsets.  Where two evaluations during one attempt both
-yield SECURE_USABLE and their usable records differ, neither
-conclusion is the stronger, and the client MUST authenticate the
-server against the usable records of one of those evaluations as a
-whole.  A client MUST NOT combine records drawn from different
-evaluations.
-
-A TLSA RRset republished mid-attempt during a key rollover produces
-this case.  When the publisher has observed {{rollover}}, both the old
-RRset and the new one match the certificate the server presents, and
-the attempt succeeds whichever evaluation the client uses.  When the
-publisher has not, the attempt can fail.  The client cannot
-distinguish that failure from an attack within a single attempt, and
-a retry evaluated wholly against the new data succeeds.
+The second property orders outcome classes, not the contents of two
+RRsets.  Where two evaluations during one attempt both yield
+SECURE_USABLE and their usable records differ, the client MUST
+authenticate the server against the usable records of one of those
+evaluations as a whole, and MUST NOT combine records drawn from
+different evaluations.  A TLSA RRset republished mid-attempt during
+a key rollover produces this case; when the publisher has observed
+{{rollover}}, both RRsets match the certificate the server presents
+and the attempt succeeds whichever one the client uses.
 
 # Association Scope and Policy Granularity {#assoc-scope}
 
