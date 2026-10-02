@@ -158,12 +158,15 @@ protocols.
 
 ## Scope {#scope}
 
-This document defines client behavior and places no requirements on
-RPC servers.  Its one requirement on the server side, in
-{{rollover}}, binds the publisher of the TLSA RRset; {{deployment}}
-gives the operational guidance that accompanies it.  A server that
-conforms to {{RFC9289}} interoperates with a client
-implementing this document without modification.
+This document defines client behavior and changes nothing in the
+protocol an RPC server implements.  Its one requirement on the server
+side, in {{rollover}}, binds the publisher of the TLSA RRset.
+Interoperation with a client implementing this document also depends
+on two matters of server configuration that {{RFC9289}} does not
+address: a server whose TLSA RRset is found through a CNAME alias has
+to tolerate either of two Server Name Indication values, and a server
+authenticated by a DANE-TA(2) record generally has to send the trust
+anchor certificate.  {{ta-distribution}} describes both.
 
 This document specifies the use of DANE to authenticate an RPC server
 to an RPC client.  Authentication of an RPC client to an RPC server by
