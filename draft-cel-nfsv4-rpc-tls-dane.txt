@@ -3,10 +3,10 @@
 
 
 Network File System Version 4                              C. Lever, Ed.
-Internet-Draft                                          1 September 2026
+Internet-Draft                                            2 October 2026
 Updates: 9289 (if approved)                                             
 Intended status: Standards Track                                        
-Expires: 5 March 2027
+Expires: 5 April 2027
 
 
    Using RPC-with-TLS with DNS-Based Authentication of Named Entities
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 March 2027.
+   This Internet-Draft will expire on 5 April 2027.
 
 Copyright Notice
 
@@ -1192,11 +1192,10 @@ Table of Contents
       Linux kernel's TLS handshake service.  It performs the (D)TLS
       handshake on behalf of in-kernel RPC-with-TLS consumers.
 
-   Implementation:  https://github.com/oracle/ktls-utils
+   Implementation:  https://github.com/linux-nfs/ktls-utils
 
-   Level of maturity:  Prototype.  The DANE support is not part of a
-      released version at the time of writing, and is disabled by
-      default.
+   Level of maturity:  Prototype.  The DANE support first shipped in
+      ktls-utils 1.5.0, and is disabled by default.
 
    Coverage:  The reference-name input contract (Section 6); the
       candidate determination and result reduction of Section 7,
@@ -1458,9 +1457,9 @@ Table of Contents
    [I-D.ietf-dance-client-auth]
               Huque, S. and V. Dukhovni, "TLS Client Authentication via
               DANE TLSA records", Work in Progress, Internet-Draft,
-              draft-ietf-dance-client-auth-13, 23 July 2026,
+              draft-ietf-dance-client-auth-14, 11 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-dance-
-              client-auth-13>.
+              client-auth-14>.
 
    [RFC1833]  Srinivasan, R., "Binding Protocols for ONC RPC Version 2",
               RFC 1833, DOI 10.17487/RFC1833, August 1995,
