@@ -1136,9 +1136,7 @@ the record MUST include:
 
 The record MAY consist of correlatable events emitted by more than one
 component, provided that the events can be joined and that together
-they cover the whole list.  A correlation identifier used to join
-such events MUST NOT carry information that is not already disclosed
-by the events themselves.
+they cover the whole list.
 
 # Implementation Status {#impl-status}
 
