@@ -1097,21 +1097,15 @@ Table of Contents
    later evaluation that finds a usable RRset where an earlier one did
    not replaces the earlier conclusion.
 
-   The second property orders outcome classes.  It does not order the
-   contents of two RRsets.  Where two evaluations during one attempt
-   both yield SECURE_USABLE and their usable records differ, neither
-   conclusion is the stronger, and the client MUST authenticate the
-   server against the usable records of one of those evaluations as a
-   whole.  A client MUST NOT combine records drawn from different
-   evaluations.
-
-   A TLSA RRset republished mid-attempt during a key rollover produces
-   this case.  When the publisher has observed Section 5.4, both the old
-   RRset and the new one match the certificate the server presents, and
-   the attempt succeeds whichever evaluation the client uses.  When the
-   publisher has not, the attempt can fail.  The client cannot
-   distinguish that failure from an attack within a single attempt, and
-   a retry evaluated wholly against the new data succeeds.
+   The second property orders outcome classes, not the contents of two
+   RRsets.  Where two evaluations during one attempt both yield
+   SECURE_USABLE and their usable records differ, the client MUST
+   authenticate the server against the usable records of one of those
+   evaluations as a whole, and MUST NOT combine records drawn from
+   different evaluations.  A TLSA RRset republished mid-attempt during a
+   key rollover produces this case; when the publisher has observed
+   Section 5.4, both RRsets match the certificate the server presents
+   and the attempt succeeds whichever one the client uses.
 
 10.  Association Scope and Policy Granularity
 
@@ -1256,20 +1250,9 @@ Table of Contents
 
    Experience:  The implementation was exercised against publicly
       available DANE test zones as well as against a locally signed test
-      zone.  Two findings are reflected in the text of this document.
-
-      First, the reference-identity rule in Section 7.6 for the
+      zone.  The reference-identity rule in Section 7.6 for the
       SECURE_UNUSABLE class was added after the implementation hit the
       handshake failure that section describes.
-
-      Second, the implementation performs the usability filtering of
-      Section 7.5 in its own code rather than relying on the TLS
-      library's DANE support, so that the outcome classification does
-      not depend on library internals.  The library's raw verification
-      interface reports parse success in its return value and
-      verification results in a separate output parameter; an
-      implementation that checks only the return value accepts
-      unauthenticated peers.
 
 13.  Security Considerations
 
@@ -1655,35 +1638,22 @@ A.3.  Downgrade resistance of opportunistic DANE
    deployed, which is what makes it usable across a mixed server
    population.  This adaptivity is not itself a downgrade path.
 
-   Against a client that validates DNSSEC, an attacker who wants to move
-   a server from SECURE_USABLE to a weaker class must either forge a
-   denial of existence in a signed zone, which fails NSEC or NSEC3
-   validation, or strip signatures, which yields ERROR and therefore
-   failure rather than fallback.  The remaining class, INSECURE,
-   requires a validated proof that a delegation above the owner name is
-   unsigned, which the attacker cannot forge without control of the
-   parent zone's signing key.
+   Against a client that validates DNSSEC, moving a server from
+   SECURE_USABLE to a weaker class requires forging a denial of
+   existence in a signed zone, which fails validation; stripping
+   signatures, which yields ERROR and fails the attempt; or a validated
+   proof that a delegation above the owner name is unsigned, which the
+   attacker cannot produce without the parent zone's signing key.
 
-   One path remains, and it requires neither forgery nor signature
-   stripping: replay of a signed denial captured before the operator
-   deployed DANE.  A denial of existence for the TLSA owner name,
-   captured before the operator published the RRset, leaves the client
-   at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
-   from the parent before the operator signed the zone, leaves the
-   client at INSECURE.  Either validates until its signatures expire,
-   and neither outcome pins a floor.  Section 13.2 describes that window
-   and its bound.  Once a floor is pinned, a replayed denial can no
-   longer authorize cleartext operation, since the floor persists
-   (Section 9.1).
-
-   Apart from that window, the outcome classes an attacker can reach
-   from SECURE_USABLE are the ones that fail the attempt.  A deployment
-   that wants to close the window as well can adopt the stricter policy
-   of Section 6.4 of [RFC9289], whatever the DNS outcome.
+   What remains is replay of a signed denial captured before the
+   operator deployed DANE, which leaves the client at SECURE_ABSENT or
+   INSECURE until the captured signatures expire.  Section 13.2
+   describes that window and its bound.  A deployment that wants to
+   close it can adopt the stricter policy of Section 6.4 of [RFC9289],
+   whatever the DNS outcome.
 
    This is the same argument that supports opportunistic DANE for SMTP
-   [RFC7672].  On the relationship between this adaptivity and
-   opportunistic security in general, see [RFC7435].
+   [RFC7672]; on opportunistic security in general, see [RFC7435].
 
 Appendix B.  Open Issues
 
