@@ -1205,20 +1205,10 @@ Contact:
 
 Experience:
 : The implementation was exercised against publicly available DANE
-  test zones as well as against a locally signed test zone.  Two
-  findings are reflected in the text of this document.
-
-: First, the reference-identity rule in {{selected}} for the
-  SECURE_UNUSABLE class was added after the implementation hit the
-  handshake failure that section describes.
-
-: Second, the implementation performs the usability filtering of
-  {{usable}} in its own code rather than relying on the TLS library's
-  DANE support, so that the outcome classification does not depend on
-  library internals.  The library's raw verification interface
-  reports parse success in its return value and verification results
-  in a separate output parameter; an implementation that checks only
-  the return value accepts unauthenticated peers.
+  test zones as well as against a locally signed test zone.  The
+  reference-identity rule in {{selected}} for the SECURE_UNUSABLE
+  class was added after the implementation hit the handshake failure
+  that section describes.
 
 
 # Security Considerations {#security}
