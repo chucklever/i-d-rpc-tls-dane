@@ -1466,35 +1466,22 @@ Opportunistic mode ({{modes}}) adapts to what each operator has
 deployed, which is what makes it usable across a mixed server
 population.  This adaptivity is not itself a downgrade path.
 
-Against a client that validates DNSSEC, an attacker who wants to move
-a server from SECURE_USABLE to a weaker class must either forge a
-denial of existence in a signed zone, which fails NSEC or NSEC3
-validation, or strip signatures, which yields ERROR and therefore
-failure rather than fallback.  The remaining class, INSECURE,
-requires a validated proof that a delegation above the owner name is
-unsigned, which the attacker cannot forge without control of the
-parent zone's signing key.
+Against a client that validates DNSSEC, moving a server from
+SECURE_USABLE to a weaker class requires forging a denial of
+existence in a signed zone, which fails validation; stripping
+signatures, which yields ERROR and fails the attempt; or a validated
+proof that a delegation above the owner name is unsigned, which the
+attacker cannot produce without the parent zone's signing key.
 
-One path remains, and it requires neither forgery nor signature
-stripping: replay of a signed denial captured before the operator
-deployed DANE.  A denial of existence for the TLSA owner name,
-captured before the operator published the RRset, leaves the client
-at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
-from the parent before the operator signed the zone, leaves the
-client at INSECURE.  Either validates until its signatures expire,
-and neither outcome pins a floor.  {{replay}} describes that window
-and its bound.  Once a floor is pinned, a replayed denial can no
-longer authorize cleartext operation, since the floor persists
-({{floor}}).
-
-Apart from that window, the outcome classes an attacker can reach from
-SECURE_USABLE are the ones that fail the attempt.  A deployment that
-wants to close the window as well can adopt the stricter policy of
-Section 6.4 of {{RFC9289}}, whatever the DNS outcome.
+What remains is replay of a signed denial captured before the
+operator deployed DANE, which leaves the client at SECURE_ABSENT or
+INSECURE until the captured signatures expire.  {{replay}} describes
+that window and its bound.  A deployment that wants to close it can
+adopt the stricter policy of Section 6.4 of {{RFC9289}}, whatever
+the DNS outcome.
 
 This is the same argument that supports opportunistic DANE for SMTP
-{{RFC7672}}.  On the relationship between this adaptivity and
-opportunistic security in general, see {{RFC7435}}.
+{{RFC7672}}; on opportunistic security in general, see {{RFC7435}}.
 
 # Open Issues {#open-issues}
 
