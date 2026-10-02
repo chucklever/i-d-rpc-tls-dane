@@ -1303,7 +1303,11 @@ client to fail an association attempt in circumstances where an
 {{RFC9289}} client would have continued.  An attacker who can disrupt
 the client's DNS -- by dropping responses, by inducing SERVFAIL, or by
 corrupting signatures to produce a bogus validation result -- can
-therefore prevent the client from establishing associations.
+therefore prevent the client from establishing associations.  The
+exposure extends to an association already established: each
+reconnection is an association attempt and evaluates the DNS outcome
+afresh ({{coherence}}), so a disruption of DNS that coincides with
+the loss of a connection keeps the association from recovering.
 
 This is a deliberate trade: degrading when DNS is disrupted hands the
 same attacker the ability to strip protection silently, and an
