@@ -251,8 +251,10 @@ provisions for pre-shared keys or for RPCSEC_GSS.
 This document assumes a working knowledge of RPC version 2
 {{RFC5531}}, of RPC-with-TLS {{RFC9289}}, and of DANE {{RFC6698}}
 {{RFC7671}}.  It uses the DNSSEC validation states "secure",
-"insecure", "bogus", and "indeterminate" as defined in Section 5 of
-{{RFC4033}}.
+"insecure", and "bogus" as defined in Section 5 of {{RFC4033}}.  The
+definitions of "indeterminate" in Section 5 of {{RFC4033}} and
+Section 4.3 of {{RFC4035}} differ; this document classes a result
+that is indeterminate in either sense as ERROR ({{outcomes}}).
 
 The following terms are used as defined here.
 
