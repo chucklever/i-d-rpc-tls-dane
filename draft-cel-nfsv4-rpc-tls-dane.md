@@ -814,25 +814,28 @@ an RPC-with-TLS certificate MUST NOT contain the wildcard character
 
 ## Required client behavior by outcome class {#behavior}
 
-{{behavior-table}} states what a client MUST do for each DNS outcome
-class in each of the two active policy modes.  In every case where
-authentication is required, failure of that authentication fails the
-association attempt; see {{no-retry}}.
+{{behavior-table}} states what a client in opportunistic mode MUST do
+for each DNS outcome class.  In mandatory mode the SECURE_USABLE row
+applies, with TLS required whatever the provenance of the port, and
+every other outcome fails the association attempt ({{modes}}).  In
+every case where authentication is required, failure of that
+authentication fails the association attempt; see {{no-retry}}.
 
 The requirement that TLS be used is carried by the security floor.
 Where the DNS outcome was derived from a port of untrusted provenance,
-{{provenance}} withholds that floor, and {{fallback}} then governs
-whether the attempt may proceed in cleartext.  The authentication
-requirements in the table apply to any (D)TLS session that is
-established, whatever the provenance of the port.
+{{provenance}} withholds that floor, and in opportunistic mode
+{{fallback}} then governs whether the attempt may proceed in
+cleartext.  The authentication requirements in the table apply to any
+(D)TLS session that is established, whatever the provenance of the
+port.
 
-| DNS outcome | Opportunistic mode | Mandatory mode |
-|---|---|---|
-| SECURE_USABLE | TLS is required, and the server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. | As for opportunistic. |
-| SECURE_UNUSABLE | TLS is required, and the server MUST be authenticated per Section 5.2.1 of {{RFC9289}}. | The attempt MUST fail. |
-| SECURE_ABSENT | No floor is pinned; {{fallback}} governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of {{RFC9289}}. | The attempt MUST fail. |
-| INSECURE | As for SECURE_ABSENT. | The attempt MUST fail. |
-| ERROR | The attempt MUST fail. | The attempt MUST fail. |
+| DNS outcome | Opportunistic mode |
+|---|---|
+| SECURE_USABLE | TLS is required, and the server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. |
+| SECURE_UNUSABLE | TLS is required, and the server MUST be authenticated per Section 5.2.1 of {{RFC9289}}. |
+| SECURE_ABSENT | No floor is pinned; {{fallback}} governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of {{RFC9289}}. |
+| INSECURE | As for SECURE_ABSENT. |
+| ERROR | The attempt MUST fail. |
 {: #behavior-table title="Required client behavior by DNS outcome class"}
 
 The SECURE_USABLE row is the central requirement of this document.  A
@@ -933,8 +936,10 @@ LOCAL:
 
 ## Cleartext fallback {#fallback}
 
-{{fallback-table}} states whether the client may continue in
-cleartext.
+{{fallback-table}} states whether a client in opportunistic mode may
+continue in cleartext.  A client in mandatory mode never does.  Any
+probe outcome other than ACCEPTED fails the association attempt
+({{modes}}).
 
 | Probe outcome | Floor pinned | No floor pinned |
 |---|---|---|
