@@ -1085,12 +1085,15 @@ the record MUST include:
 
 * the DANE policy mode in effect and where it came from;
 
-* the DNS outcome class, and enough diagnostic detail to distinguish
-  the conditions grouped under ERROR;
+* the DNS outcome class, with enough diagnostic detail to distinguish
+  the conditions grouped under ERROR, or an indication that no lookup
+  was made because the destination carries no DANE binding
+  ({{no-dane}});
 
 * the selected TLSA base domain, where one was determined;
 
-* the AUTH_TLS probe outcome ({{probe}});
+* the AUTH_TLS probe outcome ({{probe}}), or an indication that the
+  attempt failed before a probe was sent;
 
 * the means by which the server was authenticated, if it was:
   DANE-EE(3), DANE-TA(2), or PKIX;
