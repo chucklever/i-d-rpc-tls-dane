@@ -1332,11 +1332,18 @@ TLSA queries disclose, to an observer of the client's DNS traffic,
 which RPC services the client is about to contact and on which ports.
 The names and addresses are already disclosed by address resolution
 and by the RPC traffic itself; the port and transport labels are
-additional.  This is the exposure discussed in Section 6.1.2 of
-{{RFC9289}}, and the same mitigations, protecting the client's DNS
-transport or resolving locally, apply.  {{RFC9076}} surveys what DNS
-transactions disclose, and pervasive monitoring {{RFC7258}} of DNS is
-a known concern for DANE generally.
+additional.  This disclosure happens before the exchanges that
+Section 6.1.2 of {{RFC9289}} discusses, and the precautions given
+there do not reach it.
+
+{{RFC9076}} surveys what DNS transactions disclose.  Two mitigations
+are available, and each is partial.  An encrypted transport to the
+resolver (Section 5.2 of {{RFC9076}}) hides the queries from an
+observer of that path, but not from the resolver.  Resolving
+recursively on the client removes the third-party resolver, but
+exposes the client's address to the authoritative servers it queries
+(Section 6.2 of {{RFC9076}}).  Pervasive monitoring {{RFC7258}} of
+DNS is a known concern for DANE generally.
 
 ## Client authentication {#client-auth}
 
