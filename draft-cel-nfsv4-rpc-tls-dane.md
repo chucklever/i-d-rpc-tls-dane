@@ -1220,10 +1220,24 @@ the RRset's signatures are the only expiry.  The mitigation is
 operational and belongs to the publisher ({{ta-distribution}}).
 
 A security floor, once pinned, persists for the lifetime of the
-association ({{floor}}).  A replayed denial of existence therefore
-affects only an association's first attempt: replayed at a reconnect,
-it finds the floor already pinned, and the attempt fails rather than
-falls back.  Conversely, this document does not require a client to
+association ({{floor}}).  A replayed denial therefore cannot authorize
+cleartext operation once a floor is pinned: replayed at a reconnect,
+it leaves the floor in place, and a forged decline fails the attempt
+rather than permitting fallback.
+
+That guarantee has two limits.  An association whose attempts have so
+far pinned no floor stays exposed to the replay at every later
+attempt, until an evaluation pins one.  And the floor requires an
+authenticated TLS session, not DANE authentication.  An attempt that
+a replayed denial leaves at SECURE_ABSENT or INSECURE authenticates
+the server by the PKIX rules of Section 5.2.1 of {{RFC9289}}, so
+within the replay window an attacker who can present a certificate
+those rules accept regains the substitution that {{behavior}} forbids
+for SECURE_USABLE.  Where the client trusts no certification
+authority that would issue such a certificate, as in the deployment
+{{ta-distribution}} describes, the attempt fails.
+
+Conversely, this document does not require a client to
 re-evaluate an association that is already established, so a
 long-lived session established against an RRset that has since been
 withdrawn continues under the conclusion reached when it was
@@ -1416,9 +1430,10 @@ captured before the operator published the RRset, leaves the client
 at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
 from the parent before the operator signed the zone, leaves the
 client at INSECURE.  Either validates until its signatures expire,
-and neither outcome pins a floor.  {{replay}} describes that window and its bound; it
-applies to an association's first attempt only, since a pinned floor
-persists ({{floor}}).
+and neither outcome pins a floor.  {{replay}} describes that window
+and its bound.  Once a floor is pinned, a replayed denial can no
+longer authorize cleartext operation, since the floor persists
+({{floor}}).
 
 Apart from that window, the outcome classes an attacker can reach from
 SECURE_USABLE are the ones that fail the attempt.  A deployment that
