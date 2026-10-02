@@ -1004,8 +1004,8 @@ component performs the handshake.
 
 Section 4.1 of {{RFC9289}} describes a client that reports a
 handshake failure after a successful probe the same way it reports an
-AUTH_ERROR rejection; for a client implementing this document that
-is a requirement.
+AUTH_ERROR rejection; a client implementing this document MUST
+report it that way.
 
 ## Coherence within an association attempt {#coherence}
 
