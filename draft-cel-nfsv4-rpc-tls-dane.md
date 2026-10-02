@@ -193,6 +193,11 @@ define the corresponding owner-name convention.
 
 # Updates to RFC 9289 {#updates}
 
+Support for DANE remains optional for an RPC-with-TLS implementation.
+The changes in this section bind a client that implements this
+document; an implementation of {{RFC9289}} that does not is
+unaffected.
+
 Two requirements of {{RFC9289}} are changed here:
 
 * Section 5.2.1 of {{RFC9289}} requires PKIX path validation and a
