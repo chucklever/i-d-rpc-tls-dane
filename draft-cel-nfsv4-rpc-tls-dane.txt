@@ -214,12 +214,15 @@ Table of Contents
 
 1.1.  Scope
 
-   This document defines client behavior and places no requirements on
-   RPC servers.  Its one requirement on the server side, in Section 5.4,
-   binds the publisher of the TLSA RRset; Appendix A gives the
-   operational guidance that accompanies it.  A server that conforms to
-   [RFC9289] interoperates with a client implementing this document
-   without modification.
+   This document defines client behavior and changes nothing in the
+   protocol an RPC server implements.  Its one requirement on the server
+   side, in Section 5.4, binds the publisher of the TLSA RRset.
+   Interoperation with a client implementing this document also depends
+   on two matters of server configuration that [RFC9289] does not
+   address: a server whose TLSA RRset is found through a CNAME alias has
+   to tolerate either of two Server Name Indication values, and a server
+   authenticated by a DANE-TA(2) record generally has to send the trust
+   anchor certificate.  Appendix A.1 describes both.
 
    This document specifies the use of DANE to authenticate an RPC server
    to an RPC client.  Authentication of an RPC client to an RPC server
@@ -246,6 +249,10 @@ Table of Contents
    corresponding owner-name convention.
 
 2.  Updates to RFC 9289
+
+   Support for DANE remains optional for an RPC-with-TLS implementation.
+   The changes in this section bind a client that implements this
+   document; an implementation of [RFC9289] that does not is unaffected.
 
    Two requirements of [RFC9289] are changed here:
 
@@ -307,8 +314,11 @@ Table of Contents
 
    This document assumes a working knowledge of RPC version 2 [RFC5531],
    of RPC-with-TLS [RFC9289], and of DANE [RFC6698] [RFC7671].  It uses
-   the DNSSEC validation states "secure", "insecure", "bogus", and
-   "indeterminate" as defined in Section 5 of [RFC4033].
+   the DNSSEC validation states "secure", "insecure", and "bogus" as
+   defined in Section 5 of [RFC4033].  The definitions of
+   "indeterminate" in Section 5 of [RFC4033] and Section 4.3 of
+   [RFC4035] differ; this document classes a result that is
+   indeterminate in either sense as ERROR (Section 7.2).
 
    The following terms are used as defined here.
 
@@ -325,9 +335,8 @@ Table of Contents
       [RFC6698].  A client may have more than one candidate base domain
       for a single reference name; see Section 7.3.
 
-   Selected TLSA base domain:  The candidate TLSA base domain whose
-      evaluation produced the DNS outcome class for the association
-      attempt.  See Section 7.6.
+   Selected TLSA base domain:  The candidate TLSA base domain at which
+      the client found a validated TLSA RRset.  See Section 7.6.
 
    DNS outcome class:  One of the five results defined in Section 7.2
       that a client assigns to a TLSA lookup for a given reference name,
@@ -352,8 +361,8 @@ Table of Contents
       a decision to proceed in cleartext, or failure.
 
    Security floor:  The minimum acceptable security level that a client
-      has determined for a server association, and below which it MUST
-      NOT operate.  See Section 9.1.
+      has determined for a server association, and below which it does
+      not operate.  Section 9.1 states the requirement.
 
    DANE policy mode:  The client's configured disposition toward DANE
       for a given server association: disabled, opportunistic, or
@@ -377,7 +386,8 @@ Table of Contents
 
    3.  It applies the outcome class to the association attempt.  An
        outcome of SECURE_USABLE or SECURE_UNUSABLE pins a security floor
-       for the association (Section 9.1), which constrains whether
+       for the association (Section 9.1), unless the port is of
+       untrusted provenance (Section 5.3).  The floor constrains whether
        cleartext operation remains permissible and which failures are
        recoverable.
 
@@ -393,8 +403,8 @@ Table of Contents
    Steps 2 and 3 concern the association attempt as a whole and can be
    performed before the AUTH_TLS probe is sent; step 4 happens during
    the handshake.  How an implementation divides the work is not
-   specified; Section 9.5 states the two constraints a division MUST
-   respect.
+   specified; Section 9.5 states the constraints that any division has
+   to respect.
 
 4.1.  DANE policy modes
 
@@ -407,10 +417,12 @@ Table of Contents
 
    Opportunistic:  The client performs the procedures in this document.
       A DNS outcome class of SECURE_USABLE or SECURE_UNUSABLE pins a
-      security floor and constrains the association as specified in
-      Section 8.4 and Section 9.1.  SECURE_ABSENT and INSECURE pin no
-      floor; Section 9.3 then governs whether the attempt may proceed in
-      cleartext, and any TLS session established is authenticated by the
+      security floor, except where Section 5.3 withholds it, and
+      constrains the association as specified in Section 8.4 and
+      Section 9.1.  SECURE_ABSENT and INSECURE do not pin a floor; a
+      floor pinned by an earlier attempt still governs the association,
+      and otherwise Section 9.3 governs whether the attempt may proceed
+      in cleartext.  Any TLS session established is authenticated by the
       PKIX rules of Section 5.2.1 of [RFC9289].  ERROR fails the attempt
       (Section 8.4).  This mode is intended for fleet-wide deployment
       against a server population that has not uniformly published TLSA
@@ -498,12 +510,13 @@ Table of Contents
 5.4.  Publishing and key rollover
 
    Publishers MUST observe the requirements of Section 8 of [RFC7671],
-   in particular during key rollover: the RRset must at all times
-   contain a record matching the certificate that every server answering
-   for the name may present.  A client that has pinned a floor fails
-   rather than falls back when the RRset and the certificate disagree,
-   so a rollover performed in the wrong order takes the service down.
-   That is intended, but operators should plan for it.
+   in particular during key rollover.  Those requirements keep in the
+   RRset, at all times, a record matching the certificate that each
+   server answering for the name may present.  A client that has pinned
+   a floor fails rather than falls back when the RRset and the
+   certificate disagree, so a rollover performed in the wrong order
+   takes the service down.  That is intended, but operators need to plan
+   for it.
 
 6.  The Reference Name
 
@@ -556,11 +569,12 @@ Table of Contents
 
    For such a destination:
 
-   *  In opportunistic mode, no floor is pinned and Section 9.3 governs
-      whether the attempt may proceed in cleartext.  If the client
-      authenticates the server, it does so by the rules of Section 5.2.1
-      of [RFC9289], which provide for matching an iPAddress
-      subjectAltName.
+   *  In opportunistic mode, the attempt does not pin a floor.  If an
+      earlier attempt pinned one, that floor still governs the
+      association; otherwise Section 9.3 governs whether the attempt may
+      proceed in cleartext.  If the client authenticates the server, it
+      does so by the rules of Section 5.2.1 of [RFC9289], which provide
+      for matching an iPAddress subjectAltName.
 
    *  In mandatory mode, the association attempt fails (Section 4.1).
 
@@ -609,9 +623,10 @@ Table of Contents
       yielded a DNSSEC-validated denial of existence.  The operator has
       published no signed TLSA RRset for this service.
 
-   INSECURE:  The search ended at a TLSA owner name that lies in a
-      provably unsigned span of the DNS.  DANE does not apply, and no
-      conclusion can be drawn from the absence or presence of records.
+   INSECURE:  The reference name itself lies in a provably unsigned span
+      of the DNS, or the search ended at a TLSA owner name that does.
+      DANE does not apply, and no conclusion can be drawn from the
+      absence or presence of records.
 
    ERROR:  The client could not obtain a validated answer.  This class
       covers a "bogus" or "indeterminate" validation result, a timeout,
@@ -646,6 +661,10 @@ Table of Contents
      fails to complete:
          return error
 
+     If the response for "name" itself, the first link of that
+     resolution, is insecure:
+         return insecure
+
      If "name" is an alias, and in every address family resolved
      the chain reaches the same canonical name, and every link of
      every such chain is secure:
@@ -661,6 +680,13 @@ Table of Contents
    an unvalidated CNAME lets whoever forged it choose the base domain
    and therefore the TLSA RRset.
 
+   The insecure result follows Section 2.2.2 of [RFC7672].  A reference
+   name in an unsigned zone is not expected to have a TLSA RRset that
+   validates, and some name servers for such zones mishandle TLSA
+   queries.  Querying them would turn a destination to which DANE does
+   not apply into an ERROR, so the client makes no TLSA query and
+   assigns INSECURE.
+
    A CNAME encountered at a TLSA owner name itself is followed by
    ordinary DNS resolution under the same requirement; a chain with an
    insecure or bogus link yields INSECURE or ERROR respectively for that
@@ -675,12 +701,14 @@ Table of Contents
    Evaluate(refname, port, proto):
 
      name = Normalize(refname)               ; input contract
-     if name is an address literal:
-         return "no DANE binding"
+     if name is an address literal or fails the contract:
+         return "no DANE binding"            ; no outcome class
 
      candidates = CandidateBaseDomains(name) ; preceding figure
      if candidates is error:
          return ERROR
+     if candidates is insecure:
+         return INSECURE                     ; no TLSA query
 
      for C in candidates:                    ; in order
          owner = "_" + port + "._" + proto + "." + C
@@ -761,9 +789,11 @@ Table of Contents
    discarded in step 1 so that they do not influence the strength
    selection in step 3.
 
-   If any record survives step 3, the RRset is usable and the outcome is
+   If any record survives step 2, the RRset is usable and the outcome is
    SECURE_USABLE.  If none does, the RRset is unusable and the outcome
-   is SECURE_UNUSABLE.
+   is SECURE_UNUSABLE.  Step 3 narrows the records the client matches
+   against, but it never discards the last record for a usage and
+   selector, so it cannot change the outcome class.
 
 7.6.  The selected TLSA base domain, SNI, and reference identifiers
 
@@ -860,46 +890,43 @@ Table of Contents
 
 8.4.  Required client behavior by outcome class
 
-   Table 1 states what a client MUST do for each DNS outcome class in
-   each of the two active policy modes.  In every case where
-   authentication is required, failure of that authentication fails the
-   association attempt; see Section 9.4.
+   Table 1 states what a client in opportunistic mode MUST do for each
+   DNS outcome class.  In mandatory mode the SECURE_USABLE row applies,
+   with TLS required whatever the provenance of the port, and every
+   other outcome fails the association attempt (Section 4.1).  In every
+   case where authentication is required, failure of that authentication
+   fails the association attempt; see Section 9.4.
 
    The requirement that TLS be used is carried by the security floor.
    Where the DNS outcome was derived from a port of untrusted
-   provenance, Section 5.3 withholds that floor, and Section 9.3 then
-   governs whether the attempt may proceed in cleartext.  The
-   authentication requirements in the table apply to any (D)TLS session
-   that is established, whatever the provenance of the port.
+   provenance, Section 5.3 withholds that floor, and in opportunistic
+   mode Section 9.3 then governs whether the attempt may proceed in
+   cleartext.  The authentication requirements in the table apply to any
+   (D)TLS session that is established, whatever the provenance of the
+   port.
 
-    +=================+==============================+================+
-    | DNS outcome     | Opportunistic mode           | Mandatory mode |
-    +=================+==============================+================+
-    | SECURE_USABLE   | TLS is required, and the     | As for         |
-    |                 | server MUST be authenticated | opportunistic. |
-    |                 | by DANE per Section 8.  PKIX |                |
-    |                 | authentication MUST NOT be   |                |
-    |                 | substituted for it.          |                |
-    +-----------------+------------------------------+----------------+
-    | SECURE_UNUSABLE | TLS is required, and the     | The attempt    |
-    |                 | server MUST be authenticated | MUST fail.     |
-    |                 | per Section 5.2.1 of         |                |
-    |                 | [RFC9289].                   |                |
-    +-----------------+------------------------------+----------------+
-    | SECURE_ABSENT   | No floor is pinned;          | The attempt    |
-    |                 | Section 9.3 governs          | MUST fail.     |
-    |                 | cleartext operation.  A TLS  |                |
-    |                 | session is authenticated per |                |
-    |                 | Section 5.2.1 of [RFC9289].  |                |
-    +-----------------+------------------------------+----------------+
-    | INSECURE        | As for SECURE_ABSENT.        | The attempt    |
-    |                 |                              | MUST fail.     |
-    +-----------------+------------------------------+----------------+
-    | ERROR           | The attempt MUST fail.       | The attempt    |
-    |                 |                              | MUST fail.     |
-    +-----------------+------------------------------+----------------+
+   +=================+================================================+
+   | DNS outcome     | Opportunistic mode                             |
+   +=================+================================================+
+   | SECURE_USABLE   | TLS is required, and the server MUST be        |
+   |                 | authenticated by DANE per Section 8.  PKIX     |
+   |                 | authentication MUST NOT be substituted for it. |
+   +-----------------+------------------------------------------------+
+   | SECURE_UNUSABLE | TLS is required, and the server MUST be        |
+   |                 | authenticated per Section 5.2.1 of [RFC9289].  |
+   +-----------------+------------------------------------------------+
+   | SECURE_ABSENT   | This outcome does not pin a floor.  A floor    |
+   |                 | pinned by an earlier attempt still governs the |
+   |                 | association; otherwise Section 9.3 governs     |
+   |                 | cleartext operation.  A TLS session is         |
+   |                 | authenticated per Section 5.2.1 of [RFC9289].  |
+   +-----------------+------------------------------------------------+
+   | INSECURE        | As for SECURE_ABSENT.                          |
+   +-----------------+------------------------------------------------+
+   | ERROR           | The attempt MUST fail.                         |
+   +-----------------+------------------------------------------------+
 
-           Table 1: Required client behavior by DNS outcome class
+          Table 1: Required client behavior by DNS outcome class
 
    The SECURE_USABLE row is the central requirement of this document.  A
    client MUST NOT accept a PKIX authentication in place of the DANE
@@ -914,8 +941,9 @@ Table of Contents
    anticipates such a strengthening where expecting it is realistic for
    the application protocol.  For RPC-with-TLS the intermediate position
    is not available at all.  In both client deployment modes of
-   Section 4.2 of [RFC9289] the client authenticates the server, so the
-   server is never anonymous to the client, and accepting
+   Section 4.2 of [RFC9289] the server presents an identity that the
+   client can authenticate, and Section 5.2.1 of [RFC9289] states what
+   validation of the server's certificate MUST include, so accepting
    unauthenticated TLS here would be a downgrade relative to the base
    specification rather than an improvement on cleartext.
 
@@ -933,8 +961,8 @@ Table of Contents
    connection on which it was determined, and it persists for the
    lifetime of the association.  Once pinned, it applies to every
    subsequent association attempt for that association and to every
-   transport that joins it (Section 10).  A later evaluation that pins
-   no floor, whatever its outcome class, does not remove one already
+   transport that joins it (Section 10).  A later evaluation whose
+   outcome class does not pin a floor does not remove one already
    pinned: an operator who withdraws a TLSA RRset lowers the floor only
    for associations established after the withdrawal (Appendix A.1).  A
    client MUST retain a pinned floor, together with the selected TLSA
@@ -991,36 +1019,26 @@ Table of Contents
 
 9.3.  Cleartext fallback
 
-   Table 2 states whether the client may continue in cleartext.
+   Table 2 states whether a client in opportunistic mode may continue in
+   cleartext.  A client in mandatory mode never does.  Any probe outcome
+   other than ACCEPTED fails the association attempt (Section 4.1).
 
-   +=============+================+===================================+
-   | Probe       | Floor pinned   | No floor pinned                   |
-   | outcome     |                |                                   |
-   +=============+================+===================================+
-   | ACCEPTED    | Proceed to the | Proceed to the TLS handshake.     |
-   |             | TLS handshake. |                                   |
-   +-------------+----------------+-----------------------------------+
-   | DECLINED    | The attempt    | Cleartext operation is permitted, |
-   |             | MUST fail.     | subject to local policy, per      |
-   |             |                | Section 4.1 of [RFC9289].         |
-   +-------------+----------------+-----------------------------------+
-   | RPCERR      | The attempt    | The attempt MUST fail.            |
-   |             | MUST fail.     |                                   |
-   +-------------+----------------+-----------------------------------+
-   | MALFORMED   | The attempt    | The attempt MUST fail.            |
-   |             | MUST fail.     |                                   |
-   +-------------+----------------+-----------------------------------+
-   | UNREACHABLE | The attempt    | The attempt MUST fail.            |
-   |             | MUST fail.     |                                   |
-   +-------------+----------------+-----------------------------------+
-   | TIMEOUT     | The attempt    | The attempt MUST fail.            |
-   |             | MUST fail.     |                                   |
-   +-------------+----------------+-----------------------------------+
-   | LOCAL       | The attempt    | The attempt MUST fail.            |
-   |             | MUST fail.     |                                   |
-   +-------------+----------------+-----------------------------------+
+     +==========+================+===================================+
+     | Probe    | Floor pinned   | No floor pinned                   |
+     | outcome  |                |                                   |
+     +==========+================+===================================+
+     | ACCEPTED | Proceed to the | Proceed to the TLS handshake.     |
+     |          | TLS handshake. |                                   |
+     +----------+----------------+-----------------------------------+
+     | DECLINED | The attempt    | Cleartext operation is permitted, |
+     |          | MUST fail.     | subject to local policy, per      |
+     |          |                | Section 4.1 of [RFC9289].         |
+     +----------+----------------+-----------------------------------+
+     | Any      | The attempt    | The attempt MUST fail.            |
+     | other    | MUST fail.     |                                   |
+     +----------+----------------+-----------------------------------+
 
-          Table 2: Cleartext fallback by AUTH_TLS probe outcome
+           Table 2: Cleartext fallback by AUTH_TLS probe outcome
 
    Only DECLINED permits cleartext operation, and only where no floor
    has been pinned.  The other non-ACCEPTED outcomes are what an
@@ -1045,8 +1063,8 @@ Table of Contents
 
    Section 4.1 of [RFC9289] describes a client that reports a handshake
    failure after a successful probe the same way it reports an
-   AUTH_ERROR rejection; for a client implementing this document that is
-   a requirement.
+   AUTH_ERROR rejection; a client implementing this document MUST report
+   it that way.
 
 9.5.  Coherence within an association attempt
 
@@ -1058,10 +1076,11 @@ Table of Contents
 
    *  A client MUST evaluate the DNS outcome class from DNS data that is
       current at the time of the association attempt, and MUST NOT reuse
-      an outcome obtained for an earlier attempt beyond the validity of
-      the DNS data it was derived from.  The security floor is not such
-      a result: it persists across attempts (Section 9.1), and a fresh
-      evaluation can raise it or leave it but never lower it.
+      an outcome obtained for an earlier attempt beyond the TTL of the
+      DNS data it was derived from.  The security floor is not such a
+      result: it persists across attempts (Section 9.1), and a fresh
+      evaluation can pin a floor or leave one in place but never remove
+      it.
 
    *  Within one association attempt, a client MUST NOT conclude at a
       security level weaker than any determination it has already made
@@ -1069,10 +1088,14 @@ Table of Contents
       disagree, the stronger conclusion governs.
 
    The second property is what makes the mechanism resistant to an
-   attacker who can affect the timing of DNS answers.  A client MAY act
-   on a strengthened conclusion, a later evaluation that finds a usable
-   RRset where an earlier one did not, since doing so cannot lower the
-   security of the attempt.
+   attacker who can affect the timing of DNS answers.  Under it,
+   SECURE_USABLE is stronger than SECURE_UNUSABLE, and SECURE_UNUSABLE
+   is stronger than SECURE_ABSENT and INSECURE, which are equal to each
+   other.  An evaluation whose outcome is ERROR fails the attempt
+   (Section 8.4) and takes no part in the ordering.  The stronger
+   conclusion governs regardless of which evaluation produced it, so a
+   later evaluation that finds a usable RRset where an earlier one did
+   not replaces the earlier conclusion.
 
    The second property orders outcome classes.  It does not order the
    contents of two RRsets.  Where two evaluations during one attempt
@@ -1115,10 +1138,11 @@ Table of Contents
 
    While a security floor is pinned for an association, a transport MUST
    NOT join that association unless it carries the association's
-   reference name and its own evaluation meets the association's floor.
-   A transport whose destination is an address literal therefore cannot
-   join a floor-pinned association (Section 6.2).  A client MUST refuse
-   such an addition and record the refusal (Section 11); the association
+   reference name and is established with the authenticated TLS session
+   the floor requires.  A transport whose destination is an address
+   literal therefore cannot join a floor-pinned association
+   (Section 6.2).  A client MUST refuse an addition that does not meet
+   both conditions and record the refusal (Section 11); the association
    continues over the transports that do meet its floor.
 
 10.3.  Derived associations
@@ -1181,9 +1205,7 @@ Table of Contents
 
    The record MAY consist of correlatable events emitted by more than
    one component, provided that the events can be joined and that
-   together they cover the whole list.  A correlation identifier used to
-   join such events MUST NOT carry information that is not already
-   disclosed by the events themselves.
+   together they cover the whole list.
 
 12.  Implementation Status
 
@@ -1262,8 +1284,8 @@ Table of Contents
    names in the presented certificate, its validity dates, or its issuer
    (Section 8.2).  A deployment that relies on certificate contents for
    authorization -- an extended key usage check, a certificate policy, a
-   subjectAltName URI -- as Section 5.2.1 of [RFC9289] permits, must
-   continue to perform those checks independently; a DANE match does not
+   subjectAltName URI -- as Section 5.2.1 of [RFC9289] permits, needs to
+   keep performing those checks independently; a DANE match does not
    perform them.
 
    Control of the zone that publishes the TLSA RRset is control of the
@@ -1283,16 +1305,16 @@ Table of Contents
 
    An attacker who captured a signed denial of existence for a TLSA
    owner name before the operator published the RRset can replay it
-   within that period; the client assigns SECURE_ABSENT and pins no
-   floor (Appendix A.3).
+   within that period; the client assigns SECURE_ABSENT and does not pin
+   a floor (Appendix A.3).
 
    An attacker who captured the parent zone's signed proof that the
    operator's zone has no DS RRset, before the operator signed that
    zone, can replay it in the same way.  A validator shown that proof
    treats the zone as unsigned (Section 5.2 of [RFC4035]); the client
-   assigns INSECURE and pins no floor.  The window is bounded by the
-   validity period of the parent zone's signatures, which the operator
-   of the service does not choose.
+   assigns INSECURE and does not pin a floor.  The window is bounded by
+   the validity period of the parent zone's signatures, which the
+   operator of the service does not choose.
 
    An attacker who holds a key the operator has withdrawn can replay the
    TLSA RRset that still names it, and a client will authenticate the
@@ -1330,7 +1352,11 @@ Table of Contents
    [RFC9289] client would have continued.  An attacker who can disrupt
    the client's DNS -- by dropping responses, by inducing SERVFAIL, or
    by corrupting signatures to produce a bogus validation result -- can
-   therefore prevent the client from establishing associations.
+   therefore prevent the client from establishing associations.  The
+   exposure extends to an association already established: each
+   reconnection is an association attempt and evaluates the DNS outcome
+   afresh (Section 9.5), so a disruption of DNS that coincides with the
+   loss of a connection keeps the association from recovering.
 
    This is a deliberate trade: degrading when DNS is disrupted hands the
    same attacker the ability to strip protection silently, and an
@@ -1583,7 +1609,11 @@ A.1.  Publishing TLSA records for RPC services
    takes the same posture: a client that has pinned a floor for an
    association keeps requiring authenticated TLS until that association
    ends (Section 9.1), so removing the RRset lowers what clients require
-   only as they remount.
+   only as they remount.  Where clients hold no certification authority
+   material for the server, an association with a pinned floor cannot
+   re-establish a connection once the RRset is gone: the floor still
+   requires an authenticated session, and nothing remains to
+   authenticate it against.
 
    The signature validity period the operator chooses bounds the replay
    windows described in Section 13.2, except that of a replayed proof of
@@ -1595,7 +1625,7 @@ A.1.  Publishing TLSA records for RPC services
    client validates the server's chain to the trust anchor the record
    identifies (Section 8.3), and it has no trust store in which to find
    that anchor.  Unless the record carries the full trust anchor
-   certificate, the server must therefore include the anchor in the
+   certificate, the server therefore has to include the anchor in the
    chain it presents, even a self-signed root that a TLS server would
    ordinarily omit; Section 5.2.2 of [RFC7671] states the requirement.
 
@@ -1669,13 +1699,41 @@ Appendix B.  Open Issues
 
    *  Section 9.3: whether cleartext operation remains permitted where
       no floor has been pinned and the server declines, or opportunistic
-      mode takes the stricter policy of Section 6.1.1 of [RFC9289].
-      Issue 4 (https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
+      mode takes the stricter policy of Section 6.1.1 and Section 6.4 of
+      [RFC9289]; and whether a failed handshake is remembered across
+      association attempts.  Issue 4 (https://github.com/chucklever/i-d-
+      rpc-tls-dane/issues/4)
+
+   *  Section 8.1: whether support for certificate usages PKIX-TA(0) and
+      PKIX-EE(1) stays optional, or a client always treats records
+      carrying them as unusable.  Issue 5
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/5)
 
    *  Section 9.5: how a resumed TLS session, in which the server
       presents no certificate, satisfies the DANE authentication the
       current attempt's DNS outcome requires.  Issue 9
       (https://github.com/chucklever/i-d-rpc-tls-dane/issues/9)
+
+   *  Section 9.1: whether a security floor covers connections to other
+      RPC programs on other ports of the same server, such as RPCBIND,
+      or only the port it was determined on.  Issue 10
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/10)
+
+   *  Section 6: how a reference name that is unqualified, or that does
+      not resolve in the DNS, is handled.  Issue 11
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/11)
+
+   *  Section 5.3: whether a floor is withheld on a port learned from an
+      unauthenticated source.  Issue 12 (https://github.com/chucklever/
+      i-d-rpc-tls-dane/issues/12)
+
+   *  Section 7.3: whether the client expands a CNAME alias to find the
+      TLSA base domain, or queries only at the reference name.  Issue 13
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/13)
+
+   *  Section 9.5: whether one evaluation of the DNS outcome is
+      authoritative for an association attempt.  Issue 14
+      (https://github.com/chucklever/i-d-rpc-tls-dane/issues/14)
 
 Acknowledgments
 
