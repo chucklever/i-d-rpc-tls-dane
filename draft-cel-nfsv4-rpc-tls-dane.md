@@ -271,8 +271,8 @@ TLSA base domain:
   for a single reference name; see {{candidates}}.
 
 Selected TLSA base domain:
-: The candidate TLSA base domain whose evaluation produced the DNS
-  outcome class for the association attempt.  See {{selected}}.
+: The candidate TLSA base domain at which the client found a
+  validated TLSA RRset.  See {{selected}}.
 
 DNS outcome class:
 : One of the five results defined in {{outcomes}} that a client
