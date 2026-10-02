@@ -1526,13 +1526,41 @@ where the detail and the discussion live.
 
 * {{fallback}}: whether cleartext operation remains permitted where no
   floor has been pinned and the server declines, or opportunistic mode
-  takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
+  takes the stricter policy of Section 6.1.1 and Section 6.4 of
+  {{RFC9289}}; and whether a failed handshake is remembered across
+  association attempts.
   [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
+
+* {{usages}}: whether support for certificate usages PKIX-TA(0) and
+  PKIX-EE(1) stays optional, or a client always treats records
+  carrying them as unusable.
+  [Issue 5](https://github.com/chucklever/i-d-rpc-tls-dane/issues/5)
 
 * {{coherence}}: how a resumed TLS session, in which the server
   presents no certificate, satisfies the DANE authentication the
   current attempt's DNS outcome requires.
   [Issue 9](https://github.com/chucklever/i-d-rpc-tls-dane/issues/9)
+
+* {{floor}}: whether a security floor covers connections to other RPC
+  programs on other ports of the same server, such as RPCBIND, or
+  only the port it was determined on.
+  [Issue 10](https://github.com/chucklever/i-d-rpc-tls-dane/issues/10)
+
+* {{refname}}: how a reference name that is unqualified, or that does
+  not resolve in the DNS, is handled.
+  [Issue 11](https://github.com/chucklever/i-d-rpc-tls-dane/issues/11)
+
+* {{provenance}}: whether a floor is withheld on a port learned from
+  an unauthenticated source.
+  [Issue 12](https://github.com/chucklever/i-d-rpc-tls-dane/issues/12)
+
+* {{candidates}}: whether the client expands a CNAME alias to find
+  the TLSA base domain, or queries only at the reference name.
+  [Issue 13](https://github.com/chucklever/i-d-rpc-tls-dane/issues/13)
+
+* {{coherence}}: whether one evaluation of the DNS outcome is
+  authoritative for an association attempt.
+  [Issue 14](https://github.com/chucklever/i-d-rpc-tls-dane/issues/14)
 
 # Acknowledgments
 {:numbered="false"}
