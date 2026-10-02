@@ -1079,10 +1079,12 @@ additional bandwidth or additional server network paths.
 
 While a security floor is pinned for an association, a transport MUST
 NOT join that association unless it carries the association's
-reference name and its own evaluation meets the association's floor.
+reference name and is established with the authenticated TLS session
+the floor requires.
 A transport whose destination is an address literal therefore cannot
 join a floor-pinned association ({{no-dane}}).  A client MUST refuse
-such an addition and record the refusal ({{audit}}); the association
+an addition that does not meet both conditions and record the
+refusal ({{audit}}); the association
 continues over the transports that do meet its floor.
 
 ## Derived associations {#derived}
