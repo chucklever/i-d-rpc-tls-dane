@@ -563,8 +563,9 @@ SECURE_ABSENT:
   signed TLSA RRset for this service.
 
 INSECURE:
-: The search ended at a TLSA owner name that lies in a provably
-  unsigned span of the DNS.  DANE does not apply, and no conclusion
+: The reference name itself lies in a provably unsigned span of the
+  DNS, or the search ended at a TLSA owner name that does.  DANE does
+  not apply, and no conclusion
   can be drawn from the absence or presence of records.
 
 ERROR:
@@ -601,6 +602,10 @@ CandidateBaseDomains(name):
   fails to complete:
       return error
 
+  If the response for "name" itself, the first link of that
+  resolution, is insecure:
+      return insecure
+
   If "name" is an alias, and in every address family resolved
   the chain reaches the same canonical name, and every link of
   every such chain is secure:
@@ -615,6 +620,13 @@ cannot show that the redirection itself was authenticated.  A client
 MUST NOT expand a chain that it has not validated end to end, because
 an unvalidated CNAME lets whoever forged it choose the base domain
 and therefore the TLSA RRset.
+
+The insecure result follows Section 2.2.2 of {{RFC7672}}.  A
+reference name in an unsigned zone is not expected to have a TLSA
+RRset that validates, and some name servers for such zones mishandle
+TLSA queries.  Querying them would turn a destination to which DANE
+does not apply into an ERROR, so the client makes no TLSA query and
+assigns INSECURE.
 
 A CNAME encountered at a TLSA owner name itself is followed by
 ordinary DNS resolution under the same requirement; a chain with an
@@ -638,6 +650,8 @@ Evaluate(refname, port, proto):
   candidates = CandidateBaseDomains(name) ; preceding figure
   if candidates is error:
       return ERROR
+  if candidates is insecure:
+      return INSECURE                     ; no TLSA query
 
   for C in candidates:                    ; in order
       owner = "_" + port + "._" + proto + "." + C
