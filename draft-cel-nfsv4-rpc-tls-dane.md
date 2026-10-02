@@ -968,11 +968,7 @@ probe outcome other than ACCEPTED fails the association attempt
 |---|---|---|
 | ACCEPTED | Proceed to the TLS handshake. | Proceed to the TLS handshake. |
 | DECLINED | The attempt MUST fail. | Cleartext operation is permitted, subject to local policy, per Section 4.1 of {{RFC9289}}. |
-| RPCERR | The attempt MUST fail. | The attempt MUST fail. |
-| MALFORMED | The attempt MUST fail. | The attempt MUST fail. |
-| UNREACHABLE | The attempt MUST fail. | The attempt MUST fail. |
-| TIMEOUT | The attempt MUST fail. | The attempt MUST fail. |
-| LOCAL | The attempt MUST fail. | The attempt MUST fail. |
+| Any other | The attempt MUST fail. | The attempt MUST fail. |
 {: #fallback-table title="Cleartext fallback by AUTH_TLS probe outcome"}
 
 Only DECLINED permits cleartext operation, and only where no floor has
