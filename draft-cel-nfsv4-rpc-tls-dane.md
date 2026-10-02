@@ -657,8 +657,8 @@ A client evaluates the candidate list in order, as shown in
 Evaluate(refname, port, proto):
 
   name = Normalize(refname)               ; input contract
-  if name is an address literal:
-      return "no DANE binding"
+  if name is an address literal or fails the contract:
+      return "no DANE binding"            ; no outcome class
 
   candidates = CandidateBaseDomains(name) ; preceding figure
   if candidates is error:
