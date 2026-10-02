@@ -1482,6 +1482,11 @@ where the detail and the discussion live.
   takes the stricter policy of Section 6.1.1 of {{RFC9289}}.
   [Issue 4](https://github.com/chucklever/i-d-rpc-tls-dane/issues/4)
 
+* {{coherence}}: how a resumed TLS session, in which the server
+  presents no certificate, satisfies the DANE authentication the
+  current attempt's DNS outcome requires.
+  [Issue 9](https://github.com/chucklever/i-d-rpc-tls-dane/issues/9)
+
 # Acknowledgments
 {:numbered="false"}
 
