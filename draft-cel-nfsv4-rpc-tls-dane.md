@@ -1002,10 +1002,14 @@ arrangement.
   disagree, the stronger conclusion governs.
 
 The second property is what makes the mechanism resistant to an
-attacker who can affect the timing of DNS answers.  A client MAY act
-on a strengthened conclusion, a later evaluation that finds a usable
-RRset where an earlier one did not, since doing so cannot lower the
-security of the attempt.
+attacker who can affect the timing of DNS answers.  Under it,
+SECURE_USABLE is stronger than SECURE_UNUSABLE, and SECURE_UNUSABLE
+is stronger than SECURE_ABSENT and INSECURE, which are equal to each
+other.  An evaluation whose outcome is ERROR fails the attempt
+({{behavior}}) and takes no part in the ordering.  The stronger
+conclusion governs regardless of which evaluation produced it, so a
+later evaluation that finds a usable RRset where an earlier one did
+not replaces the earlier conclusion.
 
 The second property orders outcome classes.  It does not order the
 contents of two RRsets.  Where two evaluations during one attempt both
