@@ -1435,7 +1435,11 @@ during key rollover, is specified in {{rollover}}.  Withdrawing DANE takes
 the same posture: a client that has pinned a floor for an association
 keeps requiring authenticated TLS until that association ends
 ({{floor}}), so removing the RRset lowers what clients require only
-as they remount.
+as they remount.  Where clients hold no certification authority
+material for the server, an association with a pinned floor cannot
+re-establish a connection once the RRset is gone: the floor still
+requires an authenticated session, and nothing remains to
+authenticate it against.
 
 The signature validity period the operator chooses bounds the replay
 windows described in {{replay}}, except that of a replayed proof of
