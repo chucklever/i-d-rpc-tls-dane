@@ -50,6 +50,7 @@ normative:
 
 informative:
   RFC1833:
+  RFC4035:
   RFC5011:
   RFC6125:
   RFC7250:
@@ -1195,14 +1196,22 @@ party, the concentration should be evaluated before deployment.
 ## Replay and the limits of revocation {#replay}
 
 DNSSEC provides no way to revoke a signed RRset before its signatures
-expire (Section 11 of {{RFC7671}}).  Two consequences follow, and both
-are bounded by the signature validity period rather than by anything
+expire (Section 11 of {{RFC7671}}).  The following consequences are
+each bounded by a signature validity period rather than by anything
 the client can do.
 
 An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
 period; the client assigns SECURE_ABSENT and pins no floor
 ({{adaptive}}).
+
+An attacker who captured the parent zone's signed proof that the
+operator's zone has no DS RRset, before the operator signed that zone,
+can replay it in the same way.  A validator shown that proof treats
+the zone as unsigned (Section 5.2 of {{RFC4035}}); the client assigns
+INSECURE and pins no floor.  The window is bounded by the validity
+period of the parent zone's signatures, which the operator of the
+service does not choose.
 
 An attacker who holds a key the operator has withdrawn can replay the
 TLSA RRset that still names it, and a client will authenticate the
@@ -1351,7 +1360,9 @@ keeps requiring authenticated TLS until that association ends
 as they remount.
 
 The signature validity period the operator chooses bounds the replay
-window described in {{replay}}.  Section 11 of {{RFC7671}} suggests
+windows described in {{replay}}, except that of a replayed proof of
+an unsigned delegation, which the parent zone's signatures bound.
+Section 11 of {{RFC7671}} suggests
 a lifetime of a few days for domains publishing high-value keys.
 
 A publisher of DANE-TA(2) records has one further obligation.  A
@@ -1393,15 +1404,19 @@ Against a client that validates DNSSEC, an attacker who wants to move
 a server from SECURE_USABLE to a weaker class must either forge a
 denial of existence in a signed zone, which fails NSEC or NSEC3
 validation, or strip signatures, which yields ERROR and therefore
-failure rather than fallback.  The remaining class, INSECURE, arises
-only from a genuinely unsigned delegation, which the attacker cannot
-manufacture without control of the parent zone's signing key.
+failure rather than fallback.  The remaining class, INSECURE,
+requires a validated proof that a delegation above the owner name is
+unsigned, which the attacker cannot forge without control of the
+parent zone's signing key.
 
 One path remains, and it requires neither forgery nor signature
-stripping: replay of a signed denial of existence captured before
-the operator published the RRset, which validates until its
-signatures expire and leaves the client at SECURE_ABSENT with no
-floor pinned.  {{replay}} describes that window and its bound; it
+stripping: replay of a signed denial captured before the operator
+deployed DANE.  A denial of existence for the TLSA owner name,
+captured before the operator published the RRset, leaves the client
+at SECURE_ABSENT.  A proof that the zone has no DS RRset, captured
+from the parent before the operator signed the zone, leaves the
+client at INSECURE.  Either validates until its signatures expire,
+and neither outcome pins a floor.  {{replay}} describes that window and its bound; it
 applies to an association's first attempt only, since a pinned floor
 persists ({{floor}}).
 
