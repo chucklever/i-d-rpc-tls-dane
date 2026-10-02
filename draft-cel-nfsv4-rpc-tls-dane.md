@@ -326,9 +326,10 @@ addition to what {{RFC9289}} already specifies, the following steps.
 
 3. It applies the outcome class to the association attempt.  An
    outcome of SECURE_USABLE or SECURE_UNUSABLE pins a security floor
-   for the association ({{floor}}),
-   which constrains whether cleartext operation remains permissible
-   and which failures are recoverable.
+   for the association ({{floor}}), unless the port is of untrusted
+   provenance ({{provenance}}).  The floor constrains whether
+   cleartext operation remains permissible and which failures are
+   recoverable.
 
 4. If a TLS handshake takes place, it authenticates the server
    according to the outcome class: by DANE ({{authn}}) where the
@@ -357,10 +358,13 @@ Disabled:
 
 Opportunistic:
 : The client performs the procedures in this document.  A DNS outcome
-  class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor and
-  constrains the association as specified in {{behavior}} and
-  {{floor}}.  SECURE_ABSENT and INSECURE pin no floor; {{fallback}}
-  then governs whether the attempt may proceed in cleartext, and any
+  class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor,
+  except where {{provenance}} withholds it, and constrains the
+  association as specified in {{behavior}} and {{floor}}.
+  SECURE_ABSENT and INSECURE do not pin a floor; a floor pinned by
+  an earlier attempt still governs the association, and otherwise
+  {{fallback}} governs whether the attempt may proceed in cleartext.
+  Any
   TLS session established is authenticated by the PKIX rules of
   Section 5.2.1 of {{RFC9289}}.  ERROR fails the attempt
   ({{behavior}}).  This mode is
@@ -509,8 +513,10 @@ fails the input contract above.
 
 For such a destination:
 
-* In opportunistic mode, no floor is pinned and {{fallback}} governs
-  whether the attempt may proceed in cleartext.  If the client
+* In opportunistic mode, the attempt does not pin a floor.  If an
+  earlier attempt pinned one, that floor still governs the
+  association; otherwise {{fallback}} governs whether the attempt
+  may proceed in cleartext.  If the client
   authenticates the server, it does so by the rules of Section 5.2.1
   of {{RFC9289}}, which provide for matching an iPAddress
   subjectAltName.
@@ -850,7 +856,7 @@ port.
 |---|---|
 | SECURE_USABLE | TLS is required, and the server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. |
 | SECURE_UNUSABLE | TLS is required, and the server MUST be authenticated per Section 5.2.1 of {{RFC9289}}. |
-| SECURE_ABSENT | No floor is pinned; {{fallback}} governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of {{RFC9289}}. |
+| SECURE_ABSENT | This outcome does not pin a floor. A floor pinned by an earlier attempt still governs the association; otherwise {{fallback}} governs cleartext operation. A TLS session is authenticated per Section 5.2.1 of {{RFC9289}}. |
 | INSECURE | As for SECURE_ABSENT. |
 | ERROR | The attempt MUST fail. |
 {: #behavior-table title="Required client behavior by DNS outcome class"}
@@ -887,8 +893,8 @@ The floor is a property of the server association, not of the
 connection on which it was determined, and it persists for the
 lifetime of the association.  Once pinned, it applies to every
 subsequent association attempt for that association and to every
-transport that joins it ({{assoc-scope}}).  A later evaluation that
-pins no floor, whatever its outcome class, does not remove one
+transport that joins it ({{assoc-scope}}).  A later evaluation
+whose outcome class does not pin a floor does not remove one
 already pinned: an operator who withdraws a TLSA RRset lowers the
 floor only for associations established after the withdrawal
 ({{ta-distribution}}).  A client MUST retain a pinned floor, together
@@ -1242,14 +1248,14 @@ the client can do.
 
 An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
-period; the client assigns SECURE_ABSENT and pins no floor
+period; the client assigns SECURE_ABSENT and does not pin a floor
 ({{adaptive}}).
 
 An attacker who captured the parent zone's signed proof that the
 operator's zone has no DS RRset, before the operator signed that zone,
 can replay it in the same way.  A validator shown that proof treats
 the zone as unsigned (Section 5.2 of {{RFC4035}}); the client assigns
-INSECURE and pins no floor.  The window is bounded by the validity
+INSECURE and does not pin a floor.  The window is bounded by the validity
 period of the parent zone's signatures, which the operator of the
 service does not choose.
 
