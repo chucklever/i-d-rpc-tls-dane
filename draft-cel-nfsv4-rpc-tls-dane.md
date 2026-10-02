@@ -883,8 +883,9 @@ unauthenticated TLS in this case; Section 10.3 of {{RFC7671}}
 anticipates such a strengthening where expecting it is realistic for
 the application protocol.  For RPC-with-TLS the intermediate position
 is not available at all.  In both client deployment modes of
-Section 4.2 of {{RFC9289}} the client authenticates the server, so
-the server is never anonymous to the client, and accepting
+Section 4.2 of {{RFC9289}} the server presents an identity that the
+client can authenticate, and Section 5.2.1 of {{RFC9289}} states what
+validation of the server's certificate MUST include, so accepting
 unauthenticated TLS here would be a downgrade relative to the base
 specification rather than an improvement on cleartext.
 
