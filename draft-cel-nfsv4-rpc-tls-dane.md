@@ -738,9 +738,11 @@ strongest type it does support, and malformed records MUST be
 discarded in step 1 so that they do not influence the strength
 selection in step 3.
 
-If any record survives step 3, the RRset is usable and the outcome is
+If any record survives step 2, the RRset is usable and the outcome is
 SECURE_USABLE.  If none does, the RRset is unusable and the outcome is
-SECURE_UNUSABLE.
+SECURE_UNUSABLE.  Step 3 narrows the records the client matches
+against, but it never discards the last record for a usage and
+selector, so it cannot change the outcome class.
 
 ## The selected TLSA base domain, SNI, and reference identifiers {#selected}
 
