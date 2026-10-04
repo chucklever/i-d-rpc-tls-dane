@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-01T05:13:26.485201+00:00",
+  "timestamp": "2026-10-04T05:17:12.417534+00:00",
   "repo": "chucklever/i-d-rpc-tls-dane",
   "labels": [
     {
@@ -139,16 +139,24 @@
       ],
       "body": "\"Cleartext fallback\" permits cleartext operation where no floor has been pinned and the server returns a well-formed decline. That is the interoperability branch of Section 6.1 of RFC 9289.\n\nIt is weaker than the policies Section 6.1.1 and Section 6.4 of RFC 9289 recommend for a client that has no TLSA records available.\n\nThe working group may want this document to require the stricter policy for associations in opportunistic mode, at the cost of reachability to servers that predate RFC 9289.",
       "createdAt": "2026-08-20T16:00:37Z",
-      "updatedAt": "2026-08-20T16:00:37Z",
+      "updatedAt": "2026-10-02T20:35:45Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "\"Failure after a handshake is attempted\" forbids retrying \"the association attempt in cleartext\" after a failed handshake. The section does not say whether the prohibition carries over to the next attempt for the same association.\n\nWhere no floor is pinned, an attacker can fail the handshake on one attempt and forge a decline on the next, and the cleartext fallback table then permits cleartext. Requiring the stricter policy closes that sequence. If cleartext on DECLINED stays, the document needs to say whether a failed handshake is remembered across attempts.\n",
+          "createdAt": "2026-10-02T20:35:45Z",
+          "updatedAt": "2026-10-02T20:35:45Z"
+        }
+      ]
     },
     {
       "number": 5,
       "id": "I_kwDOT89kGc8AAAABNkRyUQ",
       "title": "PKIX-TA(0) and PKIX-EE(1): leave optional, or specify behavior for them?",
       "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/5",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "chucklever",
       "authorAssociation": "OWNER",
       "assignees": [],
@@ -157,8 +165,8 @@
       ],
       "body": "\"Certificate usages\" makes support for PKIX-TA(0) and PKIX-EE(1) optional and treats unsupported records as unusable.\n\nRPC-with-TLS requires PKIX support in every client. Whether this document should instead specify behavior for those usages is an open question.",
       "createdAt": "2026-08-20T16:00:38Z",
-      "updatedAt": "2026-08-26T16:49:10Z",
-      "closedAt": "2026-08-26T16:49:10Z",
+      "updatedAt": "2026-10-02T20:35:48Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "chucklever",
@@ -166,6 +174,13 @@
           "body": "Resolved: support for PKIX-TA(0) and PKIX-EE(1) stays optional.\n\nRFC 7672 Section 3.1.3 sets the precedent for opportunistic DANE: publishers SHOULD NOT include those usages, client treatment is undefined, and a client MAY treat such records as unusable. Its argument that the PKIX usages add no security, since an attacker able to defeat DNSSEC can replace them with any other usage, applies to RPC-with-TLS as much as to SMTP. The draft's usability filtering treats them as unusable, and a client then authenticates by RFC 9289 Section 5.2.1 when such records are the only ones published, which is never weaker than RFC 9289 alone.\n\nReopen if the working group wants the constrained-PKIX behavior specified for clients that already carry the PKIX code RFC 9289 requires.",
           "createdAt": "2026-08-26T16:49:10Z",
           "updatedAt": "2026-08-26T16:49:10Z"
+        },
+        {
+          "author": "chucklever",
+          "authorAssociation": "OWNER",
+          "body": "Reopening to weigh an option the resolution above did not consider: a client always treats PKIX-TA(0) and PKIX-EE(1) records as unusable, and support for them is not OPTIONAL.\n\nWith support OPTIONAL, two conforming clients handle an RRset that contains only those usages differently. A client that supports them assigns SECURE_USABLE and sends the selected TLSA base domain in SNI. A client that does not assigns SECURE_UNUSABLE, sends the reference name, and authenticates per Section 5.2.1 of RFC 9289.\n\nThe document gives the supporting client no procedure. \"Authenticating the Server\" has subsections for DANE-EE(3) and DANE-TA(2) only. The behavior table's \"PKIX authentication MUST NOT be substituted\" does not say how it applies to usages that themselves require PKIX validation. The audit record's means of authentication are \"DANE-EE(3), DANE-TA(2), or PKIX\".\n\nMaking the two usages always unusable removes the divergence and needs no new text in \"Authenticating the Server\". Section 4 of RFC 7671 recommends designs \"in which clients support just the DANE-TA(2) and DANE-EE(3) certificate usages\".\n",
+          "createdAt": "2026-10-02T20:35:48Z",
+          "updatedAt": "2026-10-02T20:35:48Z"
         }
       ]
     },
@@ -246,6 +261,114 @@
           "updatedAt": "2026-09-01T16:41:44Z"
         }
       ]
+    },
+    {
+      "number": 9,
+      "id": "I_kwDOT89kGc8AAAABUrptlQ",
+      "title": "TLS session resumption: how does a resumed handshake satisfy DANE authentication for the current attempt?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/9",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "A resumed TLS handshake presents no server certificate, so the client has nothing to match against TLSA records. \"Coherence within an association attempt\" requires the DNS outcome class to be evaluated from current DNS data at each association attempt, and the behavior table requires DANE authentication for SECURE_USABLE. The document does not say how a resumed session meets either requirement. Its only mention of resumption is \"session reuse\" in \"Policy is per association\". RFC 9289, RFC 7671, and RFC 7672 do not address resumption either.\n\nExample: a ticket is issued while the TLSA RRset names key A. At the next association attempt the usable RRset names only key B. The ticket alone should not authenticate the server.\n\nTwo ways to close the gap:\n\n- Permit resumption only when the certificate or public key authenticated in the original session still matches the current attempt's usable records, and require a full handshake otherwise.\n\n- Require a full handshake for every association attempt whose DNS outcome is SECURE_USABLE.\n\nThe resumption PSK in question is derived from a certificate-authenticated session. It is distinct from the externally provisioned pre-shared keys of Section 5.2.2 of RFC 9289, which the Scope section excludes.\n",
+      "createdAt": "2026-10-02T20:20:08Z",
+      "updatedAt": "2026-10-02T20:20:08Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDOT89kGc8AAAABUrzxOA",
+      "title": "Does a security floor cover RPCBIND, MOUNT, and NLM connections to the same server, or only the port it was determined on?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/10",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"The security floor\" makes the floor \"a property of the server association, not of the connection on which it was determined\" and applies it \"to every transport that joins it\". The definition of server association covers, for NFS, \"a mount point and any additional connections established for it\".\n\n\"Unauthenticated port selection\" says of RPCBIND and the service it locates, on the same host under the same reference name, that \"a security floor determined for one is not a floor for the other\". \"Alternate ports\" says a TLSA RRset \"says nothing about the same server at another port\".\n\nThe document does not say whether connections to other RPC programs on other ports of the same server belong to the association. It does not mention the MOUNT or NLM protocols.\n\nExample: an NFSv3 mount pins a floor from the TLSA RRset at `_2049._tcp`. One client applies the floor to its RPCBIND, MOUNT, and NLM connections, which then fail against a server that offers TLS only on port 2049. Another client treats each port separately and runs those programs in cleartext.\n\nTwo ways to settle the scope:\n\n- The floor covers every connection made on behalf of the association, whatever the port or program. An NFSv3 deployment then needs TLS on every side-band program before it publishes a TLSA RRset.\n\n- The floor covers only the port and transport whose TLSA RRset pinned it. \"The security floor\" then needs to say what its last paragraph, about an attacker steering the client to a transport with weaker protection, still covers.\n",
+      "createdAt": "2026-10-02T20:35:35Z",
+      "updatedAt": "2026-10-02T20:35:35Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOT89kGc8AAAABUrzynQ",
+      "title": "Reference names that are unqualified or that do not resolve in the DNS",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/11",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "The reference name is \"the name that appeared in that configuration\". The input contract in \"Requirements on the reference name\" covers address literals, A-labels, syntax and length, case, and the trailing dot. Two common kinds of configured name are not covered.\n\n- An unqualified name that the resolver completes from a search list. Read literally, a mount of `server1` queries `_2049._tcp.server1.`, not the name under the search domain where the operator published the RRset, and the PKIX reference identifier is `server1`.\n\n- A name that resolves only from a source other than the DNS, such as a hosts file. Address resolution in \"Candidate TLSA base domains\" gets a denial of existence for such a name, and the figure covers only resolution that \"fails to complete: return error\". If a denial counts as a failure, the outcome is ERROR, and every such mount fails once opportunistic mode is enabled.\n\nDoes the reference name have to be fully qualified, and if a search list is applied, is the expanded name the reference name?\n\nIs a name with no address records in the DNS a destination that carries no DANE binding, as an address literal is, or an ERROR?\n",
+      "createdAt": "2026-10-02T20:35:37Z",
+      "updatedAt": "2026-10-02T20:35:37Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 12,
+      "id": "I_kwDOT89kGc8AAAABUrz0Jw",
+      "title": "Port provenance: is withholding the floor on an RPCBIND-learned port worth its cost?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/12",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Port provenance\" forbids pinning a floor \"on the basis of a DNS outcome derived from a port the client obtained from an unauthenticated source\". \"Unauthenticated port selection\" gives the reason: the rule \"keeps an attacker who substitutes the port in an RPCBIND reply from pinning a floor the operator did not intend.\"\n\nAn attacker who rewrites an RPCBIND reply cannot create a TLSA RRset. A SECURE_USABLE or SECURE_UNUSABLE outcome at a substituted port means the operator published an RRset at that port, for some other service. The harm the rule prevents is that the association then requires authenticated TLS until it ends.\n\nThe cost falls on the unattacked case. A client that learns a port from an unmodified RPCBIND reply, and finds the operator's TLSA RRset at that port, pins no floor, so a forged decline of the AUTH_TLS probe still yields cleartext. A deployment whose clients learn the service port from RPCBIND gets no downgrade resistance from publishing the RRset.\n\nThe rule also makes provenance a second input to both the behavior table and the cleartext fallback table.\n\nTwo options:\n\n- Keep the rule as written.\n\n- Pin a floor on SECURE_USABLE or SECURE_UNUSABLE whatever the provenance of the port, and describe the substituted-port case in Security Considerations as a denial of service that an attacker able to rewrite RPCBIND replies already has.\n",
+      "createdAt": "2026-10-02T20:35:40Z",
+      "updatedAt": "2026-10-02T20:35:40Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 13,
+      "id": "I_kwDOT89kGc8AAAABUrz1bw",
+      "title": "Client-side CNAME expansion of the TLSA base domain: keep it, or query only at the reference name?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/13",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Candidate TLSA base domains\" has the client follow a securely validated CNAME chain and try the canonical name before the reference name, following Section 7 of RFC 7671, where the expansion is a SHOULD.\n\nThe expansion brings this text with it: the candidate determination figure; the rule that SNI carries the selected TLSA base domain for SECURE_USABLE and the reference name for SECURE_UNUSABLE (decided in #2); the stated departure from Section 7 of RFC 7671; the base domain retained with a pinned floor; and the appendix advice that servers tolerate either SNI value. The appendix says a server that selects its certificate strictly by SNI \"rejects clients that conform to this document\", which qualifies the Scope statement that an RFC 9289 server interoperates \"without modification\".\n\nThe alternative is a single candidate, the reference name. An operator whose server name is an alias publishes the RRset at the alias, or publishes a CNAME at the alias's TLSA owner name that points at the canonical one, which \"Candidate TLSA base domains\" already follows. SNI and the reference identifier are then always the reference name, as in RFC 9289.\n\nThe alternative has three costs. It does not follow the RFC 7671 SHOULD. A certificate authenticated by DANE-TA(2) has to name the alias, not the canonical host. The tlshd implementation already performs the expansion.\n\nOne related gap goes away under the alternative. \"The selected TLSA base domain, SNI, and reference identifiers\" makes the base domain the \"primary reference identifier\", and \"DANE-TA(2)\" refers to \"the reference identifiers\", but neither says whether the original reference name is also accepted. Section 7 of RFC 7671 names no secondary identifier.\n",
+      "createdAt": "2026-10-02T20:35:42Z",
+      "updatedAt": "2026-10-02T20:35:42Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 14,
+      "id": "I_kwDOT89kGc8AAAABUrz26g",
+      "title": "Coherence within an association attempt: can one evaluation be authoritative?",
+      "url": "https://github.com/chucklever/i-d-rpc-tls-dane/issues/14",
+      "state": "OPEN",
+      "author": "chucklever",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "\"Coherence within an association attempt\" lets a client evaluate the DNS outcome more than once during one attempt. Reconciling the results takes three rules and an ordering of the outcome classes: \"the stronger conclusion governs\", \"A client MAY act on a strengthened conclusion\", and no combining of usable records from different evaluations.\n\nThe alternative is that one evaluation is authoritative for an attempt, and a later evaluation in the same attempt that yields a different outcome class or different usable records fails the attempt. A retry is evaluated afresh. The section already accepts a failed attempt followed by a retry when an RRset is republished mid-attempt without the overlap that \"Publishing and key rollover\" requires.\n\nThe choice depends on whether an implementation divided between components, such as the Linux kernel RPC client and tlshd, can carry one result from the cleartext fallback decision through to the handshake, or has to look the records up twice.\n\n#9 (session resumption) depends on the same section.\n",
+      "createdAt": "2026-10-02T20:35:43Z",
+      "updatedAt": "2026-10-02T20:35:43Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": []
