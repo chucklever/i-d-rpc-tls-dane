@@ -10,8 +10,8 @@
        RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
 (DANE) is available on platforms where it is deployed, and recommends
 that a client operating under an opportunistic security policy check
-for a TLSA record before initiating an association, but does not say
-how.  This document specifies the missing details, so that a TLSA
+for a TLSA record before initiating an association, but does not
+specify how.  This document specifies the missing details, so that a TLSA
 record authenticates an RPC server with no certification authority
 trust anchor provisioned on the client.  It updates RFC 9289. 
     " name="description">
@@ -25,18 +25,18 @@ trust anchor provisioned on the client.  It updates RFC 9289.
 <meta content="draft-cel-nfsv4-rpc-tls-dane-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
-    Python 3.14.7
-    ConfigArgParse 1.7.7
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.10
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.4
+    wcwidth 0.9.1
 -->
 <link href="draft-cel-nfsv4-rpc-tls-dane.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Lever</td>
-<td class="center">Expires 5 April 2027</td>
+<td class="center">Expires 11 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1072,12 +1072,12 @@ svg {
 <a href="https://www.rfc-editor.org/rfc/rfc9289" class="eref">9289</a> (if approved)</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-02" class="published">2 October 2026</time>
+<time datetime="2026-10-08" class="published">8 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-05">5 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-11">11 April 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1093,8 +1093,8 @@ svg {
 <p id="section-abstract-1">RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
 (DANE) is available on platforms where it is deployed, and recommends
 that a client operating under an opportunistic security policy check
-for a TLSA record before initiating an association, but does not say
-how.  This document specifies the missing details, so that a TLSA
+for a TLSA record before initiating an association, but does not
+specify how.  This document specifies the missing details, so that a TLSA
 record authenticates an RPC server with no certification authority
 trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
@@ -1133,7 +1133,7 @@ trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-a
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1236,39 +1236,39 @@ trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-a
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-authenticating-the-server" class="internal xref">Authenticating the Server</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-downgrade-resistance" class="internal xref">Downgrade Resistance</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-certificate-usages" class="internal xref">Certificate usages</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-the-security-floor" class="internal xref">The security floor</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-dane-ee3" class="internal xref">DANE-EE(3)</a></p>
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-auth_tls-probe-outcomes" class="internal xref">AUTH_TLS probe outcomes</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-dane-ta2" class="internal xref">DANE-TA(2)</a></p>
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-cleartext-fallback" class="internal xref">Cleartext fallback</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
-                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-required-client-behavior-by" class="internal xref">Required client behavior by outcome class</a></p>
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-failure-after-a-handshake-i" class="internal xref">Failure after a handshake is attempted</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
+                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-coherence-within-an-associa" class="internal xref">Coherence within an association attempt</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-downgrade-resistance" class="internal xref">Downgrade Resistance</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-authenticating-the-server" class="internal xref">Authenticating the Server</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-the-security-floor" class="internal xref">The security floor</a></p>
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-certificate-usages" class="internal xref">Certificate usages</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
-                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-auth_tls-probe-outcomes" class="internal xref">AUTH_TLS probe outcomes</a></p>
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-dane-ee3" class="internal xref">DANE-EE(3)</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
-                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-cleartext-fallback" class="internal xref">Cleartext fallback</a></p>
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-dane-ta2" class="internal xref">DANE-TA(2)</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
-                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-failure-after-a-handshake-i" class="internal xref">Failure after a handshake is attempted</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
-                <p id="section-toc.1-1.9.2.5.1"><a href="#section-9.5" class="auto internal xref">9.5</a>.  <a href="#name-coherence-within-an-associa" class="internal xref">Coherence within an association attempt</a></p>
+                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-required-client-behavior-by" class="internal xref">Required client behavior by outcome class</a></p>
 </li>
             </ul>
 </li>
@@ -1373,38 +1373,35 @@ trust anchor provisioned on the client.  It updates RFC 9289.<a href="#section-a
 traffic by encapsulating it in a TLS <span>[<a href="#RFC9846" class="cite xref">RFC9846</a>]</span> session.  A client
 discovers whether a server supports the mechanism by sending a NULL
 procedure carrying the AUTH_TLS authentication flavor, in cleartext,
-before the TLS handshake begins.  A server that supports RPC-with-TLS
-replies with a "STARTTLS" token, after which the client sends a
-ClientHello on the same connection or to the same UDP destination
-port.<a href="#section-1-1" class="pilcrow">¶</a></p>
+before sending a TLS handshake.  A server that supports RPC-with-TLS
+replies with a "STARTTLS" token.  The client then sends a ClientHello
+on the same connection or to the same UDP destination port.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires every RPC-with-TLS implementation
 to support authenticating server certificates by PKIX <span>[<a href="#RFC5280" class="cite xref">RFC5280</a>]</span> trust
 against a locally configured expected DNS-ID.  The client resolves
-that name in the DNS to reach the server, but the DNS supplies nothing
-that authenticates the server or that says the server is expected to
-speak TLS.  Two deployment problems follow:<a href="#section-1-2" class="pilcrow">¶</a></p>
+the server's hostname using the DNS, but today the DNS supplies nothing
+that authenticates the server or that indicates the server is expected
+to support RPC-with-TLS.  This raises two critical issues:<a href="#section-1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1-3.1">
-          <p id="section-1-3.1.1">Trust anchor distribution.  Every client must be provisioned with
-the certification authority material needed to validate the servers
-it will contact, and kept current as certificates are rotated.  A
-server operator without a certification authority has no way to
-tell clients what key to expect other than by configuring each of
-them.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-3.1.1">Every client must be provisioned with the certification authority
+material needed to validate the servers it will contact, and kept
+current as certificates are rotated.  A server operator without a
+certification authority has no way to tell clients what key to
+expect other than by configuring each of them.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-3.2">
-          <p id="section-1-3.2.1">STRIPTLS.  The AUTH_TLS probe and its reply are exchanged in
-cleartext.  An on-path attacker who suppresses the probe, or
-rewrites the reply so that it does not carry the "STARTTLS" token,
-makes a TLS-capable server appear not to support RPC-with-TLS, and
-a client under an opportunistic policy proceeds in cleartext.
-Nothing the client learns on the way to the server tells it that
-TLS was expected.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-3.2.1">The AUTH_TLS probe and its reply are exchanged in cleartext.  An
+on-path attacker who suppresses the probe or rewrites the reply
+so that it does not carry the "STARTTLS" token makes a TLS-capable
+server appear not to support RPC-with-TLS.  A client using an
+opportunistic policy proceeds in cleartext rather than rejecting
+the connection outright.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-4"><span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> anticipated these problems and pointed at the same remedy
-for them, DNS-Based Authentication of Named Entities (DANE)
-<span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>, in several places:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-4"><span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> anticipated these issues, pointing at the same remedy
+for both of them: DNS-Based Authentication of Named Entities (DANE)
+<span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1-5.1">
           <p id="section-1-5.1.1">Section 1 lists DNSSEC/DANE among the platform facilities that
@@ -1412,7 +1409,7 @@ RPC-with-TLS support is assumed to build on.<a href="#section-1-5.1.1" class="pi
 </li>
         <li class="normal" id="section-1-5.2">
           <p id="section-1-5.2.1">Section 6.1.1 offers a TLSA record as one of two mitigations for
-STRIPTLS attacks: it "can alert clients that TLS is expected to
+STRIPTLS attacks. It "can alert clients that TLS is expected to
 work, and provide a binding of a hostname to the X.509 identity",
 and a client under an opportunistic security policy should check
 for one before initiating an association.  The other mitigation, a
@@ -1430,27 +1427,24 @@ when host authentication fails".<a href="#section-1-5.3.1" class="pilcrow">¶</a
 <p id="section-1-6">A TLSA RRset addresses both problems at once.  Published in a zone
 the operator already signs, it carries the binding between a server
 name and its public key in the DNS, alongside the name the client had
-to resolve anyway, so no client needs certification authority
-material for that server.  And because a DNSSEC-validated TLSA RRset
+to resolve anyway, so clients do not need certificate authority
+material for that server.  Because a DNSSEC-validated TLSA RRset
 is an authenticated statement by the server operator that TLS is
 expected to work, a client holding one can no longer treat silent
-fallback to cleartext as acceptable: the STRIPTLS attack fails
-closed.<a href="#section-1-6" class="pilcrow">¶</a></p>
+fallback to cleartext as acceptable.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <p id="section-1-7">However, <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> offers a sketch rather than a specification.  It
 leaves unspecified the owner names at which a client queries for the
 TLSA record, whether a lookup failure is treated as an absent record,
 the name the client sends in SNI and verifies in the server's
 certificate when a record is found, and which outcomes of the AUTH_TLS
-probe still permit cleartext.  Two independent implementations
+probe still permit cleartext.  Independent implementations
 resolving these questions differently would not interoperate: one
 fails a handshake that the other completes.  A client that makes the
 permissive choice at each point obtains none of the downgrade
 resistance a TLSA record appears to promise.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">To close these gaps, this document specifies DANE
-for RPC-with-TLS completely enough to implement and deploy, following
-the operational specifications of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> and
-making the RPC-specific choices those documents leave to application
-protocols.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-8">To close these gaps, this document specifies DANE for RPC-with-TLS
+completely enough to implement and deploy, following the operational
+specifications of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>.<a href="#section-1-8" class="pilcrow">¶</a></p>
 <div id="scope">
 <section id="section-1.1">
         <h3 id="name-scope">
@@ -1468,22 +1462,22 @@ anchor certificate.  <a href="#ta-distribution" class="auto internal xref">Appen
 <p id="section-1.1-2">This document specifies the use of DANE to authenticate an RPC server
 to an RPC client.  Authentication of an RPC client to an RPC server by
 means of DANE is out of scope; see <a href="#client-auth" class="auto internal xref">Section 13.7</a>.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
-<p id="section-1.1-3">This document applies where the server authenticates itself with a
-certificate.  A server association that uses the pre-shared key
-mechanism of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.2" class="relref">Section 5.2.2</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> presents no certificate for
-DANE to authenticate. The procedures in this document do not apply to
-it.  The exclusion extends to downgrade resistance: such an
+<p id="section-1.1-3">This document applies only where the server authenticates itself with
+a certificate.  A server association that uses the pre-shared key
+mechanism of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.2" class="relref">Section 5.2.2</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> does not present a certificate
+for DANE to authenticate. The procedures in this document do not apply
+to it.  This exclusion extends to downgrade resistance: such an
 association does not consult TLSA records to pin a security floor
-(<a href="#floor" class="auto internal xref">Section 9.1</a>).  The provisioned key is itself the operator's commitment
+(<a href="#floor" class="auto internal xref">Section 8.1</a>).  The provisioned key is itself the operator's commitment
 to TLS, and it is already in the client's possession, so local policy
 can require TLS for the association without a DNS lookup.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <p id="section-1.1-4"><span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> also provides for matching a DANE-EE(3)
-record against a raw public key <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>; <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines no
+record against a raw public key <span>[<a href="#RFC7250" class="cite xref">RFC7250</a>]</span>. <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> defines no
 way to convey one, so that case does not arise here.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
 <p id="section-1.1-5">TLSA owner names are defined here for the transports <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>
-itself defines, namely TLS over TCP and DTLS over UDP.  A future
-document that specifies RPC over another transport is expected to
-define the corresponding owner-name convention.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+itself defines, which are TLS over TCP and DTLS over UDP.  A future
+document that specifies RPC over another transport can define its
+corresponding owner-name convention.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1494,10 +1488,10 @@ define the corresponding owner-name convention.<a href="#section-1.1-5" class="p
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-updates-to-rfc-9289" class="section-name selfRef">Updates to RFC 9289</a>
       </h2>
 <p id="section-2-1">Support for DANE remains optional for an RPC-with-TLS implementation.
-The changes in this section bind a client that implements this
-document; an implementation of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that does not is
+The changes in this section apply to a client that implements this
+document.  An implementation of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that does not is
 unaffected.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">Two requirements of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> are changed here:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-2">Requirements of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that are changed here include:<a href="#section-2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2-3.1">
           <p id="section-2-3.1.1"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires PKIX path validation and a
@@ -1507,7 +1501,7 @@ unchanged wherever this document requires PKIX authentication, and
 to the name checks performed for certificate usage DANE-TA(2).  They
 do not apply to a server authenticated by a DANE-EE(3) match, for
 the reasons given in <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and restated in
-<a href="#dane-ee" class="auto internal xref">Section 8.2</a>.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
+<a href="#dane-ee" class="auto internal xref">Section 9.2</a>.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-3.2">
           <p id="section-2-3.2.1">Where <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> cites <span>[<a href="#RFC6125" class="cite xref">RFC6125</a>]</span> for certificate name checks,
@@ -1525,29 +1519,29 @@ requirement stated in the section named:<a href="#section-2-4" class="pilcrow">�
 <li class="normal" id="section-2-5.1">
           <p id="section-2-5.1.1">The first bullet of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1.1" class="relref">Section 6.1.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> recommends a TLSA
 check before an association is initiated, and disconnection when
-TLS or authentication then fails.  <a href="#lookup" class="auto internal xref">Section 7</a>, <a href="#behavior" class="auto internal xref">Section 8.4</a>, and
-<a href="#floor" class="auto internal xref">Section 9.1</a> replace that recommendation.<a href="#section-2-5.1.1" class="pilcrow">¶</a></p>
+TLS or authentication then fails.  <a href="#lookup" class="auto internal xref">Section 7</a>, <a href="#behavior" class="auto internal xref">Section 9.4</a>, and
+<a href="#floor" class="auto internal xref">Section 8.1</a> replace that recommendation.<a href="#section-2-5.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-5.2">
           <p id="section-2-5.2.1">The second bullet of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1.1" class="relref">Section 6.1.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> recommends a
 policy that requires TLS on every connection, and Section 6.4
 recommends, for AUTH_NULL and AUTH_SYS, TLSA records for both peers
 and rejection of a connection when host authentication fails.
-<a href="#floor" class="auto internal xref">Section 9.1</a> and <a href="#fallback" class="auto internal xref">Section 9.3</a> require the server-authentication half
+<a href="#floor" class="auto internal xref">Section 8.1</a> and <a href="#fallback" class="auto internal xref">Section 8.3</a> require the server-authentication half
 of that behavior where this document pins a security floor; the
 client-authentication half is out of scope (<a href="#client-auth" class="auto internal xref">Section 13.7</a>).
-Where no floor is pinned, <a href="#fallback" class="auto internal xref">Section 9.3</a> permits cleartext operation
+Where no floor is pinned, <a href="#fallback" class="auto internal xref">Section 8.3</a> permits cleartext operation
 on a well-formed decline; a deployment that adopts either
 recommendation in full remains conformant.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-2-5.3">
           <p id="section-2-5.3.1"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> leaves to local policy whether RPC
 operation continues in cleartext when the AUTH_TLS probe does not
-yield the "STARTTLS" indication.  <a href="#fallback" class="auto internal xref">Section 9.3</a> specifies that
+yield the "STARTTLS" indication.  <a href="#fallback" class="auto internal xref">Section 8.3</a> specifies that
 policy, and it is more restrictive than what <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> permits.<a href="#section-2-5.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-2-6">This document also extends the audit log that <span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1" class="relref">Section 6.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires: <a href="#audit" class="auto internal xref">Section 11</a> adds to the required content of that
+<p id="section-2-6">This document also extends the audit log that <span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1" class="relref">Section 6.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> requires.  <a href="#audit" class="auto internal xref">Section 11</a> adds to the required content of that
 log and permits it to be assembled from correlatable events.<a href="#section-2-6" class="pilcrow">¶</a></p>
 <p id="section-2-7">Nothing in this document changes the TLS version, ALPN, cipher suite,
 confidentiality, or transport requirements of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, nor its
@@ -1564,22 +1558,23 @@ provisions for pre-shared keys or for RPCSEC_GSS.<a href="#section-2-7" class="p
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">This document assumes a working knowledge of RPC version 2
-<span>[<a href="#RFC5531" class="cite xref">RFC5531</a>]</span>, of RPC-with-TLS <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and of DANE <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>
+<span>[<a href="#RFC5531" class="cite xref">RFC5531</a>]</span>, RPC-with-TLS <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, and DANE <span>[<a href="#RFC6698" class="cite xref">RFC6698</a>]</span>
         <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.  It uses the DNSSEC validation states "secure",
 "insecure", and "bogus" as defined in <span><a href="https://rfc-editor.org/rfc/rfc4033#section-5" class="relref">Section 5</a> of [<a href="#RFC4033" class="cite xref">RFC4033</a>]</span>.  The
 definitions of "indeterminate" in <span><a href="https://rfc-editor.org/rfc/rfc4033#section-5" class="relref">Section 5</a> of [<a href="#RFC4033" class="cite xref">RFC4033</a>]</span> and
-<span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span> differ; this document classes a result
-that is indeterminate in either sense as ERROR (<a href="#outcomes" class="auto internal xref">Section 7.2</a>).<a href="#section-3-2" class="pilcrow">¶</a></p>
+<span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span> differ, therefore this document classes
+a result that is indeterminate in either sense as ERROR (<a href="#outcomes" class="auto internal xref">Section 7.2</a>).<a href="#section-3-2" class="pilcrow">¶</a></p>
 <p id="section-3-3">The following terms are used as defined here.<a href="#section-3-3" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3-4">
         <dt id="section-3-4.1">Reference name:</dt>
         <dd style="margin-left: 1.5em" id="section-3-4.2">
           <p id="section-3-4.2.1">The DNS domain name that identifies to the client the server it is
 contacting.  For an association established by administrative
-configuration, it is the name that appeared in that configuration
--- for NFS, the server component of the mount specification.  For
-a derived association (<a href="#derived" class="auto internal xref">Section 10.3</a>), it is the name the upper-layer
-protocol supplied.  <a href="#refname" class="auto internal xref">Section 6</a> states the requirements on it.<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+configuration, it is the name that appeared in that configuration.
+For NFS, this is the server component of the mount specification.
+For a derived association (<a href="#derived" class="auto internal xref">Section 10.3</a>), it is the name the
+upper-layer protocol supplied.  <a href="#refname" class="auto internal xref">Section 6</a> states the requirements
+on it.<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-4.3">TLSA base domain:</dt>
@@ -1633,7 +1628,7 @@ cleartext, or failure.<a href="#section-3-4.14.1" class="pilcrow">¶</a></p>
         <dd style="margin-left: 1.5em" id="section-3-4.16">
           <p id="section-3-4.16.1">The minimum acceptable security level that a client has determined
 for a server association, and below which it does not operate.
-<a href="#floor" class="auto internal xref">Section 9.1</a> states the requirement.<a href="#section-3-4.16.1" class="pilcrow">¶</a></p>
+<a href="#floor" class="auto internal xref">Section 8.1</a> states the requirement.<a href="#section-3-4.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-4.17">DANE policy mode:</dt>
@@ -1668,14 +1663,14 @@ specifies this procedure.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
         <li id="section-4-2.3">
           <p id="section-4-2.3.1">It applies the outcome class to the association attempt.  An
 outcome of SECURE_USABLE or SECURE_UNUSABLE pins a security floor
-for the association (<a href="#floor" class="auto internal xref">Section 9.1</a>), unless the port is of untrusted
+for the association (<a href="#floor" class="auto internal xref">Section 8.1</a>), unless the port is of untrusted
 provenance (<a href="#provenance" class="auto internal xref">Section 5.3</a>).  The floor constrains whether
 cleartext operation remains permissible and which failures are
 recoverable.<a href="#section-4-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-4-2.4">
           <p id="section-4-2.4.1">If a TLS handshake takes place, it authenticates the server
-according to the outcome class: by DANE (<a href="#authn" class="auto internal xref">Section 8</a>) where the
+according to the outcome class: by DANE (<a href="#authn" class="auto internal xref">Section 9</a>) where the
 client found a usable record, and by the PKIX rules of
 <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> otherwise.<a href="#section-4-2.4.1" class="pilcrow">¶</a></p>
 </li>
@@ -1688,7 +1683,7 @@ requires (<a href="#audit" class="auto internal xref">Section 11</a>).<a href="#
 <p id="section-4-3">Steps 2 and 3 concern the association attempt as a whole and can be
 performed before the AUTH_TLS probe is sent; step 4 happens during
 the handshake.  How an implementation divides the work is not
-specified; <a href="#coherence" class="auto internal xref">Section 9.5</a> states the constraints that any division has
+specified; <a href="#coherence" class="auto internal xref">Section 8.5</a> states the constraints that any division has
 to respect.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <div id="modes">
 <section id="section-4.1">
@@ -1707,17 +1702,8 @@ behavior is that specified by <span>[<a href="#RFC9289" class="cite xref">RFC928
           <dd class="break"></dd>
 <dt id="section-4.1-2.3">Opportunistic:</dt>
           <dd style="margin-left: 1.5em" id="section-4.1-2.4">
-            <p id="section-4.1-2.4.1">The client performs the procedures in this document.  A DNS outcome
-class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor,
-except where <a href="#provenance" class="auto internal xref">Section 5.3</a> withholds it, and constrains the
-association as specified in <a href="#behavior" class="auto internal xref">Section 8.4</a> and <a href="#floor" class="auto internal xref">Section 9.1</a>.
-SECURE_ABSENT and INSECURE do not pin a floor; a floor pinned by
-an earlier attempt still governs the association, and otherwise
-<a href="#fallback" class="auto internal xref">Section 9.3</a> governs whether the attempt may proceed in cleartext.
-Any
-TLS session established is authenticated by the PKIX rules of
-<span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  ERROR fails the attempt
-(<a href="#behavior" class="auto internal xref">Section 8.4</a>).  This mode is
+            <p id="section-4.1-2.4.1">The client performs the procedures in this document.  <a href="#behavior" class="auto internal xref">Section 9.4</a>
+and <a href="#floor" class="auto internal xref">Section 8.1</a> govern each association attempt.  This mode is
 intended for fleet-wide deployment against a server population that
 has not uniformly published TLSA records; see <a href="#adaptive" class="auto internal xref">Appendix A.3</a>.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
@@ -1778,13 +1764,13 @@ NFS port over TCP publishes its TLSA RRset at
 <p id="section-5.2-1">The port in the owner name is the port to which the client actually
 connects, not a registered port for the RPC program in use.  RPC
 services are routinely offered on other ports, by site convention or
-by local configuration: a service reached on port 20490 over TCP at
-"nfs.example.com" publishes its TLSA RRset at
+by local configuration.  For instance, a service reached on port 20490
+over TCP at "nfs.example.com" publishes its TLSA RRset at
 "_20490._tcp.nfs.example.com", and a server that offers the same
 service on several ports publishes one TLSA RRset per port.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">Because the port is part of the owner name, a TLSA RRset authenticates
-the server at a known port and says nothing about the same server at
-another port, in the same way that <span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> observes
+the server at a known port and asserts nothing about the same server
+at another port, in the same way that <span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> observes
 that a successful AUTH_TLS probe on one port and transport implies
 nothing about any other.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 </section>
@@ -1800,28 +1786,28 @@ of the port but where the client obtained it.<a href="#section-5.3-1" class="pil
 RPCBIND service <span>[<a href="#RFC1833" class="cite xref">RFC1833</a>]</span>, whose replies are not authenticated.  An
 attacker who substitutes a port in an RPCBIND reply thereby
 substitutes the first label of the TLSA owner name the client will
-query.  The query is made at a name for which the operator published
-nothing, and the client assigns SECURE_ABSENT (<a href="#outcomes" class="auto internal xref">Section 7.2</a>) and pins
-no floor.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
-<p id="section-5.3-3">Accordingly:<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+query, and with it the TLSA RRset the client evaluates.  A floor
+pinned from that RRset is one the attacker selected, not one the
+operator published for the port the client was meant to use.
+Accordingly:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.3-4.1">
-            <p id="section-5.3-4.1.1">DANE authentication as specified in <a href="#authn" class="auto internal xref">Section 8</a> applies at whatever
-port the client connects to, whatever the provenance of that port.<a href="#section-5.3-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.3-3.1">
+            <p id="section-5.3-3.1.1">DANE authentication as specified in <a href="#authn" class="auto internal xref">Section 9</a> applies at whatever
+port the client connects to, whatever the provenance of that port.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.3-4.2">
-            <p id="section-5.3-4.2.1">A client <span class="bcp14">MUST NOT</span> pin a security floor (<a href="#floor" class="auto internal xref">Section 9.1</a>) on the basis of a
+          <li class="normal" id="section-5.3-3.2">
+            <p id="section-5.3-3.2.1">A client <span class="bcp14">MUST NOT</span> pin a security floor (<a href="#floor" class="auto internal xref">Section 8.1</a>) on the basis of a
 DNS outcome derived from a port the client obtained from an
 unauthenticated source.  Ports obtained from local configuration,
 including a configured default for the RPC program, are trusted for
 this purpose; ports obtained from an unauthenticated RPCBIND reply,
-or from any other unauthenticated in-band source, are not.<a href="#section-5.3-4.2.1" class="pilcrow">¶</a></p>
+or from any other unauthenticated in-band source, are not.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.3-5">A TLSA RRset can authenticate a server at a port the client already
+<p id="section-5.3-4">A TLSA RRset can authenticate a server at a port the client already
 knew.  It cannot retroactively secure the client's selection of that
 port.  <a href="#sec-ports" class="auto internal xref">Section 13.4</a> describes how a client obtains ports from an
-authenticated source.<a href="#section-5.3-5" class="pilcrow">¶</a></p>
+authenticated source.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="rollover">
@@ -1832,10 +1818,11 @@ authenticated source.<a href="#section-5.3-5" class="pilcrow">¶</a></p>
 <p id="section-5.4-1">Publishers <span class="bcp14">MUST</span> observe the requirements of <span><a href="https://rfc-editor.org/rfc/rfc7671#section-8" class="relref">Section 8</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>,
 in particular during key rollover.  Those requirements keep in the
 RRset, at all times, a record matching the certificate that each
-server answering for the name may present.  A client that has pinned a floor fails rather than
-falls back when the RRset and the certificate disagree, so a rollover
-performed in the wrong order takes the service down.  That is
-intended, but operators need to plan for it.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+server answering for the name may present.  A client that has pinned
+a floor fails rather than falls back when the RRset and the
+certificate disagree, so a rollover performed in the wrong order takes
+the service down.  That is intended, but operators need to plan for
+it.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1888,8 +1875,7 @@ case-insensitively.<a href="#section-6.1-4.4.1" class="pilcrow">¶</a></p>
             <p id="section-6.1-4.5.1">A trailing empty label, written as a trailing dot in presentation
 form, is retained when constructing DNS queries and removed when the
 name is used as a Server Name Indication (SNI) value <span>[<a href="#RFC6066" class="cite xref">RFC6066</a>]</span> or
-as a
-PKIX reference identifier.<a href="#section-6.1-4.5.1" class="pilcrow">¶</a></p>
+as a PKIX reference identifier.<a href="#section-6.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1906,12 +1892,10 @@ fails the input contract above.<a href="#section-6.2-1" class="pilcrow">¶</a></
 <p id="section-6.2-2">For such a destination:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1">In opportunistic mode, the attempt does not pin a floor.  If an
-earlier attempt pinned one, that floor still governs the
-association; otherwise <a href="#fallback" class="auto internal xref">Section 9.3</a> governs whether the attempt
-may proceed in cleartext.  If the client
-authenticates the server, it does so by the rules of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, which provide for matching an iPAddress
-subjectAltName.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.2-3.1.1">In opportunistic mode, the attempt does not pin a floor
+(<a href="#floor" class="auto internal xref">Section 8.1</a>).  If the client authenticates the server, it does so by
+the rules of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, which provide for
+matching an iPAddress subjectAltName.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.2-3.2">
             <p id="section-6.2-3.2.1">In mandatory mode, the association attempt fails (<a href="#modes" class="auto internal xref">Section 4.1</a>).<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
@@ -1999,7 +1983,7 @@ prevents the client from assigning one of the four classes above.<a href="#secti
         <dd class="break"></dd>
 </dl>
 <p id="section-7.2-3">An ERROR outcome <span class="bcp14">MUST NOT</span> be treated as equivalent to INSECURE, and
-<span class="bcp14">MUST NOT</span> authorize cleartext operation: as Sections <a href="https://rfc-editor.org/rfc/rfc7672#section-2.1.1" class="relref">2.1.1</a> and <a href="https://rfc-editor.org/rfc/rfc7672#section-2.1.2" class="relref">2.1.2</a> of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> observe, the conditions that produce it are the ones
+<span class="bcp14">MUST NOT</span> authorize cleartext operation.  As Sections <a href="https://rfc-editor.org/rfc/rfc7672#section-2.1.1" class="relref">2.1.1</a> and <a href="https://rfc-editor.org/rfc/rfc7672#section-2.1.2" class="relref">2.1.2</a> of <span>[<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> observe, the conditions that produce it are the ones
 an attacker can produce at will.
 An implementation <span class="bcp14">MAY</span> retry a lookup that produced ERROR; if no
 attempt yields a validated answer, the outcome remains ERROR.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
@@ -2145,43 +2129,43 @@ affect the outcome.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
         <h3 id="name-usable-records-and-digest-a">
 <a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-usable-records-and-digest-a" class="section-name selfRef">Usable records and digest algorithm agility</a>
         </h3>
-<p id="section-7.5-1">Whether a record is usable is determined before any attempt is made to
-match it against a certificate, and a record that is usable but does
-not match the server's certificate is an authentication failure, never
-a reason to reclassify the RRset as unusable.  Conflating the two
-would let an attacker who can influence the certificate a server
-presents convert a DANE mismatch into a fallback.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
-<p id="section-7.5-2">A client determines the usable records in a validated TLSA RRset as
-follows.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-7.5-3">
-<li id="section-7.5-3.1">
-            <p id="section-7.5-3.1.1">Discard any record whose RDATA is truncated, whose certificate
+<p id="section-7.5-1">A client determines the usable records in a validated TLSA RRset as
+follows.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.5-2">
+<li id="section-7.5-2.1">
+            <p id="section-7.5-2.1.1">Discard any record whose RDATA is truncated, whose certificate
 association data has a length inconsistent with its matching type,
-or that is otherwise malformed.<a href="#section-7.5-3.1.1" class="pilcrow">¶</a></p>
+or that is otherwise malformed.<a href="#section-7.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-7.5-3.2">
-            <p id="section-7.5-3.2.1">Discard any record whose certificate usage, selector, or matching
+          <li id="section-7.5-2.2">
+            <p id="section-7.5-2.2.1">Discard any record whose certificate usage, selector, or matching
 type the client has not implemented or has been configured not to
-use.  Certificate usage support is specified in <a href="#usages" class="auto internal xref">Section 8.1</a>.<a href="#section-7.5-3.2.1" class="pilcrow">¶</a></p>
+use.  Certificate usage support is specified in <a href="#usages" class="auto internal xref">Section 9.1</a>.<a href="#section-7.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-7.5-3.3">
-            <p id="section-7.5-3.3.1">Apply digest algorithm agility per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-9" class="relref">Section 9</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>: for
+          <li id="section-7.5-2.3">
+            <p id="section-7.5-2.3.1">Apply digest algorithm agility per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-9" class="relref">Section 9</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.  For
 each combination of certificate usage and selector remaining, the
 client retains records with a matching type of Full(0), and records
 whose matching type is the strongest the client supports among
 those present for that usage and selector.  Records using a weaker
-supported matching type are discarded.<a href="#section-7.5-3.3.1" class="pilcrow">¶</a></p>
+supported matching type are discarded.<a href="#section-7.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-7.5-4">A matching type the client does not support <span class="bcp14">MUST NOT</span> suppress the
+<p id="section-7.5-3">A matching type the client does not support <span class="bcp14">MUST NOT</span> suppress the
 strongest type it does support, and malformed records <span class="bcp14">MUST</span> be
 discarded in step 1 so that they do not influence the strength
-selection in step 3.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
-<p id="section-7.5-5">If any record survives step 2, the RRset is usable and the outcome is
+selection in step 3.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+<p id="section-7.5-4">If any record survives step 2, the RRset is usable and the outcome is
 SECURE_USABLE.  If none does, the RRset is unusable and the outcome is
 SECURE_UNUSABLE.  Step 3 narrows the records the client matches
 against, but it never discards the last record for a usage and
-selector, so it cannot change the outcome class.<a href="#section-7.5-5" class="pilcrow">¶</a></p>
+selector, so it cannot change the outcome class.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
+<p id="section-7.5-5">Whether a record is usable is determined before any attempt is made to
+match it against a certificate.  A record that is usable but does not
+match the server's certificate is an authentication failure, never a
+reason to reclassify the RRset as unusable.  Conflating the two would
+let an attacker who can influence the certificate a server presents
+convert a DANE mismatch into a fallback.<a href="#section-7.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="selected">
@@ -2200,15 +2184,16 @@ reference identifier for certificate name checks.  This is the rule of
 <p id="section-7.6-3">When the outcome is SECURE_UNUSABLE, the client <span class="bcp14">MUST</span> instead send the
 original reference name as the Server Name Indication value, and <span class="bcp14">MUST</span>
 use the original reference name as the reference identifier for the
-PKIX name checks that <a href="#behavior" class="auto internal xref">Section 8.4</a> then requires.<a href="#section-7.6-3" class="pilcrow">¶</a></p>
+PKIX name checks that <a href="#behavior" class="auto internal xref">Section 9.4</a> then requires.<a href="#section-7.6-3" class="pilcrow">¶</a></p>
 <p id="section-7.6-4">This departs from <span><a href="https://rfc-editor.org/rfc/rfc7671#section-7" class="relref">Section 7</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> because of what
 SECURE_UNUSABLE means.  A DANE client puts the expanded base domain in
 SNI because it is prepared to accept a certificate issued for that
 name.  A client that can use no record in the RRset is about to fall
-back to PKIX authentication against the configured name; sending the
+back to PKIX authentication against the configured name.  Sending the
 base domain in SNI would ask a server that selects its certificate by
-SNI for a certificate the client must then reject, and the handshake
-fails for a reason unrelated to the security of either name.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
+SNI for a certificate the client must then reject.  The handshake
+would then fail for a reason unrelated to the security of either
+name.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
 <p id="section-7.6-5">The selected TLSA base domain is reported in the audit record
 (<a href="#audit" class="auto internal xref">Section 11</a>) in both cases, so that an operator can see which name the
 policy decision was derived from.<a href="#section-7.6-5" class="pilcrow">¶</a></p>
@@ -2216,271 +2201,122 @@ policy decision was derived from.<a href="#section-7.6-5" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="authn">
-<section id="section-8">
-      <h2 id="name-authenticating-the-server">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-authenticating-the-server" class="section-name selfRef">Authenticating the Server</a>
-      </h2>
-<div id="usages">
-<section id="section-8.1">
-        <h3 id="name-certificate-usages">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-certificate-usages" class="section-name selfRef">Certificate usages</a>
-        </h3>
-<p id="section-8.1-1">A client implementing this document <span class="bcp14">MUST</span> support certificate usages
-DANE-EE(3) and DANE-TA(2).  Both are used with the semantics given in
-Sections <a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">5.1</a> and <a href="https://rfc-editor.org/rfc/rfc7671#section-5.2" class="relref">5.2</a> of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> respectively.  <span><a href="https://rfc-editor.org/rfc/rfc7671#section-4" class="relref">Section 4</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> recommends exactly this pair, and cautions that
-simultaneous support for all four usages is not recommended.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.1-2">Support for certificate usages PKIX-TA(0) and PKIX-EE(1) is <span class="bcp14">OPTIONAL</span>.
-A client that does not support them treats records carrying them as
-unusable in step 2 of <a href="#usable" class="auto internal xref">Section 7.5</a>.  Where such records are the only
-ones published, the outcome is SECURE_UNUSABLE, and <a href="#behavior" class="auto internal xref">Section 8.4</a>
-requires the client to authenticate the server by the PKIX rules of
-<span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  That check is weaker than the
-published records call for, but never weaker than <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> alone.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
-<p id="section-8.1-3">A client <span class="bcp14">MUST</span> support the selectors Cert(0) and SPKI(1) and the
-matching types Full(0) and SHA2-256(1), which is the support that
-<span><a href="https://rfc-editor.org/rfc/rfc6698#section-6" class="relref">Section 6</a> of [<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> lets publishers rely on.  Support for
-SHA2-512(2) is <span class="bcp14">RECOMMENDED</span>.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="dane-ee">
-<section id="section-8.2">
-        <h3 id="name-dane-ee3">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-dane-ee3" class="section-name selfRef">DANE-EE(3)</a>
-        </h3>
-<p id="section-8.2-1">Authentication by a DANE-EE(3) record consists of matching the
-server's end-entity certificate, or its SubjectPublicKeyInfo, against
-the certificate association data of a usable record, per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
-<p id="section-8.2-2">When such a match succeeds, the server is authenticated.  In
-particular, and following <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>:<a href="#section-8.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.2-3.1">
-            <p id="section-8.2-3.1.1">The client <span class="bcp14">MUST NOT</span> reject the server because no name in the
-presented certificate matches the reference name or the selected
-TLSA base domain.  The binding of key to name is made by the TLSA
-record, not by the certificate.<a href="#section-8.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.2-3.2">
-            <p id="section-8.2-3.2.1">The client <span class="bcp14">MUST NOT</span> reject the server because the presented
-certificate is expired or not yet valid.  The validity of the
-binding is the validity of the DNSSEC signatures over the TLSA
-RRset.<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.2-3.3">
-            <p id="section-8.2-3.3.1">The client <span class="bcp14">MUST NOT</span> require that the presented certificate chain to
-a trusted certification authority.<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-8.2-4">Consequently a self-signed server certificate, published as a
-DANE-EE(3) record with selector SPKI(1) and matching type
-SHA2-256(1), is a fully conforming deployment; see
-<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="dane-ta">
-<section id="section-8.3">
-        <h3 id="name-dane-ta2">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-dane-ta2" class="section-name selfRef">DANE-TA(2)</a>
-        </h3>
-<p id="section-8.3-1">Authentication by a DANE-TA(2) record consists of validating the
-server's certificate chain to the trust anchor the record identifies,
-per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.2" class="relref">Section 5.2</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>, and then performing name checks
-against the reference identifiers determined in <a href="#selected" class="auto internal xref">Section 7.6</a>.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3-2">Those name checks are performed per <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, retaining the
-restriction in <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that a DNS domain name in
-an RPC-with-TLS certificate <span class="bcp14">MUST NOT</span> contain the wildcard character
-"*".<a href="#section-8.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="behavior">
-<section id="section-8.4">
-        <h3 id="name-required-client-behavior-by">
-<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-required-client-behavior-by" class="section-name selfRef">Required client behavior by outcome class</a>
-        </h3>
-<p id="section-8.4-1"><a href="#behavior-table" class="auto internal xref">Table 1</a> states what a client in opportunistic mode <span class="bcp14">MUST</span> do
-for each DNS outcome class.  In mandatory mode the SECURE_USABLE row
-applies, with TLS required whatever the provenance of the port, and
-every other outcome fails the association attempt (<a href="#modes" class="auto internal xref">Section 4.1</a>).  In
-every case where authentication is required, failure of that
-authentication fails the association attempt; see <a href="#no-retry" class="auto internal xref">Section 9.4</a>.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
-<p id="section-8.4-2">The requirement that TLS be used is carried by the security floor.
-Where the DNS outcome was derived from a port of untrusted provenance,
-<a href="#provenance" class="auto internal xref">Section 5.3</a> withholds that floor, and in opportunistic mode
-<a href="#fallback" class="auto internal xref">Section 9.3</a> then governs whether the attempt may proceed in
-cleartext.  The authentication requirements in the table apply to any
-(D)TLS session that is established, whatever the provenance of the
-port.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
-<span id="name-required-client-behavior-by-"></span><div id="behavior-table">
-<table class="center" id="table-1">
-          <caption>
-<a href="#table-1" class="selfRef">Table 1</a>:
-<a href="#name-required-client-behavior-by-" class="selfRef">Required client behavior by DNS outcome class</a>
-          </caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">DNS outcome</th>
-              <th class="text-left" rowspan="1" colspan="1">Opportunistic mode</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">SECURE_USABLE</td>
-              <td class="text-left" rowspan="1" colspan="1">TLS is required, and the server <span class="bcp14">MUST</span> be authenticated by DANE per <a href="#authn" class="auto internal xref">Section 8</a>. PKIX authentication <span class="bcp14">MUST NOT</span> be substituted for it.</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">SECURE_UNUSABLE</td>
-              <td class="text-left" rowspan="1" colspan="1">TLS is required, and the server <span class="bcp14">MUST</span> be authenticated per <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">SECURE_ABSENT</td>
-              <td class="text-left" rowspan="1" colspan="1">This outcome does not pin a floor. A floor pinned by an earlier attempt still governs the association; otherwise <a href="#fallback" class="auto internal xref">Section 9.3</a> governs cleartext operation. A TLS session is authenticated per <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">INSECURE</td>
-              <td class="text-left" rowspan="1" colspan="1">As for SECURE_ABSENT.</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">ERROR</td>
-              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
-            </tr>
-          </tbody>
-        </table>
-</div>
-<p id="section-8.4-4">The SECURE_USABLE row is the central requirement of this document.  A
-client <span class="bcp14">MUST NOT</span> accept a PKIX authentication in place of the DANE
-authentication the RRset calls for, however trusted the issuing
-certification authority; that substitution would return control of
-the association's authentication to whoever can obtain a certificate
-for the name, which is what the TLSA RRset was published to prevent.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
-<p id="section-8.4-5">The SECURE_UNUSABLE row strengthens the guidance in <span><a href="https://rfc-editor.org/rfc/rfc7671#section-10.3" class="relref">Section 10.3</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span><a href="https://rfc-editor.org/rfc/rfc7672#section-2.2" class="relref">Section 2.2</a> of [<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>, which require only
-unauthenticated TLS in this case; <span><a href="https://rfc-editor.org/rfc/rfc7671#section-10.3" class="relref">Section 10.3</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>
-anticipates such a strengthening where expecting it is realistic for
-the application protocol.  For RPC-with-TLS the intermediate position
-is not available at all.  In both client deployment modes of
-<span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> the server presents an identity that the
-client can authenticate, and <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> states what
-validation of the server's certificate <span class="bcp14">MUST</span> include, so accepting
-unauthenticated TLS here would be a downgrade relative to the base
-specification rather than an improvement on cleartext.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
 <div id="downgrade">
-<section id="section-9">
+<section id="section-8">
       <h2 id="name-downgrade-resistance">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-downgrade-resistance" class="section-name selfRef">Downgrade Resistance</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-downgrade-resistance" class="section-name selfRef">Downgrade Resistance</a>
       </h2>
 <div id="floor">
-<section id="section-9.1">
+<section id="section-8.1">
         <h3 id="name-the-security-floor">
-<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-the-security-floor" class="section-name selfRef">The security floor</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-the-security-floor" class="section-name selfRef">The security floor</a>
         </h3>
-<p id="section-9.1-1">A DNS outcome class of SECURE_USABLE or SECURE_UNUSABLE pins a
+<p id="section-8.1-1">A DNS outcome class of SECURE_USABLE or SECURE_UNUSABLE pins a
 security floor for the server association, except where
-<a href="#provenance" class="auto internal xref">Section 5.3</a> withholds it: the client <span class="bcp14">MUST NOT</span> operate that
+<a href="#provenance" class="auto internal xref">Section 5.3</a> withholds it.  The client <span class="bcp14">MUST NOT</span> operate that
 association at a security level weaker than an authenticated TLS
-session, and <span class="bcp14">MUST</span> fail the association attempt rather than do so.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
-<p id="section-9.1-2">The floor is a property of the server association, not of the
+session, and <span class="bcp14">MUST</span> fail the association attempt rather than do so.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">The floor is a property of the server association, not of the
 connection on which it was determined, and it persists for the
 lifetime of the association.  Once pinned, it applies to every
 subsequent association attempt for that association and to every
-transport that joins it (<a href="#assoc-scope" class="auto internal xref">Section 10</a>).  A later evaluation
-whose outcome class does not pin a floor does not remove one
-already pinned: an operator who withdraws a TLSA RRset lowers the
+transport that joins it (<a href="#assoc-scope" class="auto internal xref">Section 10</a>).  An outcome class that
+does not pin a floor leaves one already pinned in place.  Where no
+floor is pinned, <a href="#fallback" class="auto internal xref">Section 8.3</a> governs whether an attempt may proceed
+in cleartext.  An operator who withdraws a TLSA RRset lowers the
 floor only for associations established after the withdrawal
 (<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).  A client <span class="bcp14">MUST</span> retain a pinned floor, together
 with the selected TLSA base domain it was derived from, until the
-association ends.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
-<p id="section-9.1-3">The floor is stated in terms of the security level reached rather than
+association ends.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">The floor is stated in terms of the security level reached rather than
 of any particular attack.  It covers the STRIPTLS attack of
-<span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1.1" class="relref">Section 6.1.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, to which <a href="#probe" class="auto internal xref">Section 9.2</a> specifies the
+<span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.1.1" class="relref">Section 6.1.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, to which <a href="#probe" class="auto internal xref">Section 8.2</a> specifies the
 client's response, and any mechanism by which an attacker induces a
 client to select a transport or path that receives weaker protection;
 a document specifying RPC over another transport can cite this
-section for the latter.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+section for the latter.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="probe">
-<section id="section-9.2">
+<section id="section-8.2">
         <h3 id="name-auth_tls-probe-outcomes">
-<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-auth_tls-probe-outcomes" class="section-name selfRef">AUTH_TLS probe outcomes</a>
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-auth_tls-probe-outcomes" class="section-name selfRef">AUTH_TLS probe outcomes</a>
         </h3>
-<p id="section-9.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> specifies that a client that does not
+<p id="section-8.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> specifies that a client that does not
 receive the "STARTTLS" indication <span class="bcp14">MUST NOT</span> send a ClientHello, and
 that "RPC operation may continue, depending on local policy, but
 without confidentiality, integrity, or peer authentication protection
-from (D)TLS".  This document specifies that local policy.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2-2">A client classifies the result of the AUTH_TLS probe into exactly one
-of the following outcomes.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.2-3">
-          <dt id="section-9.2-3.1">ACCEPTED:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.2">
-            <p id="section-9.2-3.2.1">A Reply was received with a reply_stat of MSG_ACCEPTED and an
+from (D)TLS".  This document specifies that local policy.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">A client classifies the result of the AUTH_TLS probe into exactly one
+of the following outcomes.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.2-3">
+          <dt id="section-8.2-3.1">ACCEPTED:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.2">
+            <p id="section-8.2-3.2.1">A Reply was received with a reply_stat of MSG_ACCEPTED and an
 AUTH_NONE verifier containing the "STARTTLS" token, as specified in
-<span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+<span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.3">DECLINED:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.4">
-            <p id="section-9.2-3.4.1">A complete, well-formed Reply to the probe was received that
+<dt id="section-8.2-3.3">DECLINED:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.4">
+            <p id="section-8.2-3.4.1">A complete, well-formed Reply to the probe was received that
 indicates the server does not support RPC-with-TLS.  This comprises
 a reply_stat of MSG_ACCEPTED with an AUTH_NONE verifier that does
 not carry the "STARTTLS" token, and a reply_stat of MSG_DENIED with
 a reject_stat of AUTH_ERROR.  These are the responses produced by a
 server that does not implement the AUTH_TLS authentication flavor;
 in particular, AUTH_ERROR is how a server predating <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>
-rejects an unrecognized flavor.<a href="#section-9.2-3.4.1" class="pilcrow">¶</a></p>
+rejects an unrecognized flavor.<a href="#section-8.2-3.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.5">RPCERR:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.6">
-            <p id="section-9.2-3.6.1">A complete, well-formed Reply was received that is neither of the
+<dt id="section-8.2-3.5">RPCERR:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.6">
+            <p id="section-8.2-3.6.1">A complete, well-formed Reply was received that is neither of the
 above -- for example a reply_stat of MSG_DENIED with a reject_stat
 of RPC_MISMATCH, or a reply_stat of MSG_ACCEPTED with a verifier
-whose flavor is not AUTH_NONE.<a href="#section-9.2-3.6.1" class="pilcrow">¶</a></p>
+whose flavor is not AUTH_NONE.<a href="#section-8.2-3.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.7">MALFORMED:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.8">
-            <p id="section-9.2-3.8.1">A response was received that cannot be parsed as a well-formed RPC
+<dt id="section-8.2-3.7">MALFORMED:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.8">
+            <p id="section-8.2-3.8.1">A response was received that cannot be parsed as a well-formed RPC
 Reply to the probe, or whose verifier length is inconsistent with
-its declared flavor.<a href="#section-9.2-3.8.1" class="pilcrow">¶</a></p>
+its declared flavor.<a href="#section-8.2-3.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.9">UNREACHABLE:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.10">
-            <p id="section-9.2-3.10.1">The connection was refused or reset, or was closed before a Reply
-was received.<a href="#section-9.2-3.10.1" class="pilcrow">¶</a></p>
+<dt id="section-8.2-3.9">UNREACHABLE:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.10">
+            <p id="section-8.2-3.10.1">The connection was refused or reset, or was closed before a Reply
+was received.<a href="#section-8.2-3.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.11">TIMEOUT:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.12">
-            <p id="section-9.2-3.12.1">No response was received within the client's timeout.<a href="#section-9.2-3.12.1" class="pilcrow">¶</a></p>
+<dt id="section-8.2-3.11">TIMEOUT:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.12">
+            <p id="section-8.2-3.12.1">No response was received within the client's timeout.<a href="#section-8.2-3.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.2-3.13">LOCAL:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.2-3.14">
-            <p id="section-9.2-3.14.1">A local resource failure prevented the probe from being sent, or its
-result from being determined.<a href="#section-9.2-3.14.1" class="pilcrow">¶</a></p>
+<dt id="section-8.2-3.13">LOCAL:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-3.14">
+            <p id="section-8.2-3.14.1">A local resource failure prevented the probe from being sent, or its
+result from being determined.<a href="#section-8.2-3.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="fallback">
-<section id="section-9.3">
+<section id="section-8.3">
         <h3 id="name-cleartext-fallback">
-<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-cleartext-fallback" class="section-name selfRef">Cleartext fallback</a>
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-cleartext-fallback" class="section-name selfRef">Cleartext fallback</a>
         </h3>
-<p id="section-9.3-1"><a href="#fallback-table" class="auto internal xref">Table 2</a> states whether a client in opportunistic mode may
+<p id="section-8.3-1"><a href="#fallback-table" class="auto internal xref">Table 1</a> states whether a client in opportunistic mode may
 continue in cleartext.  A client in mandatory mode never does.  Any
 probe outcome other than ACCEPTED fails the association attempt
-(<a href="#modes" class="auto internal xref">Section 4.1</a>).<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+(<a href="#modes" class="auto internal xref">Section 4.1</a>).<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <span id="name-cleartext-fallback-by-auth_"></span><div id="fallback-table">
-<table class="center" id="table-2">
+<table class="center" id="table-1">
           <caption>
-<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#table-1" class="selfRef">Table 1</a>:
 <a href="#name-cleartext-fallback-by-auth_" class="selfRef">Cleartext fallback by AUTH_TLS probe outcome</a>
           </caption>
 <thead>
@@ -2509,72 +2345,70 @@ probe outcome other than ACCEPTED fails the association attempt
           </tbody>
         </table>
 </div>
-<p id="section-9.3-3">Only DECLINED permits cleartext operation, and only where no floor has
+<p id="section-8.3-3">Only DECLINED permits cleartext operation, and only where no floor has
 been pinned.  The other non-ACCEPTED outcomes are what an attacker
 interfering with the cleartext exchange looks like; a client that
 treats them as declines has no downgrade resistance even against an
-attacker who cannot forge a well-formed Reply.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
-<p id="section-9.3-4">[[TODO: Whether opportunistic mode should instead take the stricter
+attacker who cannot forge a well-formed Reply.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+<p id="section-8.3-4">[[TODO: Whether opportunistic mode should instead take the stricter
 policy of Section 6.1.1 and <span><a href="https://rfc-editor.org/rfc/rfc9289#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, at the cost of
 reachability to servers that predate it, is open.
-https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 ]]<a href="#section-9.3-4" class="pilcrow">¶</a></p>
+https://github.com/chucklever/i-d-rpc-tls-dane/issues/4 ]]<a href="#section-8.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="no-retry">
-<section id="section-9.4">
+<section id="section-8.4">
         <h3 id="name-failure-after-a-handshake-i">
-<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-failure-after-a-handshake-i" class="section-name selfRef">Failure after a handshake is attempted</a>
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-failure-after-a-handshake-i" class="section-name selfRef">Failure after a handshake is attempted</a>
         </h3>
-<p id="section-9.4-1">Once the AUTH_TLS probe has been ACCEPTED and a (D)TLS handshake has
+<p id="section-8.4-1">Once the AUTH_TLS probe has been ACCEPTED and a (D)TLS handshake has
 been attempted, the client <span class="bcp14">MUST NOT</span> retry the association attempt in
 cleartext, whatever the DNS outcome class and whatever the reason the
 handshake or the subsequent authentication failed.  This holds for
 DANE mismatches, PKIX validation failures where PKIX applies, TLS
 negotiation failures, and the unavailability of whatever local
-component performs the handshake.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.4-2"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> describes a client that reports a
+component performs the handshake.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.4-2"><span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> describes a client that reports a
 handshake failure after a successful probe the same way it reports an
 AUTH_ERROR rejection; a client implementing this document <span class="bcp14">MUST</span>
-report it that way.<a href="#section-9.4-2" class="pilcrow">¶</a></p>
+report it that way.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="coherence">
-<section id="section-9.5">
+<section id="section-8.5">
         <h3 id="name-coherence-within-an-associa">
-<a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-coherence-within-an-associa" class="section-name selfRef">Coherence within an association attempt</a>
+<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-coherence-within-an-associa" class="section-name selfRef">Coherence within an association attempt</a>
         </h3>
-<p id="section-9.5-1">How an implementation obtains DNS data, how many times within one
+<p id="section-8.5-1">How an implementation obtains DNS data, how many times within one
 association attempt it evaluates <a href="#lookup" class="auto internal xref">Section 7</a>, and how a policy result
 reaches the point at which the handshake is authenticated are
 implementation matters.  Two properties are required of any
-arrangement.<a href="#section-9.5-1" class="pilcrow">¶</a></p>
+arrangement.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.5-2.1">
-            <p id="section-9.5-2.1.1">A client <span class="bcp14">MUST</span> evaluate the DNS outcome class from DNS data that is
+<li class="normal" id="section-8.5-2.1">
+            <p id="section-8.5-2.1.1">A client <span class="bcp14">MUST</span> evaluate the DNS outcome class from DNS data that is
 current at the time of the association attempt, and <span class="bcp14">MUST NOT</span> reuse
 an outcome obtained for an earlier attempt beyond the TTL of the
 DNS data it was derived from.  The security floor is not such a
-result: it persists across attempts (<a href="#floor" class="auto internal xref">Section 9.1</a>), and a fresh
-evaluation can pin a floor or leave one in place but never remove
-it.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
+result.  It persists across attempts (<a href="#floor" class="auto internal xref">Section 8.1</a>).<a href="#section-8.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.5-2.2">
-            <p id="section-9.5-2.2.1">Within one association attempt, a client <span class="bcp14">MUST NOT</span> conclude at a
+          <li class="normal" id="section-8.5-2.2">
+            <p id="section-8.5-2.2.1">Within one association attempt, a client <span class="bcp14">MUST NOT</span> conclude at a
 security level weaker than any determination it has already made
 during that attempt.  Where two evaluations during one attempt
-disagree, the stronger conclusion governs.<a href="#section-9.5-2.2.1" class="pilcrow">¶</a></p>
+disagree, the stronger conclusion governs.<a href="#section-8.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.5-3">The second property is what makes the mechanism resistant to an
+<p id="section-8.5-3">The second property is what makes the mechanism resistant to an
 attacker who can affect the timing of DNS answers.  Under it,
 SECURE_USABLE is stronger than SECURE_UNUSABLE, and SECURE_UNUSABLE
 is stronger than SECURE_ABSENT and INSECURE, which are equal to each
 other.  An evaluation whose outcome is ERROR fails the attempt
-(<a href="#behavior" class="auto internal xref">Section 8.4</a>) and takes no part in the ordering.  The stronger
+(<a href="#behavior" class="auto internal xref">Section 9.4</a>) and takes no part in the ordering.  The stronger
 conclusion governs regardless of which evaluation produced it, so a
 later evaluation that finds a usable RRset where an earlier one did
-not replaces the earlier conclusion.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
-<p id="section-9.5-4">The second property orders outcome classes, not the contents of two
+not replaces the earlier conclusion.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+<p id="section-8.5-4">The second property orders outcome classes, not the contents of two
 RRsets.  Where two evaluations during one attempt both yield
 SECURE_USABLE and their usable records differ, the client <span class="bcp14">MUST</span>
 authenticate the server against the usable records of one of those
@@ -2582,7 +2416,152 @@ evaluations as a whole, and <span class="bcp14">MUST NOT</span> combine records 
 different evaluations.  A TLSA RRset republished mid-attempt during
 a key rollover produces this case; when the publisher has observed
 <a href="#rollover" class="auto internal xref">Section 5.4</a>, both RRsets match the certificate the server presents
-and the attempt succeeds whichever one the client uses.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+and the attempt succeeds whichever one the client uses.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="authn">
+<section id="section-9">
+      <h2 id="name-authenticating-the-server">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-authenticating-the-server" class="section-name selfRef">Authenticating the Server</a>
+      </h2>
+<div id="usages">
+<section id="section-9.1">
+        <h3 id="name-certificate-usages">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-certificate-usages" class="section-name selfRef">Certificate usages</a>
+        </h3>
+<p id="section-9.1-1">A client implementing this document <span class="bcp14">MUST</span> support certificate usages
+DANE-EE(3) and DANE-TA(2).  Both are used with the semantics given in
+Sections <a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">5.1</a> and <a href="https://rfc-editor.org/rfc/rfc7671#section-5.2" class="relref">5.2</a> of <span>[<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> respectively.  <span><a href="https://rfc-editor.org/rfc/rfc7671#section-4" class="relref">Section 4</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> recommends exactly this pair, and cautions that
+simultaneous support for all four usages is not recommended.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.1-2">Support for certificate usages PKIX-TA(0) and PKIX-EE(1) is <span class="bcp14">OPTIONAL</span>.
+A client that does not support them treats records carrying them as
+unusable in step 2 of <a href="#usable" class="auto internal xref">Section 7.5</a>.  Where such records are the only
+ones published, the outcome is SECURE_UNUSABLE, and <a href="#behavior" class="auto internal xref">Section 9.4</a>
+requires the client to authenticate the server by the PKIX rules of
+<span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.  That check is weaker than the
+published records call for, but never weaker than <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> alone.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
+<p id="section-9.1-3">A client <span class="bcp14">MUST</span> support the selectors Cert(0) and SPKI(1) and the
+matching types Full(0) and SHA2-256(1), which is the support that
+<span><a href="https://rfc-editor.org/rfc/rfc6698#section-6" class="relref">Section 6</a> of [<a href="#RFC6698" class="cite xref">RFC6698</a>]</span> lets publishers rely on.  Support for
+SHA2-512(2) is <span class="bcp14">RECOMMENDED</span>.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dane-ee">
+<section id="section-9.2">
+        <h3 id="name-dane-ee3">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-dane-ee3" class="section-name selfRef">DANE-EE(3)</a>
+        </h3>
+<p id="section-9.2-1">Authentication by a DANE-EE(3) record consists of matching the
+server's end-entity certificate, or its SubjectPublicKeyInfo, against
+the certificate association data of a usable record, per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2-2">When such a match succeeds, the server is authenticated.  In
+particular, and following <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>:<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.2-3.1">
+            <p id="section-9.2-3.1.1">The client <span class="bcp14">MUST NOT</span> reject the server because no name in the
+presented certificate matches the reference name or the selected
+TLSA base domain.  The binding of key to name is made by the TLSA
+record, not by the certificate.<a href="#section-9.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-3.2">
+            <p id="section-9.2-3.2.1">The client <span class="bcp14">MUST NOT</span> reject the server because the presented
+certificate is expired or not yet valid.  The validity of the
+binding is the validity of the DNSSEC signatures over the TLSA
+RRset.<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-3.3">
+            <p id="section-9.2-3.3.1">The client <span class="bcp14">MUST NOT</span> require that the presented certificate chain to
+a trusted certification authority.<a href="#section-9.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.2-4">Consequently a self-signed server certificate, published as a
+DANE-EE(3) record with selector SPKI(1) and matching type
+SHA2-256(1), is a fully conforming deployment; see
+<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dane-ta">
+<section id="section-9.3">
+        <h3 id="name-dane-ta2">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-dane-ta2" class="section-name selfRef">DANE-TA(2)</a>
+        </h3>
+<p id="section-9.3-1">Authentication by a DANE-TA(2) record consists of validating the
+server's certificate chain to the trust anchor the record identifies,
+per <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.2" class="relref">Section 5.2</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>, and then performing name checks
+against the reference identifiers determined in <a href="#selected" class="auto internal xref">Section 7.6</a>.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.3-2">Those name checks are performed per <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, retaining the
+restriction in <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> that a DNS domain name in
+an RPC-with-TLS certificate <span class="bcp14">MUST NOT</span> contain the wildcard character
+"*".<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="behavior">
+<section id="section-9.4">
+        <h3 id="name-required-client-behavior-by">
+<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-required-client-behavior-by" class="section-name selfRef">Required client behavior by outcome class</a>
+        </h3>
+<p id="section-9.4-1"><a href="#behavior-table" class="auto internal xref">Table 2</a> states what a client in opportunistic mode <span class="bcp14">MUST</span> do
+for each DNS outcome class.  In mandatory mode the SECURE_USABLE row
+applies, with TLS required whatever the provenance of the port, and
+every other outcome fails the association attempt (<a href="#modes" class="auto internal xref">Section 4.1</a>).  In
+every case where authentication is required, failure of that
+authentication fails the association attempt; see <a href="#no-retry" class="auto internal xref">Section 8.4</a>.  The
+authentication requirements in the table apply to any (D)TLS session
+that is established, whatever the provenance of the port.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+<span id="name-required-client-behavior-by-"></span><div id="behavior-table">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-required-client-behavior-by-" class="selfRef">Required client behavior by DNS outcome class</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">DNS outcome</th>
+              <th class="text-left" rowspan="1" colspan="1">Opportunistic mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_USABLE</td>
+              <td class="text-left" rowspan="1" colspan="1">Pins a security floor (<a href="#floor" class="auto internal xref">Section 8.1</a>). The server <span class="bcp14">MUST</span> be authenticated by DANE per <a href="#authn" class="auto internal xref">Section 9</a>. PKIX authentication <span class="bcp14">MUST NOT</span> be substituted for it.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_UNUSABLE</td>
+              <td class="text-left" rowspan="1" colspan="1">Pins a security floor (<a href="#floor" class="auto internal xref">Section 8.1</a>). The server <span class="bcp14">MUST</span> be authenticated per <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">SECURE_ABSENT</td>
+              <td class="text-left" rowspan="1" colspan="1">Does not pin a floor (<a href="#floor" class="auto internal xref">Section 8.1</a>). A TLS session is authenticated per <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">INSECURE</td>
+              <td class="text-left" rowspan="1" colspan="1">As for SECURE_ABSENT.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">ERROR</td>
+              <td class="text-left" rowspan="1" colspan="1">The attempt <span class="bcp14">MUST</span> fail.</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-9.4-3">The SECURE_USABLE row is the central requirement of this document.  A
+client <span class="bcp14">MUST NOT</span> accept a PKIX authentication in place of the DANE
+authentication the RRset calls for, however trusted the issuing
+certification authority; that substitution would return control of
+the association's authentication to whoever can obtain a certificate
+for the name, which is what the TLSA RRset was published to prevent.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.4-4">The SECURE_UNUSABLE row strengthens the guidance in <span><a href="https://rfc-editor.org/rfc/rfc7671#section-10.3" class="relref">Section 10.3</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> and <span><a href="https://rfc-editor.org/rfc/rfc7672#section-2.2" class="relref">Section 2.2</a> of [<a href="#RFC7672" class="cite xref">RFC7672</a>]</span>, which require only
+unauthenticated TLS in this case; <span><a href="https://rfc-editor.org/rfc/rfc7671#section-10.3" class="relref">Section 10.3</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span>
+anticipates such a strengthening where expecting it is realistic for
+the application protocol.  For RPC-with-TLS the intermediate position
+is not available at all.  In both client deployment modes of
+<span><a href="https://rfc-editor.org/rfc/rfc9289#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> the server presents an identity that the
+client can authenticate, and <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> specifies
+what validation of the server's certificate <span class="bcp14">MUST</span> include.  Accepting
+unauthenticated TLS here would therefore be a downgrade relative to
+the base specification rather than an improvement on cleartext.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2687,7 +2666,7 @@ was made because the destination carries no DANE binding
           <p id="section-11-2.5.1">the selected TLSA base domain, where one was determined;<a href="#section-11-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.6">
-          <p id="section-11-2.6.1">the AUTH_TLS probe outcome (<a href="#probe" class="auto internal xref">Section 9.2</a>), or an indication that the
+          <p id="section-11-2.6.1">the AUTH_TLS probe outcome (<a href="#probe" class="auto internal xref">Section 8.2</a>), or an indication that the
 attempt failed before a probe was sent;<a href="#section-11-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.7">
@@ -2762,8 +2741,8 @@ determination and result reduction of <a href="#lookup" class="auto internal xre
 CNAME expansion; the five outcome classes of <a href="#outcomes" class="auto internal xref">Section 7.2</a>; the
 usability filtering and digest algorithm agility of <a href="#usable" class="auto internal xref">Section 7.5</a>; the
 reference-identity rules of <a href="#selected" class="auto internal xref">Section 7.6</a>; certificate usage
-DANE-EE(3) (<a href="#dane-ee" class="auto internal xref">Section 8.2</a>); and the authentication behavior of
-<a href="#behavior" class="auto internal xref">Section 8.4</a> for both the client-anonymous and the mutually
+DANE-EE(3) (<a href="#dane-ee" class="auto internal xref">Section 9.2</a>); and the authentication behavior of
+<a href="#behavior" class="auto internal xref">Section 9.4</a> for both the client-anonymous and the mutually
 authenticated handshake path.<a href="#section-12.1-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
@@ -2814,7 +2793,7 @@ and <span>[<a href="#RFC4033" class="cite xref">RFC4033</a>]</span> apply.<a hre
 that the operator of the TLSA base domain's zone published for that
 service at that port and transport.  It establishes nothing about the
 names in the presented certificate, its validity dates, or its issuer
-(<a href="#dane-ee" class="auto internal xref">Section 8.2</a>).  A deployment that relies on certificate contents for
+(<a href="#dane-ee" class="auto internal xref">Section 9.2</a>).  A deployment that relies on certificate contents for
 authorization -- an extended key usage check, a certificate policy, a
 subjectAltName URI -- as <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> permits, needs
 to keep performing those checks independently; a DANE match does not
@@ -2839,7 +2818,7 @@ each bounded by a signature validity period rather than by anything
 the client can do.<a href="#section-13.2-1" class="pilcrow">¶</a></p>
 <p id="section-13.2-2">An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
-period; the client assigns SECURE_ABSENT and does not pin a floor
+period.  The client assigns SECURE_ABSENT and does not pin a floor
 (<a href="#adaptive" class="auto internal xref">Appendix A.3</a>).<a href="#section-13.2-2" class="pilcrow">¶</a></p>
 <p id="section-13.2-3">An attacker who captured the parent zone's signed proof that the
 operator's zone has no DS RRset, before the operator signed that zone,
@@ -2850,22 +2829,22 @@ period of the parent zone's signatures, which the operator of the
 service does not choose.<a href="#section-13.2-3" class="pilcrow">¶</a></p>
 <p id="section-13.2-4">An attacker who holds a key the operator has withdrawn can replay the
 TLSA RRset that still names it, and a client will authenticate the
-peer; since <a href="#dane-ee" class="auto internal xref">Section 8.2</a> disregards the certificate's validity dates,
+peer; since <a href="#dane-ee" class="auto internal xref">Section 9.2</a> disregards the certificate's validity dates,
 the RRset's signatures are the only expiry.  The mitigation is
 operational and belongs to the publisher (<a href="#ta-distribution" class="auto internal xref">Appendix A.1</a>).<a href="#section-13.2-4" class="pilcrow">¶</a></p>
 <p id="section-13.2-5">A security floor, once pinned, persists for the lifetime of the
-association (<a href="#floor" class="auto internal xref">Section 9.1</a>).  A replayed denial therefore cannot authorize
-cleartext operation once a floor is pinned: replayed at a reconnect,
+association (<a href="#floor" class="auto internal xref">Section 8.1</a>).  A replayed denial therefore cannot authorize
+cleartext operation once a floor is pinned.  Replayed at a reconnect,
 it leaves the floor in place, and a forged decline fails the attempt
 rather than permitting fallback.<a href="#section-13.2-5" class="pilcrow">¶</a></p>
-<p id="section-13.2-6">That guarantee has two limits.  An association whose attempts have so
-far pinned no floor stays exposed to the replay at every later
-attempt, until an evaluation pins one.  And the floor requires an
-authenticated TLS session, not DANE authentication.  An attempt that
+<p id="section-13.2-6">An association whose attempts have not yet pinned a floor stays
+exposed to the replay at every later attempt, until an evaluation pins
+one.  The floor also requires only an authenticated TLS session, not
+DANE authentication.  An attempt that
 a replayed denial leaves at SECURE_ABSENT or INSECURE authenticates
 the server by the PKIX rules of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>, so
 within the replay window an attacker who can present a certificate
-those rules accept regains the substitution that <a href="#behavior" class="auto internal xref">Section 8.4</a> forbids
+those rules accept regains the substitution that <a href="#behavior" class="auto internal xref">Section 9.4</a> forbids
 for SECURE_USABLE.  Where the client trusts no certification
 authority that would issue such a certificate, as in the deployment
 <a href="#ta-distribution" class="auto internal xref">Appendix A.1</a> describes, the attempt fails.<a href="#section-13.2-6" class="pilcrow">¶</a></p>
@@ -2881,24 +2860,23 @@ established.<a href="#section-13.2-7" class="pilcrow">¶</a></p>
         <h3 id="name-fail-closed-behavior-is-a-d">
 <a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-fail-closed-behavior-is-a-d" class="section-name selfRef">Fail-closed behavior is a denial-of-service surface</a>
         </h3>
-<p id="section-13.3-1">The rules in <a href="#behavior" class="auto internal xref">Section 8.4</a>, <a href="#fallback" class="auto internal xref">Section 9.3</a>, and <a href="#coherence" class="auto internal xref">Section 9.5</a> require a
+<p id="section-13.3-1">The rules in <a href="#behavior" class="auto internal xref">Section 9.4</a>, <a href="#fallback" class="auto internal xref">Section 8.3</a>, and <a href="#coherence" class="auto internal xref">Section 8.5</a> require a
 client to fail an association attempt in circumstances where an
 <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> client would have continued.  An attacker who can disrupt
 the client's DNS -- by dropping responses, by inducing SERVFAIL, or by
 corrupting signatures to produce a bogus validation result -- can
 therefore prevent the client from establishing associations.  The
-exposure extends to an association already established: each
+exposure extends to an association already established.  Each
 reconnection is an association attempt and evaluates the DNS outcome
-afresh (<a href="#coherence" class="auto internal xref">Section 9.5</a>), so a disruption of DNS that coincides with
+afresh (<a href="#coherence" class="auto internal xref">Section 8.5</a>), so a disruption of DNS that coincides with
 the loss of a connection keeps the association from recovering.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
-<p id="section-13.3-2">This is a deliberate trade: degrading when DNS is disrupted hands the
-same attacker the ability to strip protection silently, and an
+<p id="section-13.3-2">The trade is deliberate.  Degrading when DNS is disrupted would hand
+the same attacker the ability to strip protection silently, and an
 attacker who can disrupt DNS can usually disrupt the RPC traffic
-itself.  Opportunistic
-mode does not relieve this exposure, since ERROR fails the attempt in
-both active modes; operators for whom availability outweighs
-confidentiality express that by leaving DANE disabled for the
-associations concerned.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
+itself.  Opportunistic mode does not relieve this exposure, since
+ERROR fails the attempt in both active modes.  Operators for whom
+availability outweighs confidentiality express that by leaving DANE
+disabled for the associations concerned.<a href="#section-13.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-ports">
@@ -2994,7 +2972,7 @@ client name maps onto RPC-layer authorization.  That is work for a
 separate document.<a href="#section-13.7-1" class="pilcrow">¶</a></p>
 <p id="section-13.7-2">Until then, a deployment that requires mutual authentication uses the
 PKIX mechanism of <span><a href="https://rfc-editor.org/rfc/rfc9289#section-5.2.1" class="relref">Section 5.2.1</a> of [<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> for the client
-direction and DANE for the server direction; <a href="#behavior" class="auto internal xref">Section 8.4</a> applies to
+direction and DANE for the server direction; <a href="#behavior" class="auto internal xref">Section 9.4</a> applies to
 the server's certificate whether or not the client presents one.<a href="#section-13.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3159,31 +3137,31 @@ _2049._tcp.nfs.example.com. IN TLSA 3 1 1 (
           </figcaption></figure>
 <p id="appendix-A.1-3">Clients then need no certification authority material for those
 servers, the operator maintains the binding in one place, and by
-<a href="#dane-ee" class="auto internal xref">Section 8.2</a> the certificate may be self-signed with any notAfter
+<a href="#dane-ee" class="auto internal xref">Section 9.2</a> the certificate may be self-signed with any notAfter
 date.  Keeping the RRset and certificates in step, in particular
-during key rollover, is specified in <a href="#rollover" class="auto internal xref">Section 5.4</a>.  Withdrawing DANE takes
-the same posture: a client that has pinned a floor for an association
-keeps requiring authenticated TLS until that association ends
-(<a href="#floor" class="auto internal xref">Section 9.1</a>), so removing the RRset lowers what clients require only
-as they remount.  Where clients hold no certification authority
-material for the server, an association with a pinned floor cannot
-re-establish a connection once the RRset is gone: the floor still
-requires an authenticated session, and nothing remains to
-authenticate it against.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-4">The signature validity period the operator chooses bounds the replay
+during key rollover, is specified in <a href="#rollover" class="auto internal xref">Section 5.4</a>.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">A client that has pinned a floor for an association keeps requiring
+authenticated TLS until that association ends (<a href="#floor" class="auto internal xref">Section 8.1</a>), so
+removing the RRset lowers what clients require only as they remount.
+Where clients hold no certification authority material for the
+server, an association with a pinned floor cannot re-establish a
+connection once the RRset is gone.  The floor still requires an
+authenticated session, and nothing remains to authenticate it
+against.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">The signature validity period the operator chooses bounds the replay
 windows described in <a href="#replay" class="auto internal xref">Section 13.2</a>, except that of a replayed proof of
 an unsigned delegation, which the parent zone's signatures bound.
 <span><a href="https://rfc-editor.org/rfc/rfc7671#section-11" class="relref">Section 11</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> suggests
-a lifetime of a few days for domains publishing high-value keys.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-5">A publisher of DANE-TA(2) records has one further obligation.  A
+a lifetime of a few days for domains publishing high-value keys.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-6">A publisher of DANE-TA(2) records has one further obligation.  A
 client validates the server's chain to the trust anchor the record
-identifies (<a href="#dane-ta" class="auto internal xref">Section 8.3</a>), and it has no trust store in which to
+identifies (<a href="#dane-ta" class="auto internal xref">Section 9.3</a>), and it has no trust store in which to
 find that anchor.  Unless the record carries the full trust anchor
 certificate, the server therefore has to include the anchor in the
 chain it presents, even a self-signed root that a TLS server would
 ordinarily omit; <span><a href="https://rfc-editor.org/rfc/rfc7671#section-5.2.2" class="relref">Section 5.2.2</a> of [<a href="#RFC7671" class="cite xref">RFC7671</a>]</span> states the
-requirement.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-6">The Server Name Indication value such a deployment receives is not
+requirement.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-7">The Server Name Indication value such a deployment receives is not
 fixed.  <a href="#selected" class="auto internal xref">Section 7.6</a> sends the selected TLSA base domain when the
 outcome is SECURE_USABLE and the original reference name when it is
 SECURE_UNUSABLE, and the two differ whenever the RRset was found at
@@ -3193,7 +3171,7 @@ it does not recognize, rejects clients that conform to this
 document.  A server should instead present its default certificate,
 the one its TLSA RRset matches, when the SNI value is absent or
 unrecognized.  <span><a href="https://rfc-editor.org/rfc/rfc7672#section-8.1" class="relref">Section 8.1</a> of [<a href="#RFC7672" class="cite xref">RFC7672</a>]</span> gives SMTP servers the
-same guidance for the same reason.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+same guidance for the same reason.<a href="#appendix-A.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="unsigned">
@@ -3244,32 +3222,32 @@ the DNS outcome.<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
 where the detail and the discussion live.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-B-3.1">
-          <p id="appendix-B-3.1.1"><a href="#probe" class="auto internal xref">Section 9.2</a>: whether the partition of AUTH_TLS probe results, and in
+          <p id="appendix-B-3.1.1"><a href="#probe" class="auto internal xref">Section 8.2</a>: whether the partition of AUTH_TLS probe results, and in
 particular which of them count as DECLINED, preserves reachability
 to the pre-<span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span> server population.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/3">Issue 3</a><a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.2">
-          <p id="appendix-B-3.2.1"><a href="#fallback" class="auto internal xref">Section 9.3</a>: whether cleartext operation remains permitted where no
+          <p id="appendix-B-3.2.1"><a href="#fallback" class="auto internal xref">Section 8.3</a>: whether cleartext operation remains permitted where no
 floor has been pinned and the server declines, or opportunistic mode
 takes the stricter policy of Section <a href="https://rfc-editor.org/rfc/rfc9289#section-6.1.1" class="relref">6.1.1</a> and Section <a href="https://rfc-editor.org/rfc/rfc9289#section-6.4" class="relref">6.4</a> of <span>[<a href="#RFC9289" class="cite xref">RFC9289</a>]</span>; and whether a failed handshake is remembered across
 association attempts.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/4">Issue 4</a><a href="#appendix-B-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.3">
-          <p id="appendix-B-3.3.1"><a href="#usages" class="auto internal xref">Section 8.1</a>: whether support for certificate usages PKIX-TA(0) and
+          <p id="appendix-B-3.3.1"><a href="#usages" class="auto internal xref">Section 9.1</a>: whether support for certificate usages PKIX-TA(0) and
 PKIX-EE(1) stays optional, or a client always treats records
 carrying them as unusable.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/5">Issue 5</a><a href="#appendix-B-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.4">
-          <p id="appendix-B-3.4.1"><a href="#coherence" class="auto internal xref">Section 9.5</a>: how a resumed TLS session, in which the server
+          <p id="appendix-B-3.4.1"><a href="#coherence" class="auto internal xref">Section 8.5</a>: how a resumed TLS session, in which the server
 presents no certificate, satisfies the DANE authentication the
 current attempt's DNS outcome requires.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/9">Issue 9</a><a href="#appendix-B-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.5">
-          <p id="appendix-B-3.5.1"><a href="#floor" class="auto internal xref">Section 9.1</a>: whether a security floor covers connections to other RPC
+          <p id="appendix-B-3.5.1"><a href="#floor" class="auto internal xref">Section 8.1</a>: whether a security floor covers connections to other RPC
 programs on other ports of the same server, such as RPCBIND, or
 only the port it was determined on.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/10">Issue 10</a><a href="#appendix-B-3.5.1" class="pilcrow">¶</a></p>
@@ -3290,7 +3268,7 @@ the TLSA base domain, or queries only at the reference name.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/13">Issue 13</a><a href="#appendix-B-3.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.9">
-          <p id="appendix-B-3.9.1"><a href="#coherence" class="auto internal xref">Section 9.5</a>: whether one evaluation of the DNS outcome is
+          <p id="appendix-B-3.9.1"><a href="#coherence" class="auto internal xref">Section 8.5</a>: whether one evaluation of the DNS outcome is
 authoritative for an association attempt.
 <a href="https://github.com/chucklever/i-d-rpc-tls-dane/issues/14">Issue 14</a><a href="#appendix-B-3.9.1" class="pilcrow">¶</a></p>
 </li>
