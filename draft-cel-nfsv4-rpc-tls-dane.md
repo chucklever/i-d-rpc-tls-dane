@@ -67,8 +67,8 @@ informative:
 RPC-with-TLS assumes that DNS-Based Authentication of Named Entities
 (DANE) is available on platforms where it is deployed, and recommends
 that a client operating under an opportunistic security policy check
-for a TLSA record before initiating an association, but does not say
-how.  This document specifies the missing details, so that a TLSA
+for a TLSA record before initiating an association, but does not
+specify how.  This document specifies the missing details, so that a TLSA
 record authenticates an RPC server with no certification authority
 trust anchor provisioned on the client.  It updates RFC 9289.
 
@@ -81,42 +81,39 @@ RPC-with-TLS {{RFC9289}} protects Remote Procedure Call {{RFC5531}}
 traffic by encapsulating it in a TLS {{RFC9846}} session.  A client
 discovers whether a server supports the mechanism by sending a NULL
 procedure carrying the AUTH_TLS authentication flavor, in cleartext,
-before the TLS handshake begins.  A server that supports RPC-with-TLS
-replies with a "STARTTLS" token, after which the client sends a
-ClientHello on the same connection or to the same UDP destination
-port.
+before sending a TLS handshake.  A server that supports RPC-with-TLS
+replies with a "STARTTLS" token.  The client then sends a ClientHello
+on the same connection or to the same UDP destination port.
 
 {{Section 5.2.1 of RFC9289}} requires every RPC-with-TLS implementation
 to support authenticating server certificates by PKIX {{RFC5280}} trust
 against a locally configured expected DNS-ID.  The client resolves
-that name in the DNS to reach the server, but the DNS supplies nothing
-that authenticates the server or that says the server is expected to
-speak TLS.  Two deployment problems follow:
+the server's hostname using the DNS, but today the DNS supplies nothing
+that authenticates the server or that indicates the server is expected
+to support RPC-with-TLS.  This raises two critical issues:
 
-* Trust anchor distribution.  Every client must be provisioned with
-  the certification authority material needed to validate the servers
-  it will contact, and kept current as certificates are rotated.  A
-  server operator without a certification authority has no way to
-  tell clients what key to expect other than by configuring each of
-  them.
+* Every client must be provisioned with the certification authority
+  material needed to validate the servers it will contact, and kept
+  current as certificates are rotated.  A server operator without a
+  certification authority has no way to tell clients what key to
+  expect other than by configuring each of them.
 
-* STRIPTLS.  The AUTH_TLS probe and its reply are exchanged in
-  cleartext.  An on-path attacker who suppresses the probe, or
-  rewrites the reply so that it does not carry the "STARTTLS" token,
-  makes a TLS-capable server appear not to support RPC-with-TLS, and
-  a client under an opportunistic policy proceeds in cleartext.
-  Nothing the client learns on the way to the server tells it that
-  TLS was expected.
+* The AUTH_TLS probe and its reply are exchanged in cleartext.  An
+  on-path attacker who suppresses the probe or rewrites the reply
+  so that it does not carry the "STARTTLS" token makes a TLS-capable
+  server appear not to support RPC-with-TLS.  A client using an
+  opportunistic policy proceeds in cleartext rather than rejecting
+  the connection outright.
 
-{{RFC9289}} anticipated these problems and pointed at the same remedy
-for them, DNS-Based Authentication of Named Entities (DANE)
-{{RFC6698}}, in several places:
+{{RFC9289}} anticipated these issues, pointing at the same remedy
+for both of them: DNS-Based Authentication of Named Entities (DANE)
+{{RFC6698}}.
 
 * Section 1 lists DNSSEC/DANE among the platform facilities that
   RPC-with-TLS support is assumed to build on.
 
 * Section 6.1.1 offers a TLSA record as one of two mitigations for
-  STRIPTLS attacks: it "can alert clients that TLS is expected to
+  STRIPTLS attacks. It "can alert clients that TLS is expected to
   work, and provide a binding of a hostname to the X.509 identity",
   and a client under an opportunistic security policy should check
   for one before initiating an association.  The other mitigation, a
@@ -132,29 +129,26 @@ for them, DNS-Based Authentication of Named Entities (DANE)
 A TLSA RRset addresses both problems at once.  Published in a zone
 the operator already signs, it carries the binding between a server
 name and its public key in the DNS, alongside the name the client had
-to resolve anyway, so no client needs certification authority
-material for that server.  And because a DNSSEC-validated TLSA RRset
+to resolve anyway, so clients do not need certificate authority
+material for that server.  Because a DNSSEC-validated TLSA RRset
 is an authenticated statement by the server operator that TLS is
 expected to work, a client holding one can no longer treat silent
-fallback to cleartext as acceptable: the STRIPTLS attack fails
-closed.
+fallback to cleartext as acceptable.
 
 However, {{RFC9289}} offers a sketch rather than a specification.  It
 leaves unspecified the owner names at which a client queries for the
 TLSA record, whether a lookup failure is treated as an absent record,
 the name the client sends in SNI and verifies in the server's
 certificate when a record is found, and which outcomes of the AUTH_TLS
-probe still permit cleartext.  Two independent implementations
+probe still permit cleartext.  Independent implementations
 resolving these questions differently would not interoperate: one
 fails a handshake that the other completes.  A client that makes the
 permissive choice at each point obtains none of the downgrade
 resistance a TLSA record appears to promise.
 
-To close these gaps, this document specifies DANE
-for RPC-with-TLS completely enough to implement and deploy, following
-the operational specifications of {{RFC7671}} and {{RFC7672}} and
-making the RPC-specific choices those documents leave to application
-protocols.
+To close these gaps, this document specifies DANE for RPC-with-TLS
+completely enough to implement and deploy, following the operational
+specifications of {{RFC7671}} and {{RFC7672}}.
 
 ## Scope {#scope}
 
@@ -172,33 +166,33 @@ This document specifies the use of DANE to authenticate an RPC server
 to an RPC client.  Authentication of an RPC client to an RPC server by
 means of DANE is out of scope; see {{client-auth}}.
 
-This document applies where the server authenticates itself with a
-certificate.  A server association that uses the pre-shared key
-mechanism of {{Section 5.2.2 of RFC9289}} presents no certificate for
-DANE to authenticate. The procedures in this document do not apply to
-it.  The exclusion extends to downgrade resistance: such an
+This document applies only where the server authenticates itself with
+a certificate.  A server association that uses the pre-shared key
+mechanism of {{Section 5.2.2 of RFC9289}} does not present a certificate
+for DANE to authenticate. The procedures in this document do not apply
+to it.  This exclusion extends to downgrade resistance: such an
 association does not consult TLSA records to pin a security floor
 ({{floor}}).  The provisioned key is itself the operator's commitment
 to TLS, and it is already in the client's possession, so local policy
 can require TLS for the association without a DNS lookup.
 
 {{Section 5.1 of RFC7671}} also provides for matching a DANE-EE(3)
-record against a raw public key {{RFC7250}}; {{RFC9289}} defines no
+record against a raw public key {{RFC7250}}. {{RFC9289}} defines no
 way to convey one, so that case does not arise here.
 
 TLSA owner names are defined here for the transports {{RFC9289}}
-itself defines, namely TLS over TCP and DTLS over UDP.  A future
-document that specifies RPC over another transport is expected to
-define the corresponding owner-name convention.
+itself defines, which are TLS over TCP and DTLS over UDP.  A future
+document that specifies RPC over another transport can define its
+corresponding owner-name convention.
 
 # Updates to RFC 9289 {#updates}
 
 Support for DANE remains optional for an RPC-with-TLS implementation.
-The changes in this section bind a client that implements this
-document; an implementation of {{RFC9289}} that does not is
+The changes in this section apply to a client that implements this
+document.  An implementation of {{RFC9289}} that does not is
 unaffected.
 
-Two requirements of {{RFC9289}} are changed here:
+Requirements of {{RFC9289}} that are changed here include:
 
 * {{Section 5.2.1 of RFC9289}} requires PKIX path validation and a
   check of the expected DNS-ID or iPAddress subjectAltName against the
@@ -242,7 +236,7 @@ requirement stated in the section named:
   policy, and it is more restrictive than what {{RFC9289}} permits.
 
 This document also extends the audit log that {{Section 6.1 of
-RFC9289}} requires: {{audit}} adds to the required content of that
+RFC9289}} requires.  {{audit}} adds to the required content of that
 log and permits it to be assembled from correlatable events.
 
 Nothing in this document changes the TLS version, ALPN, cipher suite,
@@ -254,22 +248,23 @@ provisions for pre-shared keys or for RPCSEC_GSS.
 {::boilerplate bcp14-tagged}
 
 This document assumes a working knowledge of RPC version 2
-{{RFC5531}}, of RPC-with-TLS {{RFC9289}}, and of DANE {{RFC6698}}
+{{RFC5531}}, RPC-with-TLS {{RFC9289}}, and DANE {{RFC6698}}
 {{RFC7671}}.  It uses the DNSSEC validation states "secure",
 "insecure", and "bogus" as defined in {{Section 5 of RFC4033}}.  The
 definitions of "indeterminate" in {{Section 5 of RFC4033}} and
-{{Section 4.3 of RFC4035}} differ; this document classes a result
-that is indeterminate in either sense as ERROR ({{outcomes}}).
+{{Section 4.3 of RFC4035}} differ, therefore this document classes
+a result that is indeterminate in either sense as ERROR ({{outcomes}}).
 
 The following terms are used as defined here.
 
 Reference name:
 : The DNS domain name that identifies to the client the server it is
   contacting.  For an association established by administrative
-  configuration, it is the name that appeared in that configuration
-  -- for NFS, the server component of the mount specification.  For
-  a derived association ({{derived}}), it is the name the upper-layer
-  protocol supplied.  {{refname}} states the requirements on it.
+  configuration, it is the name that appeared in that configuration.
+  For NFS, this is the server component of the mount specification.
+  For a derived association ({{derived}}), it is the name the
+  upper-layer protocol supplied.  {{refname}} states the requirements
+  on it.
 
 TLSA base domain:
 : The domain name to which the port and transport labels are
@@ -364,17 +359,8 @@ Disabled:
   behavior is that specified by {{RFC9289}}.
 
 Opportunistic:
-: The client performs the procedures in this document.  A DNS outcome
-  class of SECURE_USABLE or SECURE_UNUSABLE pins a security floor,
-  except where {{provenance}} withholds it, and constrains the
-  association as specified in {{behavior}} and {{floor}}.
-  SECURE_ABSENT and INSECURE do not pin a floor; a floor pinned by
-  an earlier attempt still governs the association, and otherwise
-  {{fallback}} governs whether the attempt may proceed in cleartext.
-  Any
-  TLS session established is authenticated by the PKIX rules of
-  {{Section 5.2.1 of RFC9289}}.  ERROR fails the attempt
-  ({{behavior}}).  This mode is
+: The client performs the procedures in this document.  {{behavior}}
+  and {{floor}} govern each association attempt.  This mode is
   intended for fleet-wide deployment against a server population that
   has not uniformly published TLSA records; see {{adaptive}}.
 
@@ -417,14 +403,14 @@ NFS port over TCP publishes its TLSA RRset at
 The port in the owner name is the port to which the client actually
 connects, not a registered port for the RPC program in use.  RPC
 services are routinely offered on other ports, by site convention or
-by local configuration: a service reached on port 20490 over TCP at
-"nfs.example.com" publishes its TLSA RRset at
+by local configuration.  For instance, a service reached on port 20490
+over TCP at "nfs.example.com" publishes its TLSA RRset at
 "_20490._tcp.nfs.example.com", and a server that offers the same
 service on several ports publishes one TLSA RRset per port.
 
 Because the port is part of the owner name, a TLSA RRset authenticates
-the server at a known port and says nothing about the same server at
-another port, in the same way that {{Section 4.1 of RFC9289}} observes
+the server at a known port and asserts nothing about the same server
+at another port, in the same way that {{Section 4.1 of RFC9289}} observes
 that a successful AUTH_TLS probe on one port and transport implies
 nothing about any other.
 
@@ -437,10 +423,9 @@ An RPC client may learn the port for a program from the server's
 RPCBIND service {{RFC1833}}, whose replies are not authenticated.  An
 attacker who substitutes a port in an RPCBIND reply thereby
 substitutes the first label of the TLSA owner name the client will
-query.  The query is made at a name for which the operator published
-nothing, and the client assigns SECURE_ABSENT ({{outcomes}}) and pins
-no floor.
-
+query, and with it the TLSA RRset the client evaluates.  A floor
+pinned from that RRset is one the attacker selected, not one the
+operator published for the port the client was meant to use.
 Accordingly:
 
 * DANE authentication as specified in {{authn}} applies at whatever
@@ -463,10 +448,11 @@ authenticated source.
 Publishers MUST observe the requirements of {{Section 8 of RFC7671}},
 in particular during key rollover.  Those requirements keep in the
 RRset, at all times, a record matching the certificate that each
-server answering for the name may present.  A client that has pinned a floor fails rather than
-falls back when the RRset and the certificate disagree, so a rollover
-performed in the wrong order takes the service down.  That is
-intended, but operators need to plan for it.
+server answering for the name may present.  A client that has pinned
+a floor fails rather than falls back when the RRset and the
+certificate disagree, so a rollover performed in the wrong order takes
+the service down.  That is intended, but operators need to plan for
+it.
 
 # The Reference Name {#refname}
 
@@ -507,8 +493,7 @@ apply the following input contract.
 * A trailing empty label, written as a trailing dot in presentation
   form, is retained when constructing DNS queries and removed when the
   name is used as a Server Name Indication (SNI) value {{RFC6066}} or
-  as a
-  PKIX reference identifier.
+  as a PKIX reference identifier.
 
 ## Destinations that carry no DANE binding {#no-dane}
 
@@ -520,13 +505,10 @@ fails the input contract above.
 
 For such a destination:
 
-* In opportunistic mode, the attempt does not pin a floor.  If an
-  earlier attempt pinned one, that floor still governs the
-  association; otherwise {{fallback}} governs whether the attempt
-  may proceed in cleartext.  If the client
-  authenticates the server, it does so by the rules of {{Section 5.2.1
-  of RFC9289}}, which provide for matching an iPAddress
-  subjectAltName.
+* In opportunistic mode, the attempt does not pin a floor
+  ({{floor}}).  If the client authenticates the server, it does so by
+  the rules of {{Section 5.2.1 of RFC9289}}, which provide for
+  matching an iPAddress subjectAltName.
 
 * In mandatory mode, the association attempt fails ({{modes}}).
 
@@ -589,7 +571,7 @@ ERROR:
   prevents the client from assigning one of the four classes above.
 
 An ERROR outcome MUST NOT be treated as equivalent to INSECURE, and
-MUST NOT authorize cleartext operation: as {{Sections 2.1.1 and 2.1.2
+MUST NOT authorize cleartext operation.  As {{Sections 2.1.1 and 2.1.2
 of RFC7672}} observe, the conditions that produce it are the ones
 an attacker can produce at will.
 An implementation MAY retry a lookup that produced ERROR; if no
@@ -715,13 +697,6 @@ affect the outcome.
 
 ## Usable records and digest algorithm agility {#usable}
 
-Whether a record is usable is determined before any attempt is made to
-match it against a certificate, and a record that is usable but does
-not match the server's certificate is an authentication failure, never
-a reason to reclassify the RRset as unusable.  Conflating the two
-would let an attacker who can influence the certificate a server
-presents convert a DANE mismatch into a fallback.
-
 A client determines the usable records in a validated TLSA RRset as
 follows.
 
@@ -733,7 +708,7 @@ follows.
    type the client has not implemented or has been configured not to
    use.  Certificate usage support is specified in {{usages}}.
 
-3. Apply digest algorithm agility per {{Section 9 of RFC7671}}: for
+3. Apply digest algorithm agility per {{Section 9 of RFC7671}}.  For
    each combination of certificate usage and selector remaining, the
    client retains records with a matching type of Full(0), and records
    whose matching type is the strongest the client supports among
@@ -750,6 +725,13 @@ SECURE_USABLE.  If none does, the RRset is unusable and the outcome is
 SECURE_UNUSABLE.  Step 3 narrows the records the client matches
 against, but it never discards the last record for a usage and
 selector, so it cannot change the outcome class.
+
+Whether a record is usable is determined before any attempt is made to
+match it against a certificate.  A record that is usable but does not
+match the server's certificate is an authentication failure, never a
+reason to reclassify the RRset as unusable.  Conflating the two would
+let an attacker who can influence the certificate a server presents
+convert a DANE mismatch into a fallback.
 
 ## The selected TLSA base domain, SNI, and reference identifiers {#selected}
 
@@ -772,122 +754,15 @@ This departs from {{Section 7 of RFC7671}} because of what
 SECURE_UNUSABLE means.  A DANE client puts the expanded base domain in
 SNI because it is prepared to accept a certificate issued for that
 name.  A client that can use no record in the RRset is about to fall
-back to PKIX authentication against the configured name; sending the
+back to PKIX authentication against the configured name.  Sending the
 base domain in SNI would ask a server that selects its certificate by
-SNI for a certificate the client must then reject, and the handshake
-fails for a reason unrelated to the security of either name.
+SNI for a certificate the client must then reject.  The handshake
+would then fail for a reason unrelated to the security of either
+name.
 
 The selected TLSA base domain is reported in the audit record
 ({{audit}}) in both cases, so that an operator can see which name the
 policy decision was derived from.
-
-# Authenticating the Server {#authn}
-
-## Certificate usages {#usages}
-
-A client implementing this document MUST support certificate usages
-DANE-EE(3) and DANE-TA(2).  Both are used with the semantics given in
-{{Sections 5.1 and 5.2 of RFC7671}} respectively.  {{Section 4 of
-RFC7671}} recommends exactly this pair, and cautions that
-simultaneous support for all four usages is not recommended.
-
-Support for certificate usages PKIX-TA(0) and PKIX-EE(1) is OPTIONAL.
-A client that does not support them treats records carrying them as
-unusable in step 2 of {{usable}}.  Where such records are the only
-ones published, the outcome is SECURE_UNUSABLE, and {{behavior}}
-requires the client to authenticate the server by the PKIX rules of
-{{Section 5.2.1 of RFC9289}}.  That check is weaker than the
-published records call for, but never weaker than {{RFC9289}} alone.
-
-A client MUST support the selectors Cert(0) and SPKI(1) and the
-matching types Full(0) and SHA2-256(1), which is the support that
-{{Section 6 of RFC6698}} lets publishers rely on.  Support for
-SHA2-512(2) is RECOMMENDED.
-
-## DANE-EE(3) {#dane-ee}
-
-Authentication by a DANE-EE(3) record consists of matching the
-server's end-entity certificate, or its SubjectPublicKeyInfo, against
-the certificate association data of a usable record, per {{Section 5.1
-of RFC7671}}.
-
-When such a match succeeds, the server is authenticated.  In
-particular, and following {{Section 5.1 of RFC7671}}:
-
-* The client MUST NOT reject the server because no name in the
-  presented certificate matches the reference name or the selected
-  TLSA base domain.  The binding of key to name is made by the TLSA
-  record, not by the certificate.
-
-* The client MUST NOT reject the server because the presented
-  certificate is expired or not yet valid.  The validity of the
-  binding is the validity of the DNSSEC signatures over the TLSA
-  RRset.
-
-* The client MUST NOT require that the presented certificate chain to
-  a trusted certification authority.
-
-Consequently a self-signed server certificate, published as a
-DANE-EE(3) record with selector SPKI(1) and matching type
-SHA2-256(1), is a fully conforming deployment; see
-{{ta-distribution}}.
-
-## DANE-TA(2) {#dane-ta}
-
-Authentication by a DANE-TA(2) record consists of validating the
-server's certificate chain to the trust anchor the record identifies,
-per {{Section 5.2 of RFC7671}}, and then performing name checks
-against the reference identifiers determined in {{selected}}.
-
-Those name checks are performed per {{RFC9525}}, retaining the
-restriction in {{Section 5.2.1 of RFC9289}} that a DNS domain name in
-an RPC-with-TLS certificate MUST NOT contain the wildcard character
-"*".
-
-## Required client behavior by outcome class {#behavior}
-
-{{behavior-table}} states what a client in opportunistic mode MUST do
-for each DNS outcome class.  In mandatory mode the SECURE_USABLE row
-applies, with TLS required whatever the provenance of the port, and
-every other outcome fails the association attempt ({{modes}}).  In
-every case where authentication is required, failure of that
-authentication fails the association attempt; see {{no-retry}}.
-
-The requirement that TLS be used is carried by the security floor.
-Where the DNS outcome was derived from a port of untrusted provenance,
-{{provenance}} withholds that floor, and in opportunistic mode
-{{fallback}} then governs whether the attempt may proceed in
-cleartext.  The authentication requirements in the table apply to any
-(D)TLS session that is established, whatever the provenance of the
-port.
-
-| DNS outcome | Opportunistic mode |
-|---|---|
-| SECURE_USABLE | TLS is required, and the server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. |
-| SECURE_UNUSABLE | TLS is required, and the server MUST be authenticated per {{Section 5.2.1 of RFC9289}}. |
-| SECURE_ABSENT | This outcome does not pin a floor. A floor pinned by an earlier attempt still governs the association; otherwise {{fallback}} governs cleartext operation. A TLS session is authenticated per {{Section 5.2.1 of RFC9289}}. |
-| INSECURE | As for SECURE_ABSENT. |
-| ERROR | The attempt MUST fail. |
-{: #behavior-table title="Required client behavior by DNS outcome class"}
-
-The SECURE_USABLE row is the central requirement of this document.  A
-client MUST NOT accept a PKIX authentication in place of the DANE
-authentication the RRset calls for, however trusted the issuing
-certification authority; that substitution would return control of
-the association's authentication to whoever can obtain a certificate
-for the name, which is what the TLSA RRset was published to prevent.
-
-The SECURE_UNUSABLE row strengthens the guidance in {{Section 10.3 of
-RFC7671}} and {{Section 2.2 of RFC7672}}, which require only
-unauthenticated TLS in this case; {{Section 10.3 of RFC7671}}
-anticipates such a strengthening where expecting it is realistic for
-the application protocol.  For RPC-with-TLS the intermediate position
-is not available at all.  In both client deployment modes of
-{{Section 4.2 of RFC9289}} the server presents an identity that the
-client can authenticate, and {{Section 5.2.1 of RFC9289}} states what
-validation of the server's certificate MUST include, so accepting
-unauthenticated TLS here would be a downgrade relative to the base
-specification rather than an improvement on cleartext.
 
 # Downgrade Resistance {#downgrade}
 
@@ -895,7 +770,7 @@ specification rather than an improvement on cleartext.
 
 A DNS outcome class of SECURE_USABLE or SECURE_UNUSABLE pins a
 security floor for the server association, except where
-{{provenance}} withholds it: the client MUST NOT operate that
+{{provenance}} withholds it.  The client MUST NOT operate that
 association at a security level weaker than an authenticated TLS
 session, and MUST fail the association attempt rather than do so.
 
@@ -903,9 +778,10 @@ The floor is a property of the server association, not of the
 connection on which it was determined, and it persists for the
 lifetime of the association.  Once pinned, it applies to every
 subsequent association attempt for that association and to every
-transport that joins it ({{assoc-scope}}).  A later evaluation
-whose outcome class does not pin a floor does not remove one
-already pinned: an operator who withdraws a TLSA RRset lowers the
+transport that joins it ({{assoc-scope}}).  An outcome class that
+does not pin a floor leaves one already pinned in place.  Where no
+floor is pinned, {{fallback}} governs whether an attempt may proceed
+in cleartext.  An operator who withdraws a TLSA RRset lowers the
 floor only for associations established after the withdrawal
 ({{ta-distribution}}).  A client MUST retain a pinned floor, together
 with the selected TLSA base domain it was derived from, until the
@@ -1019,9 +895,7 @@ arrangement.
   current at the time of the association attempt, and MUST NOT reuse
   an outcome obtained for an earlier attempt beyond the TTL of the
   DNS data it was derived from.  The security floor is not such a
-  result: it persists across attempts ({{floor}}), and a fresh
-  evaluation can pin a floor or leave one in place but never remove
-  it.
+  result.  It persists across attempts ({{floor}}).
 
 * Within one association attempt, a client MUST NOT conclude at a
   security level weaker than any determination it has already made
@@ -1047,6 +921,108 @@ different evaluations.  A TLSA RRset republished mid-attempt during
 a key rollover produces this case; when the publisher has observed
 {{rollover}}, both RRsets match the certificate the server presents
 and the attempt succeeds whichever one the client uses.
+
+# Authenticating the Server {#authn}
+
+## Certificate usages {#usages}
+
+A client implementing this document MUST support certificate usages
+DANE-EE(3) and DANE-TA(2).  Both are used with the semantics given in
+{{Sections 5.1 and 5.2 of RFC7671}} respectively.  {{Section 4 of
+RFC7671}} recommends exactly this pair, and cautions that
+simultaneous support for all four usages is not recommended.
+
+Support for certificate usages PKIX-TA(0) and PKIX-EE(1) is OPTIONAL.
+A client that does not support them treats records carrying them as
+unusable in step 2 of {{usable}}.  Where such records are the only
+ones published, the outcome is SECURE_UNUSABLE, and {{behavior}}
+requires the client to authenticate the server by the PKIX rules of
+{{Section 5.2.1 of RFC9289}}.  That check is weaker than the
+published records call for, but never weaker than {{RFC9289}} alone.
+
+A client MUST support the selectors Cert(0) and SPKI(1) and the
+matching types Full(0) and SHA2-256(1), which is the support that
+{{Section 6 of RFC6698}} lets publishers rely on.  Support for
+SHA2-512(2) is RECOMMENDED.
+
+## DANE-EE(3) {#dane-ee}
+
+Authentication by a DANE-EE(3) record consists of matching the
+server's end-entity certificate, or its SubjectPublicKeyInfo, against
+the certificate association data of a usable record, per {{Section 5.1
+of RFC7671}}.
+
+When such a match succeeds, the server is authenticated.  In
+particular, and following {{Section 5.1 of RFC7671}}:
+
+* The client MUST NOT reject the server because no name in the
+  presented certificate matches the reference name or the selected
+  TLSA base domain.  The binding of key to name is made by the TLSA
+  record, not by the certificate.
+
+* The client MUST NOT reject the server because the presented
+  certificate is expired or not yet valid.  The validity of the
+  binding is the validity of the DNSSEC signatures over the TLSA
+  RRset.
+
+* The client MUST NOT require that the presented certificate chain to
+  a trusted certification authority.
+
+Consequently a self-signed server certificate, published as a
+DANE-EE(3) record with selector SPKI(1) and matching type
+SHA2-256(1), is a fully conforming deployment; see
+{{ta-distribution}}.
+
+## DANE-TA(2) {#dane-ta}
+
+Authentication by a DANE-TA(2) record consists of validating the
+server's certificate chain to the trust anchor the record identifies,
+per {{Section 5.2 of RFC7671}}, and then performing name checks
+against the reference identifiers determined in {{selected}}.
+
+Those name checks are performed per {{RFC9525}}, retaining the
+restriction in {{Section 5.2.1 of RFC9289}} that a DNS domain name in
+an RPC-with-TLS certificate MUST NOT contain the wildcard character
+"*".
+
+## Required client behavior by outcome class {#behavior}
+
+{{behavior-table}} states what a client in opportunistic mode MUST do
+for each DNS outcome class.  In mandatory mode the SECURE_USABLE row
+applies, with TLS required whatever the provenance of the port, and
+every other outcome fails the association attempt ({{modes}}).  In
+every case where authentication is required, failure of that
+authentication fails the association attempt; see {{no-retry}}.  The
+authentication requirements in the table apply to any (D)TLS session
+that is established, whatever the provenance of the port.
+
+| DNS outcome | Opportunistic mode |
+|---|---|
+| SECURE_USABLE | Pins a security floor ({{floor}}). The server MUST be authenticated by DANE per {{authn}}. PKIX authentication MUST NOT be substituted for it. |
+| SECURE_UNUSABLE | Pins a security floor ({{floor}}). The server MUST be authenticated per {{Section 5.2.1 of RFC9289}}. |
+| SECURE_ABSENT | Does not pin a floor ({{floor}}). A TLS session is authenticated per {{Section 5.2.1 of RFC9289}}. |
+| INSECURE | As for SECURE_ABSENT. |
+| ERROR | The attempt MUST fail. |
+{: #behavior-table title="Required client behavior by DNS outcome class"}
+
+The SECURE_USABLE row is the central requirement of this document.  A
+client MUST NOT accept a PKIX authentication in place of the DANE
+authentication the RRset calls for, however trusted the issuing
+certification authority; that substitution would return control of
+the association's authentication to whoever can obtain a certificate
+for the name, which is what the TLSA RRset was published to prevent.
+
+The SECURE_UNUSABLE row strengthens the guidance in {{Section 10.3 of
+RFC7671}} and {{Section 2.2 of RFC7672}}, which require only
+unauthenticated TLS in this case; {{Section 10.3 of RFC7671}}
+anticipates such a strengthening where expecting it is realistic for
+the application protocol.  For RPC-with-TLS the intermediate position
+is not available at all.  In both client deployment modes of
+{{Section 4.2 of RFC9289}} the server presents an identity that the
+client can authenticate, and {{Section 5.2.1 of RFC9289}} specifies
+what validation of the server's certificate MUST include.  Accepting
+unauthenticated TLS here would therefore be a downgrade relative to
+the base specification rather than an improvement on cleartext.
 
 # Association Scope and Policy Granularity {#assoc-scope}
 
@@ -1239,7 +1215,7 @@ the client can do.
 
 An attacker who captured a signed denial of existence for a TLSA owner
 name before the operator published the RRset can replay it within that
-period; the client assigns SECURE_ABSENT and does not pin a floor
+period.  The client assigns SECURE_ABSENT and does not pin a floor
 ({{adaptive}}).
 
 An attacker who captured the parent zone's signed proof that the
@@ -1258,14 +1234,14 @@ operational and belongs to the publisher ({{ta-distribution}}).
 
 A security floor, once pinned, persists for the lifetime of the
 association ({{floor}}).  A replayed denial therefore cannot authorize
-cleartext operation once a floor is pinned: replayed at a reconnect,
+cleartext operation once a floor is pinned.  Replayed at a reconnect,
 it leaves the floor in place, and a forged decline fails the attempt
 rather than permitting fallback.
 
-That guarantee has two limits.  An association whose attempts have so
-far pinned no floor stays exposed to the replay at every later
-attempt, until an evaluation pins one.  And the floor requires an
-authenticated TLS session, not DANE authentication.  An attempt that
+An association whose attempts have not yet pinned a floor stays
+exposed to the replay at every later attempt, until an evaluation pins
+one.  The floor also requires only an authenticated TLS session, not
+DANE authentication.  An attempt that
 a replayed denial leaves at SECURE_ABSENT or INSECURE authenticates
 the server by the PKIX rules of {{Section 5.2.1 of RFC9289}}, so
 within the replay window an attacker who can present a certificate
@@ -1288,19 +1264,18 @@ client to fail an association attempt in circumstances where an
 the client's DNS -- by dropping responses, by inducing SERVFAIL, or by
 corrupting signatures to produce a bogus validation result -- can
 therefore prevent the client from establishing associations.  The
-exposure extends to an association already established: each
+exposure extends to an association already established.  Each
 reconnection is an association attempt and evaluates the DNS outcome
 afresh ({{coherence}}), so a disruption of DNS that coincides with
 the loss of a connection keeps the association from recovering.
 
-This is a deliberate trade: degrading when DNS is disrupted hands the
-same attacker the ability to strip protection silently, and an
+The trade is deliberate.  Degrading when DNS is disrupted would hand
+the same attacker the ability to strip protection silently, and an
 attacker who can disrupt DNS can usually disrupt the RPC traffic
-itself.  Opportunistic
-mode does not relieve this exposure, since ERROR fails the attempt in
-both active modes; operators for whom availability outweighs
-confidentiality express that by leaving DANE disabled for the
-associations concerned.
+itself.  Opportunistic mode does not relieve this exposure, since
+ERROR fails the attempt in both active modes.  Operators for whom
+availability outweighs confidentiality express that by leaving DANE
+disabled for the associations concerned.
 
 ## Unauthenticated port selection {#sec-ports}
 
@@ -1415,15 +1390,16 @@ Clients then need no certification authority material for those
 servers, the operator maintains the binding in one place, and by
 {{dane-ee}} the certificate may be self-signed with any notAfter
 date.  Keeping the RRset and certificates in step, in particular
-during key rollover, is specified in {{rollover}}.  Withdrawing DANE takes
-the same posture: a client that has pinned a floor for an association
-keeps requiring authenticated TLS until that association ends
-({{floor}}), so removing the RRset lowers what clients require only
-as they remount.  Where clients hold no certification authority
-material for the server, an association with a pinned floor cannot
-re-establish a connection once the RRset is gone: the floor still
-requires an authenticated session, and nothing remains to
-authenticate it against.
+during key rollover, is specified in {{rollover}}.
+
+A client that has pinned a floor for an association keeps requiring
+authenticated TLS until that association ends ({{floor}}), so
+removing the RRset lowers what clients require only as they remount.
+Where clients hold no certification authority material for the
+server, an association with a pinned floor cannot re-establish a
+connection once the RRset is gone.  The floor still requires an
+authenticated session, and nothing remains to authenticate it
+against.
 
 The signature validity period the operator chooses bounds the replay
 windows described in {{replay}}, except that of a replayed proof of
